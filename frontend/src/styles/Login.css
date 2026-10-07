@@ -1,0 +1,482 @@
+/* ==============================
+   RESET
+============================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f8fc;
+}
+
+
+/* ==============================
+   MAIN PAGE
+============================== */
+
+.login-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+
+/* ==============================
+   LEFT SIDE
+============================== */
+
+.login-brand {
+  width: 52%;
+  min-height: 100vh;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: white;
+}
+
+.brand-overlay {
+  width: 100%;
+  min-height: 100vh;
+
+  padding: 55px 70px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 35, 70, 0.10),
+    rgba(0, 25, 55, 0.20),
+    rgba(0, 20, 45, 0.72)
+  );
+}
+
+
+/* ==============================
+   SMARTMOVE BRAND
+============================== */
+
+.brand-top {
+  text-align: center;
+}
+
+.brand-top h1 {
+  font-size: 42px;
+  font-weight: 700;
+
+  line-height: 1.1;
+
+  color: white;
+}
+
+.brand-top p {
+  margin-top: 8px;
+
+  font-size: 17px;
+
+  color: white;
+}
+
+
+/* ==============================
+   BOTTOM TEXT
+============================== */
+
+.brand-bottom {
+  max-width: 550px;
+
+  margin-bottom: 10px;
+}
+
+.brand-bottom h2 {
+  margin-bottom: 20px;
+
+  font-size: 43px;
+  font-weight: 700;
+
+  line-height: 1.18;
+
+  color: white;
+
+  text-shadow:
+    0 2px 7px rgba(0, 0, 0, 0.25);
+}
+
+.brand-bottom p {
+  font-size: 17px;
+
+  line-height: 1.65;
+
+  color: white;
+
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+
+/* ==============================
+   RIGHT SIDE
+============================== */
+
+.login-section {
+  width: 48%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 45px;
+
+  background: #f5f8fc;
+}
+
+
+/* ==============================
+   LOGIN CARD
+============================== */
+
+.login-card {
+  width: 100%;
+  max-width: 520px;
+
+  padding: 48px 45px;
+
+  background: white;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 12px 40px rgba(23, 49, 83, 0.10);
+
+  text-align: left;
+}
+
+
+/* ==============================
+   LOGIN HEADING
+============================== */
+
+.login-heading {
+  margin-bottom: 38px;
+
+  text-align: center;
+}
+
+.login-heading h2 {
+  margin-bottom: 8px;
+
+  font-size: 31px;
+  font-weight: 700;
+
+  color: #142033;
+}
+
+.login-heading p {
+  font-size: 15px;
+
+  color: #7d8797;
+}
+
+
+/* ==============================
+   FORM
+============================== */
+
+.form-group {
+  width: 100%;
+
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+
+  width: 100%;
+
+  margin-bottom: 9px;
+
+  text-align: left;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #202b3d;
+}
+
+.form-group input {
+  width: 100%;
+  height: 50px;
+
+  padding: 0 15px;
+
+  border: 1px solid #d2dce8;
+
+  border-radius: 6px;
+
+  outline: none;
+
+  background: white;
+
+  font-size: 14px;
+
+  color: #253247;
+
+  transition: 0.2s;
+}
+
+.form-group input::placeholder {
+  color: #98a4b5;
+}
+
+.form-group input:focus {
+  border-color: #0d7df2;
+
+  box-shadow:
+    0 0 0 3px rgba(13, 125, 242, 0.08);
+}
+
+
+/* ==============================
+   PASSWORD
+============================== */
+
+.password-field {
+  position: relative;
+
+  width: 100%;
+}
+
+.password-field input {
+  padding-right: 50px;
+}
+
+.password-toggle {
+  position: absolute;
+
+  top: 50%;
+  right: 15px;
+
+  transform: translateY(-50%);
+
+  border: none;
+
+  background: transparent;
+
+  color: #748094;
+
+  font-size: 18px;
+
+  cursor: pointer;
+}
+
+
+/* ==============================
+   LOGIN OPTIONS
+============================== */
+
+.login-options {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 2px;
+  margin-bottom: 28px;
+
+  font-size: 13px;
+}
+
+.remember {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #465267;
+
+  cursor: pointer;
+}
+
+.remember input {
+  width: 16px;
+  height: 16px;
+
+  accent-color: #0d7df2;
+}
+
+.login-options a {
+  color: #087cf0;
+
+  text-decoration: none;
+}
+
+.login-options a:hover {
+  text-decoration: underline;
+}
+
+
+/* ==============================
+   LOGIN BUTTON
+============================== */
+
+.login-button {
+  width: 100%;
+  height: 50px;
+
+  border: none;
+
+  border-radius: 6px;
+
+  background: #0b7ff3;
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.login-button:hover {
+  background: #006edc;
+}
+
+.login-button:active {
+  transform: scale(0.99);
+}
+
+
+/* ==============================
+   TABLET
+============================== */
+
+@media (max-width: 1000px) {
+
+  .brand-overlay {
+    padding: 40px;
+  }
+
+  .brand-top h1 {
+    font-size: 35px;
+  }
+
+  .brand-bottom h2 {
+    font-size: 34px;
+  }
+
+  .login-section {
+    padding: 30px;
+  }
+
+  .login-card {
+    padding: 38px 30px;
+  }
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media (max-width: 768px) {
+
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-brand {
+    width: 100%;
+    min-height: 390px;
+
+    background-position: center;
+  }
+
+  .brand-overlay {
+    min-height: 390px;
+
+    padding: 30px;
+  }
+
+  .brand-top h1 {
+    font-size: 31px;
+  }
+
+  .brand-top p {
+    font-size: 14px;
+  }
+
+  .brand-bottom h2 {
+    font-size: 29px;
+  }
+
+  .brand-bottom p {
+    font-size: 14px;
+  }
+
+  .login-section {
+    width: 100%;
+    min-height: auto;
+
+    padding: 35px 20px;
+  }
+
+  .login-card {
+    max-width: 500px;
+
+    padding: 35px 25px;
+  }
+}
+
+
+/* ==============================
+   SMALL MOBILE
+============================== */
+
+@media (max-width: 450px) {
+
+  .login-brand {
+    min-height: 340px;
+  }
+
+  .brand-overlay {
+    min-height: 340px;
+
+    padding: 25px;
+  }
+
+  .brand-bottom h2 {
+    font-size: 26px;
+  }
+
+  .brand-bottom p {
+    font-size: 13px;
+  }
+
+  .login-heading h2 {
+    font-size: 26px;
+  }
+
+  .login-options {
+    gap: 15px;
+  }
+}
