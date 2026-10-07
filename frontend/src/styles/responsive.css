@@ -1,0 +1,188 @@
+@media (max-width: 1120px) {
+  .sidebar {
+    flex-basis: 190px;
+    width: 190px;
+  }
+
+  main {
+    padding: 24px 20px 36px;
+  }
+}
+
+@media (max-width: 780px) {
+  .sidebar {
+    flex-basis: 66px;
+    width: 66px;
+  }
+
+  .brand {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .brand > span:not(.brand-icon),
+  .sidebar nav p,
+  .nav-link span,
+  .side-user > span:not(.user-avatar),
+  .side-user > svg {
+    display: none;
+  }
+
+  .sidebar nav {
+    padding: 18px 7px;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .side-user {
+    justify-content: center;
+    margin: 0 7px;
+  }
+
+  .topbar {
+    padding: 0 17px;
+  }
+
+  main {
+    padding: 22px 15px 32px;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    flex-direction: row;
+    width: 100%;
+    height: 62px;
+  }
+
+  .brand,
+  .side-user,
+  .sidebar nav p {
+    display: none;
+  }
+
+  .sidebar nav {
+    display: flex;
+    align-items: center;
+    padding: 5px 6px;
+    overflow: auto;
+  }
+
+  .nav-link {
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 65px;
+    height: 48px;
+    margin: 0 2px;
+    padding: 3px;
+    font-size: 8px;
+  }
+
+  .nav-link span {
+    display: block;
+  }
+
+  .workspace {
+    padding-bottom: 62px;
+  }
+
+  .topbar {
+    gap: 8px;
+    height: 55px;
+    padding: 0 11px;
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #153c60;
+    font-size: 11px;
+  }
+
+  .top-user {
+    gap: 4px;
+  }
+
+  .top-user > span,
+  .top-user > svg:last-child {
+    display: none;
+  }
+
+  main {
+    padding: 18px 11px 27px;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+  }
+
+  .page-heading h1 {
+    font-size: 18px;
+  }
+
+  .page-heading p {
+    max-width: 220px;
+    line-height: 1.4;
+  }
+
+  .page-heading .primary {
+    min-height: 31px;
+    padding: 0 8px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .filters select,
+  .filters input {
+    flex: 1;
+    min-width: 100px;
+    max-width: none;
+  }
+
+  .search-box {
+    flex: 1;
+    width: 100%;
+  }
+
+  .filters .date-filter {
+    min-width: 130px;
+  }
+
+  .form-grid,
+  .booking-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .span-two {
+    grid-column: auto;
+  }
+
+  .form-card,
+  .booking-form {
+    padding: 14px;
+  }
+
+  .receipt {
+    padding: 18px 15px;
+  }
+
+  .receipt-actions {
+    flex-direction: column;
+  }
+
+  .receipt-actions button {
+    width: 100%;
+  }
+}
