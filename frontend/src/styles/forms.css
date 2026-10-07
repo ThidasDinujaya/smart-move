@@ -1,0 +1,295 @@
+.form-page {
+  max-width: 900px;
+}
+
+.form-card,
+.booking-form {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  box-shadow: 0 2px 6px #14284608;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px 22px;
+}
+
+.form-grid label,
+.field-stack label,
+.dialog-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #25364e;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.form-grid b,
+.field-stack b {
+  color: #e54646;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea,
+.field-stack input,
+.field-stack select,
+.dialog-form input {
+  width: 100%;
+  min-height: 33px;
+  padding: 7px 9px;
+  border: 1px solid #dfe6ed;
+  border-radius: 5px;
+  color: #3d4e65;
+  background: white;
+  font-size: 10px;
+}
+
+.form-grid textarea {
+  resize: vertical;
+}
+
+.span-two {
+  grid-column: span 2;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.booking-form {
+  max-width: 740px;
+}
+
+.booking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.field-stack {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.summary {
+  align-self: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f8fafc;
+}
+
+.summary h3 {
+  margin: 0 0 10px;
+  font-size: 11px;
+}
+
+.summary dl,
+.receipt dl,
+.details {
+  margin: 0;
+}
+
+.summary dl > div,
+.receipt dl > div,
+.details > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid #e7edf3;
+  font-size: 10px;
+}
+
+.summary dl > div:last-child,
+.receipt dl > div:last-child,
+.details > div:last-child {
+  border: 0;
+}
+
+.summary dt,
+.receipt dt,
+.details dt {
+  color: #728096;
+}
+
+.summary dd,
+.receipt dd,
+.details dd {
+  margin: 0;
+  color: #27384f;
+  text-align: right;
+  font-weight: 600;
+}
+
+.summary .total {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #dce4ed;
+}
+
+.summary .total dd {
+  color: #0875ed;
+  font-size: 12px;
+}
+
+.shade {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: #07182c75;
+}
+
+.dialog {
+  width: min(480px, 100%);
+  max-height: 90vh;
+  padding: 20px;
+  overflow: auto;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 18px 60px #05142833;
+}
+
+.dialog header {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e9eef4;
+}
+
+.dialog h2 {
+  margin: 0;
+  color: #1c2d45;
+  font-size: 16px;
+  text-transform: capitalize;
+}
+
+.dialog header p {
+  margin: 4px 0 0;
+  color: #7b8899;
+  font-size: 10px;
+}
+
+.close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #e3eaf2;
+  border-radius: 5px;
+  color: #65748a;
+  background: white;
+}
+
+.dialog-form {
+  display: grid;
+  gap: 11px;
+  padding-top: 15px;
+}
+
+.details {
+  padding-top: 10px;
+}
+
+.details > div {
+  font-size: 11px;
+}
+
+.delete-message {
+  margin: 20px 0 28px;
+  color: #46566d;
+  font-size: 12px;
+}
+
+.receipt-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.receipt-page > .page-heading {
+  width: 100%;
+}
+
+.receipt {
+  width: min(480px, 100%);
+  padding: 22px 28px 20px;
+  border: 1px solid #e6edf3;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 5px 20px #152d4d14;
+}
+
+.receipt-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #133c61;
+}
+
+.receipt-brand b,
+.receipt-brand small {
+  display: block;
+}
+
+.receipt-brand small {
+  margin-top: 3px;
+  color: #738197;
+  font-size: 9px;
+}
+
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0 16px;
+  color: #119b64;
+  font-size: 14px;
+}
+
+.success span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 8px;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #17ad72;
+}
+
+.receipt hr {
+  height: 1px;
+  margin: 0 0 9px;
+  border: 0;
+  border-top: 1px dashed #dbe3eb;
+}
+
+.receipt dl > div {
+  padding: 6px 0;
+}
+
+.receipt-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.receipt-actions button {
+  font-size: 9px;
+}
