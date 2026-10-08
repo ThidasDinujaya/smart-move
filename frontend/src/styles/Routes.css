@@ -1,0 +1,49 @@
+/* SmartMove — Routes.css */
+
+.route-status {
+
+  display: inline-block;
+
+
+
+  min-width: 75px;
+
+
+
+  padding: 6px 9px;
+
+
+
+  border-radius: 4px;
+
+
+
+  text-align: center;
+
+
+
+  font-size: 11px;
+
+  font-weight: 500;
+
+}
+
+
+
+.route-status.active {
+
+  background: #d9f7e8;
+
+  color: #07854b;
+
+}
+
+
+
+.route-status.inactive {
+
+  background: #ffe0e0;
+
+  color: #d93636;
+
+}

@@ -1,0 +1,399 @@
+/* SmartMove — Responsive.css */
+
+@media (max-width: 1100px) {
+
+
+
+  .dashboard-cards {
+
+    grid-template-columns: repeat(2, 1fr);
+
+  }
+
+
+
+  .dashboard-bottom {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .dashboard-panel {
+
+    min-height: auto;
+
+  }
+
+}
+
+@media (max-width: 900px) {
+
+
+
+  .vehicle-form-content {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .vehicle-image-section {
+
+    width: 100%;
+
+  }
+
+
+
+  .image-upload-box {
+
+    height: 180px;
+
+  }
+
+}
+
+@media (max-width: 800px) {
+
+
+
+  .management-header {
+
+    align-items: flex-start;
+
+
+
+    gap: 15px;
+
+
+
+    flex-direction: column;
+
+  }
+
+
+
+  .management-filters {
+
+    align-items: stretch;
+
+
+
+    flex-direction: column;
+
+  }
+
+
+
+  .management-search {
+
+    width: 100%;
+
+  }
+
+
+
+  .management-filters select {
+
+    width: 100%;
+
+  }
+
+
+
+  .table-footer {
+
+    align-items: flex-start;
+
+
+
+    gap: 15px;
+
+
+
+    flex-direction: column;
+
+  }
+
+}
+
+@media (max-width: 700px) {
+
+
+
+  /* SIDEBAR */
+
+
+
+  .sidebar {
+
+    width: 65px;
+
+  }
+
+
+
+  .sidebar-logo {
+
+    justify-content: center;
+
+
+
+    padding: 0;
+
+  }
+
+
+
+  .logo-bus {
+
+    margin-right: 0;
+
+  }
+
+
+
+  .logo-details {
+
+    display: none;
+
+  }
+
+
+
+  .sidebar-link {
+
+    justify-content: center;
+
+
+
+    padding: 0;
+
+  }
+
+
+
+  .sidebar-link span {
+
+    display: none;
+
+  }
+
+
+
+
+
+  /* MAIN */
+
+
+
+  .main-area {
+
+    margin-left: 65px;
+
+
+
+    width: calc(100% - 65px);
+
+  }
+
+
+
+
+
+  /* TOPBAR */
+
+
+
+  .topbar {
+
+    padding: 0 15px;
+
+  }
+
+
+
+  .topbar-search {
+
+    width: 180px;
+
+  }
+
+
+
+  .admin-profile span,
+
+  .admin-profile svg:last-child {
+
+    display: none;
+
+  }
+
+
+
+
+
+  /* PAGE */
+
+
+
+  .page-content {
+
+    padding: 18px 15px;
+
+  }
+
+
+
+
+
+  /* DASHBOARD */
+
+
+
+  .dashboard-heading h1 {
+
+    font-size: 25px;
+
+  }
+
+
+
+  .dashboard-heading p {
+
+    font-size: 13px;
+
+  }
+
+
+
+  .dashboard-cards {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .summary-card p {
+
+    font-size: 14px;
+
+  }
+
+
+
+  .summary-card h2 {
+
+    font-size: 28px;
+
+  }
+
+
+
+  .vehicle-status-content {
+
+    flex-direction: column;
+
+
+
+    padding: 25px 0;
+
+
+
+    gap: 20px;
+
+  }
+
+
+
+  .vehicle-status-list {
+
+    width: 210px;
+
+  }
+
+
+
+
+
+  /* FORMS */
+
+
+
+  .form-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .vehicle-form-card {
+
+    padding: 18px;
+
+  }
+
+
+
+  .form-actions {
+
+    flex-direction: column;
+
+  }
+
+
+
+  .cancel-button,
+
+  .save-button {
+
+    width: 100%;
+
+  }
+
+}
+
+@media (max-width: 480px) {
+
+
+
+  .topbar-search {
+
+    width: 140px;
+
+  }
+
+
+
+  .topbar-actions {
+
+    gap: 12px;
+
+  }
+
+
+
+  .dashboard-heading h1,
+
+  .management-header h1,
+
+  .form-heading h1 {
+
+    font-size: 23px;
+
+  }
+
+
+
+  .management-card {
+
+    padding: 12px;
+
+  }
+
+}

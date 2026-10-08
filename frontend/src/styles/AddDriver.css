@@ -1,0 +1,8 @@
+/* SmartMove — AddDriver.css */
+
+/* Add Driver uses the shared form styles in Forms.css. */
+.form-page .vehicle-form-card .form-group input:focus,
+.form-page .vehicle-form-card .form-group select:focus {
+  border-color: #087df5;
+  box-shadow: 0 0 0 2px rgba(8,125,245,.08);
+}

@@ -1,0 +1,653 @@
+/* SmartMove — Dashboard.css */
+
+.dashboard-page {
+
+  width: 100%;
+
+}
+
+
+
+.dashboard-heading {
+
+  margin-bottom: 22px;
+
+}
+
+
+
+.dashboard-heading h1 {
+
+  color: #1d2939;
+
+
+
+  font-size: 30px;
+
+  font-weight: 700;
+
+
+
+  margin-bottom: 6px;
+
+}
+
+
+
+.dashboard-heading p {
+
+  color: #7b8794;
+
+
+
+  font-size: 14px;
+
+}
+
+.dashboard-cards {
+
+  display: grid;
+
+
+
+  grid-template-columns: repeat(4, 1fr);
+
+
+
+  gap: 16px;
+
+
+
+  margin-bottom: 20px;
+
+}
+
+
+
+.summary-card {
+
+  min-height: 105px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 16px;
+
+
+
+  padding: 18px;
+
+
+
+  border-radius: 7px;
+
+}
+
+
+
+.summary-icon {
+
+  width: 52px;
+
+  height: 52px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  flex-shrink: 0;
+
+
+
+  border-radius: 6px;
+
+}
+
+
+
+.summary-card p {
+
+  margin-bottom: 5px;
+
+
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+}
+
+
+
+.summary-card h2 {
+
+  font-size: 29px;
+
+  font-weight: 700;
+
+}
+
+
+
+.vehicle-card {
+
+  background: #e4f2ff;
+
+  color: #0876d9;
+
+}
+
+
+
+.vehicle-card .summary-icon {
+
+  background: #cce6ff;
+
+}
+
+
+
+.driver-card {
+
+  background: #e3f8ec;
+
+  color: #159957;
+
+}
+
+
+
+.driver-card .summary-icon {
+
+  background: #c9efd9;
+
+}
+
+
+
+.route-card {
+
+  background: #f0e9ff;
+
+  color: #7453d6;
+
+}
+
+
+
+.route-card .summary-icon {
+
+  background: #e2d5ff;
+
+}
+
+
+
+.trip-card {
+
+  background: #fff2d9;
+
+  color: #e38a13;
+
+}
+
+
+
+.trip-card .summary-icon {
+
+  background: #ffe4b2;
+
+}
+
+.dashboard-bottom {
+
+  display: grid;
+
+
+
+  grid-template-columns: 0.8fr 1.35fr;
+
+
+
+  gap: 18px;
+
+}
+
+
+
+.dashboard-panel {
+
+  min-height: 280px;
+
+
+
+  background: white;
+
+
+
+  border: 1px solid #e7ebef;
+
+
+
+  border-radius: 7px;
+
+
+
+  padding: 19px;
+
+
+
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.03);
+
+}
+
+
+
+.dashboard-panel h3 {
+
+  color: #263445;
+
+
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+}
+
+.vehicle-status-content {
+
+  min-height: 220px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  gap: 40px;
+
+}
+
+
+
+.donut-chart {
+
+  position: relative;
+
+
+
+  width: 145px;
+
+  height: 145px;
+
+
+
+  border-radius: 50%;
+
+
+
+  background: conic-gradient(
+
+    #20b76b 0deg 270deg,
+
+    #2d91ed 270deg 315deg,
+
+    #f4a62a 315deg 345deg,
+
+    #ef5350 345deg 360deg
+
+  );
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  flex-shrink: 0;
+
+}
+
+
+
+.donut-chart::before {
+
+  content: "";
+
+
+
+  position: absolute;
+
+
+
+  width: 96px;
+
+  height: 96px;
+
+
+
+  background: white;
+
+
+
+  border-radius: 50%;
+
+}
+
+
+
+.donut-middle {
+
+  position: relative;
+
+
+
+  z-index: 2;
+
+
+
+  display: flex;
+
+  flex-direction: column;
+
+
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+
+.donut-middle strong {
+
+  color: #283747;
+
+
+
+  font-size: 26px;
+
+}
+
+
+
+.donut-middle span {
+
+  margin-top: 2px;
+
+
+
+  color: #8994a2;
+
+
+
+  font-size: 12px;
+
+}
+
+.vehicle-status-list {
+
+  width: 190px;
+
+}
+
+
+
+.status-row {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  padding: 8px 0;
+
+
+
+  color: #5e6c7b;
+
+
+
+  font-size: 12px;
+
+}
+
+
+
+.status-name {
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 8px;
+
+}
+
+
+
+.status-row strong {
+
+  color: #344253;
+
+
+
+  font-size: 13px;
+
+}
+
+
+
+.status-color {
+
+  width: 9px;
+
+  height: 9px;
+
+
+
+  display: inline-block;
+
+
+
+  border-radius: 2px;
+
+}
+
+
+
+.status-green {
+
+  background: #20b76b;
+
+}
+
+
+
+.status-blue {
+
+  background: #2d91ed;
+
+}
+
+
+
+.status-orange {
+
+  background: #f4a62a;
+
+}
+
+
+
+.status-red {
+
+  background: #ef5350;
+
+}
+
+.dashboard-panel-header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  margin-bottom: 16px;
+
+}
+
+
+
+.dashboard-panel-header button {
+
+  border: none;
+
+
+
+  background: transparent;
+
+
+
+  color: #147ee5;
+
+
+
+  font-size: 13px;
+
+
+
+  cursor: pointer;
+
+}
+
+
+
+.dashboard-panel-header button:hover {
+
+  text-decoration: underline;
+
+}
+
+
+
+.dashboard-table-wrapper {
+
+  width: 100%;
+
+
+
+  overflow-x: auto;
+
+}
+
+
+
+.dashboard-table {
+
+  width: 100%;
+
+
+
+  border-collapse: collapse;
+
+}
+
+
+
+.dashboard-table thead {
+
+  background: #edf2f6;
+
+}
+
+
+
+.dashboard-table th {
+
+  color: #344253;
+
+
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+
+
+  text-align: left;
+
+
+
+  padding: 12px 10px;
+
+
+
+  border-bottom: 1px solid #e5e9ed;
+
+
+
+  white-space: nowrap;
+
+}
+
+
+
+.dashboard-table td {
+
+  color: #566474;
+
+
+
+  font-size: 12px;
+
+
+
+  padding: 13px 10px;
+
+
+
+  border-bottom: 1px solid #edf0f3;
+
+
+
+  white-space: nowrap;
+
+}
+
+
+
+.dashboard-table tbody tr:hover {
+
+  background: #f8fafc;
+
+}

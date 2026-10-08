@@ -1,0 +1,305 @@
+/* SmartMove — Forms.css */
+
+.form-page {
+
+  width: 100%;
+
+}
+
+
+
+.form-heading {
+
+  margin-bottom: 20px;
+
+}
+
+
+
+.form-heading h1 {
+
+  color: #1d2939;
+
+
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+
+
+  margin-bottom: 6px;
+
+}
+
+
+
+.form-heading p {
+
+  color: #7b8794;
+
+
+
+  font-size: 14px;
+
+}
+
+.vehicle-form-card {
+
+  width: 100%;
+
+
+
+  background: white;
+
+
+
+  border: 1px solid #e5eaf0;
+
+
+
+  border-radius: 7px;
+
+
+
+  padding: 24px;
+
+
+
+  box-shadow: 0 1px 4px rgba(20, 40, 70, 0.04);
+
+}
+
+
+
+.vehicle-form-content {
+
+  display: grid;
+
+
+
+  grid-template-columns: 1fr 260px;
+
+
+
+  gap: 25px;
+
+}
+
+
+
+.vehicle-fields {
+
+  width: 100%;
+
+}
+
+.form-grid {
+
+  display: grid;
+
+
+
+  grid-template-columns: repeat(2, 1fr);
+
+
+
+  gap: 19px 20px;
+
+}
+
+
+
+.form-group {
+
+  display: flex;
+
+  flex-direction: column;
+
+
+
+  gap: 7px;
+
+}
+
+
+
+.form-group label,
+
+.image-title {
+
+  color: #344253;
+
+
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+}
+
+
+
+.form-group label span {
+
+  color: #ef4444;
+
+}
+
+
+
+.form-group input,
+
+.form-group select {
+
+  width: 100%;
+
+  height: 42px;
+
+
+
+  padding: 0 12px;
+
+
+
+  border: 1px solid #d6dee7;
+
+
+
+  border-radius: 5px;
+
+
+
+  background: white;
+
+
+
+  color: #455468;
+
+
+
+  font-size: 13px;
+
+
+
+  outline: none;
+
+}
+
+
+
+.form-group input::placeholder {
+
+  color: #a0aab5;
+
+}
+
+
+
+.form-group input:focus,
+
+.form-group select:focus {
+
+  border-color: #087df5;
+
+
+
+  box-shadow: 0 0 0 2px rgba(8, 125, 245, 0.08);
+
+}
+
+.form-actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+
+
+  gap: 10px;
+
+
+
+  margin-top: 25px;
+
+  padding-top: 20px;
+
+
+
+  border-top: 1px solid #edf0f3;
+
+}
+
+
+
+.cancel-button,
+
+.save-button {
+
+  min-width: 120px;
+
+  height: 42px;
+
+
+
+  border-radius: 5px;
+
+
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+
+
+  cursor: pointer;
+
+}
+
+
+
+.cancel-button {
+
+  background: #64788c;
+
+
+
+  color: white;
+
+
+
+  border: none;
+
+}
+
+
+
+.cancel-button:hover {
+
+  background: #53677a;
+
+}
+
+
+
+.save-button {
+
+  background: #087df5;
+
+
+
+  color: white;
+
+
+
+  border: none;
+
+}
+
+
+
+.save-button:hover {
+
+  background: #066edb;
+
+}

@@ -1,0 +1,345 @@
+/* SmartMove — Details.css */
+
+.details-page-header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  margin-bottom: 22px;
+
+}
+
+
+
+.details-page-header h1 {
+
+  color: #1d2939;
+
+
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+
+
+  margin-bottom: 6px;
+
+}
+
+
+
+.details-page-header p {
+
+  color: #7b8794;
+
+  font-size: 14px;
+
+}
+
+
+
+.details-edit-button {
+
+  height: 42px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  gap: 8px;
+
+
+
+  padding: 0 18px;
+
+
+
+  background: #087df5;
+
+
+
+  color: white;
+
+
+
+  border: none;
+
+  border-radius: 5px;
+
+
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+}
+
+
+
+.details-edit-button:hover {
+
+  background: #066edb;
+
+}
+
+
+
+.details-card {
+
+  background: white;
+
+
+
+  border: 1px solid #e5eaf0;
+
+  border-radius: 7px;
+
+
+
+  padding: 25px;
+
+
+
+  box-shadow: 0 1px 4px
+
+    rgba(20, 40, 70, 0.04);
+
+}
+
+
+
+.details-title {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  padding-bottom: 20px;
+
+  margin-bottom: 22px;
+
+
+
+  border-bottom: 1px solid #edf0f3;
+
+}
+
+
+
+.details-title h2 {
+
+  color: #1d2939;
+
+
+
+  font-size: 22px;
+
+
+
+  margin-bottom: 5px;
+
+}
+
+
+
+.details-title p {
+
+  color: #7b8794;
+
+
+
+  font-size: 13px;
+
+}
+
+
+
+.details-grid {
+
+  display: grid;
+
+
+
+  grid-template-columns: repeat(2, 1fr);
+
+
+
+  gap: 18px;
+
+}
+
+
+
+.detail-item {
+
+  min-height: 80px;
+
+
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+
+
+  gap: 8px;
+
+
+
+  padding: 15px;
+
+
+
+  background: #f8fafc;
+
+
+
+  border: 1px solid #edf0f3;
+
+  border-radius: 6px;
+
+}
+
+
+
+.detail-item span {
+
+  color: #8491a0;
+
+
+
+  font-size: 12px;
+
+}
+
+
+
+.detail-item strong {
+
+  color: #344253;
+
+
+
+  font-size: 14px;
+
+}
+
+
+
+.details-actions {
+
+  display: flex;
+
+
+
+  margin-top: 25px;
+
+  padding-top: 20px;
+
+
+
+  border-top: 1px solid #edf0f3;
+
+}
+
+
+
+.back-button {
+
+  height: 42px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 8px;
+
+
+
+  padding: 0 17px;
+
+
+
+  background: #64788c;
+
+
+
+  color: white;
+
+
+
+  border: none;
+
+  border-radius: 5px;
+
+
+
+  font-size: 13px;
+
+}
+
+
+
+.back-button:hover {
+
+  background: #53677a;
+
+}
+
+
+
+@media (max-width: 650px) {
+
+
+
+  .details-page-header {
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+
+
+    gap: 15px;
+
+  }
+
+
+
+  .details-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+
+  .details-edit-button {
+
+    width: 100%;
+
+  }
+
+}

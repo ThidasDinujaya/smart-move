@@ -1,0 +1,4 @@
+/* SmartMove — EditDriver.css */
+
+.form-page .vehicle-form-card input,
+.form-page .vehicle-form-card select { max-width: 100%; }

@@ -1,0 +1,95 @@
+/* SmartMove — AddVehicle.css */
+
+.vehicle-image-section {
+
+  display: flex;
+
+  flex-direction: column;
+
+
+
+  gap: 7px;
+
+}
+
+
+
+.image-upload-box {
+
+  height: 225px;
+
+
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  gap: 8px;
+
+
+
+  background: #f5f8fb;
+
+
+
+  border: 1px solid #dce3ea;
+
+
+
+  border-radius: 6px;
+
+
+
+  color: #698096;
+
+
+
+  cursor: pointer;
+
+
+
+  transition: 0.2s;
+
+}
+
+
+
+.image-upload-box:hover {
+
+  background: #edf5fc;
+
+
+
+  border-color: #9fc8ef;
+
+}
+
+
+
+.image-upload-box strong {
+
+  color: #344253;
+
+
+
+  font-size: 13px;
+
+}
+
+
+
+.image-upload-box span {
+
+  color: #8290a0;
+
+
+
+  font-size: 11px;
+
+}

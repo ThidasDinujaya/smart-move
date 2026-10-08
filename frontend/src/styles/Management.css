@@ -1,0 +1,543 @@
+/* SmartMove — Management.css */
+
+.management-page {
+
+  width: 100%;
+
+}
+
+
+
+.management-header {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  margin-bottom: 22px;
+
+}
+
+
+
+.management-header h1 {
+
+  color: #1d2939;
+
+
+
+  font-size: 28px;
+
+  font-weight: 700;
+
+
+
+  margin-bottom: 6px;
+
+}
+
+
+
+.management-header p {
+
+  color: #7b8794;
+
+
+
+  font-size: 14px;
+
+}
+
+.add-button {
+
+  min-width: 140px;
+
+  height: 42px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  gap: 8px;
+
+
+
+  padding: 0 17px;
+
+
+
+  background: #087df5;
+
+
+
+  color: white;
+
+
+
+  border-radius: 5px;
+
+
+
+  text-decoration: none;
+
+
+
+  font-size: 14px;
+
+  font-weight: 500;
+
+
+
+  transition: 0.2s;
+
+}
+
+
+
+.add-button:hover {
+
+  background: #066edb;
+
+}
+
+.management-card {
+
+  width: 100%;
+
+
+
+  background: white;
+
+
+
+  border: 1px solid #e6ebf0;
+
+
+
+  border-radius: 7px;
+
+
+
+  padding: 18px;
+
+
+
+  box-shadow: 0 1px 4px rgba(20, 40, 70, 0.04);
+
+}
+
+.management-filters {
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 12px;
+
+
+
+  margin-bottom: 17px;
+
+}
+
+
+
+.management-search {
+
+  width: 340px;
+
+  height: 40px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 9px;
+
+
+
+  padding: 0 12px;
+
+
+
+  border: 1px solid #d8e0e8;
+
+
+
+  border-radius: 5px;
+
+
+
+  color: #7d8996;
+
+}
+
+
+
+.management-search input {
+
+  width: 100%;
+
+
+
+  border: none;
+
+  outline: none;
+
+
+
+  background: transparent;
+
+
+
+  font-size: 13px;
+
+}
+
+
+
+.management-filters select {
+
+  min-width: 145px;
+
+  height: 40px;
+
+
+
+  padding: 0 12px;
+
+
+
+  border: 1px solid #d8e0e8;
+
+
+
+  border-radius: 5px;
+
+
+
+  background: white;
+
+
+
+  color: #455468;
+
+
+
+  font-size: 13px;
+
+
+
+  outline: none;
+
+}
+
+.management-table-wrapper {
+
+  width: 100%;
+
+
+
+  overflow-x: auto;
+
+}
+
+
+
+.management-table {
+
+  width: 100%;
+
+
+
+  border-collapse: collapse;
+
+}
+
+
+
+.management-table thead {
+
+  background: #edf3f7;
+
+}
+
+
+
+.management-table th {
+
+  padding: 12px 11px;
+
+
+
+  color: #2c3949;
+
+
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+
+
+  text-align: left;
+
+
+
+  white-space: nowrap;
+
+
+
+  border-bottom: 1px solid #dfe6ec;
+
+}
+
+
+
+.management-table td {
+
+  padding: 12px 11px;
+
+
+
+  color: #536171;
+
+
+
+  font-size: 12px;
+
+
+
+  border-bottom: 1px solid #edf0f3;
+
+
+
+  white-space: nowrap;
+
+}
+
+
+
+.management-table tbody tr:hover {
+
+  background: #f8fafc;
+
+}
+
+.action-buttons {
+
+  display: flex;
+
+  align-items: center;
+
+
+
+  gap: 5px;
+
+}
+
+
+
+.action-btn {
+
+  width: 31px;
+
+  height: 31px;
+
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+
+  border-radius: 4px;
+
+
+
+  cursor: pointer;
+
+}
+
+
+
+.view-btn {
+
+  background: white;
+
+
+
+  color: #087df5;
+
+
+
+  border: 1px solid #087df5;
+
+}
+
+
+
+.edit-btn {
+
+  background: #087df5;
+
+
+
+  color: white;
+
+
+
+  border: 1px solid #087df5;
+
+}
+
+
+
+.delete-btn {
+
+  background: #ff4545;
+
+
+
+  color: white;
+
+
+
+  border: 1px solid #ff4545;
+
+}
+
+
+
+.view-btn:hover {
+
+  background: #edf6ff;
+
+}
+
+
+
+.edit-btn:hover {
+
+  background: #066edb;
+
+}
+
+
+
+.delete-btn:hover {
+
+  background: #df3434;
+
+}
+
+.table-footer {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+
+
+  padding-top: 15px;
+
+}
+
+
+
+.table-footer p {
+
+  color: #748292;
+
+
+
+  font-size: 12px;
+
+}
+
+
+
+.pagination {
+
+  display: flex;
+
+
+
+  gap: 5px;
+
+}
+
+
+
+.pagination button {
+
+  width: 31px;
+
+  height: 31px;
+
+
+
+  background: white;
+
+
+
+  border: 1px solid #dfe5eb;
+
+
+
+  border-radius: 4px;
+
+
+
+  color: #667587;
+
+
+
+  cursor: pointer;
+
+}
+
+
+
+.pagination button:hover {
+
+  background: #f0f5fa;
+
+}
+
+
+
+.pagination .page-active {
+
+  background: #087df5;
+
+
+
+  border-color: #087df5;
+
+
+
+  color: white;
+
+}

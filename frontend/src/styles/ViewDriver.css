@@ -1,0 +1,4 @@
+/* SmartMove — ViewDriver.css */
+
+.details-card .details-title { gap: 16px; }
+.details-card .detail-item strong { overflow-wrap: anywhere; }

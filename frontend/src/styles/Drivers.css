@@ -1,0 +1,59 @@
+/* SmartMove — Drivers.css */
+
+.driver-status {
+
+  display: inline-block;
+
+
+
+  min-width: 75px;
+
+
+
+  padding: 6px 9px;
+
+
+
+  border-radius: 4px;
+
+
+
+  text-align: center;
+
+
+
+  font-size: 11px;
+
+  font-weight: 500;
+
+}
+
+
+
+.driver-status.active {
+
+  background: #d9f7e8;
+
+  color: #07854b;
+
+}
+
+
+
+.driver-status.on-leave {
+
+  background: #ffe0e0;
+
+  color: #e23b3b;
+
+}
+
+
+
+.driver-status.inactive {
+
+  background: #ffe0e0;
+
+  color: #d93636;
+
+}
