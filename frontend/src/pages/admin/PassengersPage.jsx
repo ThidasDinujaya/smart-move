@@ -5,10 +5,9 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 
-const statuses = ['Active', 'Inactive', 'Blocked'];
-
 export default function PassengersPage({ passengers, onAdd, onOpen }) {
   const list = useRecordList(passengers);
+  const statuses = [...new Set(passengers.map((record) => record.status).filter(Boolean))];
   const columns = [
     { key: 'number', label: '#' , render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'name', label: 'Name', className: 'strong' },
