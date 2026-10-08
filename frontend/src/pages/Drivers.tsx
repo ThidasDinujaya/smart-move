@@ -1,125 +1,82 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  Plus,
-  Search,
-  Eye,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 
-type Driver = {
-  id: number;
-  name: string;
-  licenseNo: string;
-  contact: string;
-  assignedVehicle: string;
-  status: string;
-};
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Search, Eye, Pencil, Trash2 } from "lucide-react";
+
+import {
+  getDrivers,
+  deleteDriver,
+} from "../utils/driverStorage";
+
+import type { Driver } from "../utils/driverStorage";
 
 function Drivers() {
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-
-  const drivers: Driver[] = [
-    {
-      id: 1,
-      name: "Kamal Perera",
-      licenseNo: "B1234567",
-      contact: "0771234567",
-      assignedVehicle: "NB-1234",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Nuwan Silva",
-      licenseNo: "B7654321",
-      contact: "0712345678",
-      assignedVehicle: "WP-5678",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Sanath Fernando",
-      licenseNo: "B9876543",
-      contact: "0779876543",
-      assignedVehicle: "CP-9012",
-      status: "On Leave",
-    },
-    {
-      id: 4,
-      name: "Dilshan Jayasekara",
-      licenseNo: "B4567891",
-      contact: "0714567890",
-      assignedVehicle: "EP-3456",
-      status: "Active",
-    },
-    {
-      id: 5,
-      name: "Ramesh Priyantha",
-      licenseNo: "B2345678",
-      contact: "0762345678",
-      assignedVehicle: "NB-7788",
-      status: "Inactive",
-    },
-  ];
+  const [drivers, setDrivers] = useState<Driver[]>(getDrivers);
 
   const filteredDrivers = drivers.filter((driver) => {
+    const query = search.trim().toLowerCase();
+
     const matchesSearch =
-      driver.name.toLowerCase().includes(search.toLowerCase()) ||
-      driver.licenseNo.toLowerCase().includes(search.toLowerCase());
+      driver.name.toLowerCase().includes(query) ||
+      driver.licenseNo.toLowerCase().includes(query) ||
+      driver.contact.includes(query) ||
+      driver.assignedVehicle.toLowerCase().includes(query);
 
     const matchesStatus =
-      statusFilter === "All" ||
-      driver.status === statusFilter;
+      statusFilter === "All" || driver.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusClass = (status: string) => {
-    return status.toLowerCase().replaceAll(" ", "-");
+  const getStatusClass = (status: string) =>
+    status.toLowerCase().replaceAll(" ", "-");
+
+  const handleView = (driver: Driver) => {
+    navigate(`/drivers/view/${driver.id}`);
   };
 
-  const handleDelete = (driverName: string) => {
+  const handleEdit = (driver: Driver) => {
+    navigate(`/drivers/edit/${driver.id}`);
+  };
+
+  const handleDelete = (driver: Driver) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete ${driverName}?`
+      `Are you sure you want to delete ${driver.name}?`
     );
 
-    if (confirmed) {
-      alert(`${driverName} deleted successfully`);
+    if (!confirmed) return;
+
+    try {
+      deleteDriver(driver.id);
+      setDrivers(getDrivers());
+      alert("Driver deleted successfully!");
+    } catch {
+      alert("Unable to delete driver.");
     }
   };
 
   return (
     <div className="management-page">
-
-      {/* PAGE HEADER */}
       <div className="management-header">
-
         <div>
           <h1>Driver Management</h1>
           <p>Manage driver information and assignments</p>
         </div>
 
-        <Link
-          to="/drivers/add"
-          className="add-button"
-        >
+        <Link to="/drivers/add" className="add-button">
           <Plus size={18} />
           Add Driver
         </Link>
-
       </div>
 
-      {/* MAIN CARD */}
       <div className="management-card">
-
-        {/* FILTER AREA */}
         <div className="management-filters">
-
           <div className="management-search">
             <Search size={17} />
-
             <input
               type="text"
               placeholder="Search driver..."
@@ -130,23 +87,17 @@ function Drivers() {
 
           <select
             value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value)
-            }
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
             <option value="All">All Status</option>
             <option value="Active">Active</option>
             <option value="On Leave">On Leave</option>
             <option value="Inactive">Inactive</option>
           </select>
-
         </div>
 
-        {/* DRIVER TABLE */}
         <div className="management-table-wrapper">
-
           <table className="management-table">
-
             <thead>
               <tr>
                 <th>#</th>
@@ -160,85 +111,79 @@ function Drivers() {
             </thead>
 
             <tbody>
+              {filteredDrivers.length > 0 ? (
+                filteredDrivers.map((driver, index) => (
+                  <tr key={driver.id}>
+                    <td>{index + 1}</td>
+                    <td>{driver.name}</td>
+                    <td>{driver.licenseNo}</td>
+                    <td>{driver.contact}</td>
+                    <td>{driver.assignedVehicle || "Not Assigned"}</td>
+                    <td>
+                      <span
+                        className={`driver-status ${getStatusClass(
+                          driver.status
+                        )}`}
+                      >
+                        {driver.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          type="button"
+                          className="action-btn view-btn"
+                          title="View Driver"
+                          onClick={() => handleView(driver)}
+                        >
+                          <Eye size={15} />
+                        </button>
 
-              {filteredDrivers.map((driver) => (
-                <tr key={driver.id}>
+                        <button
+                          type="button"
+                          className="action-btn edit-btn"
+                          title="Edit Driver"
+                          onClick={() => handleEdit(driver)}
+                        >
+                          <Pencil size={15} />
+                        </button>
 
-                  <td>{driver.id}</td>
-
-                  <td>{driver.name}</td>
-
-                  <td>{driver.licenseNo}</td>
-
-                  <td>{driver.contact}</td>
-
-                  <td>{driver.assignedVehicle}</td>
-
-                  <td>
-                    <span
-                      className={`driver-status ${getStatusClass(
-                        driver.status
-                      )}`}
-                    >
-                      {driver.status}
-                    </span>
+                        <button
+                          type="button"
+                          className="action-btn delete-btn"
+                          title="Delete Driver"
+                          onClick={() => handleDelete(driver)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={7}
+                    style={{
+                      textAlign: "center",
+                      padding: "30px",
+                      color: "#7b8794",
+                    }}
+                  >
+                    No drivers found.
                   </td>
-
-                  <td>
-                    <div className="action-buttons">
-
-                      <button
-                        className="action-btn view-btn"
-                        title="View"
-                      >
-                        <Eye size={15} />
-                      </button>
-
-                      <button
-                        className="action-btn edit-btn"
-                        title="Edit"
-                      >
-                        <Pencil size={15} />
-                      </button>
-
-                      <button
-                        className="action-btn delete-btn"
-                        title="Delete"
-                        onClick={() =>
-                          handleDelete(driver.name)
-                        }
-                      >
-                        <Trash2 size={15} />
-                      </button>
-
-                    </div>
-                  </td>
-
                 </tr>
-              ))}
-
+              )}
             </tbody>
-
           </table>
-
         </div>
 
-        {/* TABLE FOOTER */}
         <div className="table-footer">
-
-          <p>Showing 1 to 5 of 18 drivers</p>
-
-          <div className="pagination">
-            <button className="page-active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-          </div>
-
+          <p>
+            Showing {filteredDrivers.length} of {drivers.length} drivers
+          </p>
         </div>
-
       </div>
-
     </div>
   );
 }
