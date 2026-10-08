@@ -1,86 +1,81 @@
-import React from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import Icon from '../../components/Icon.jsx';
+import PageHeader from '../../components/PageHeader.jsx';
+import RecordsTable from '../../components/RecordsTable.jsx';
+import SearchFilters from '../../components/SearchFilters.jsx';
+import useRecordList from '../../hooks/useRecordList.js';
 
-const FeedbackReviews = () => {
-  const reviews = [
-    { id: 1, name: 'Nimal Perera', route: 'Colombo - Kandy', rating: '⭐⭐⭐⭐⭐', comment: 'Excellent service and comfortable journey.', date: '2025-09-28' },
-    { id: 2, name: 'Sanduni Fernando', route: 'Colombo - Galle', rating: '⭐⭐⭐⭐☆', comment: 'Clean bus and friendly staff.', date: '2025-09-27' },
-    { id: 3, name: 'Kasun Silva', route: 'Kandy - Matara', rating: '⭐⭐⭐⭐⭐', comment: 'Very punctual and safe trip.', date: '2025-09-26' },
-    { id: 4, name: 'Rashmi Jayasinghe', route: 'Colombo - Jaffna', rating: '⭐⭐⭐⭐☆', comment: 'Good service, but seats could be more comfortable.', date: '2025-09-25' },
-    { id: 5, name: 'Dilshan Perera', route: 'Colombo - Anuradhapura', rating: '⭐⭐⭐☆☆', comment: 'AC was not working properly.', date: '2025-09-24' },
+export default function FeedbackReviews({ reviews = [] }) {
+  const records = reviews.map((review) => {
+    const rating = Number(review.rating ?? review.score);
+    const passengerName = review.passengerName ?? review.passenger?.name ?? review.name ?? '';
+    const route = review.route ?? review.trip?.route ?? '';
+
+    return {
+      ...review,
+      name: passengerName,
+      route,
+      score: Number.isFinite(rating) ? rating : null,
+      status: Number.isFinite(rating) ? `${rating} stars` : '',
+    };
+  });
+  const list = useRecordList(records);
+  const ratedRecords = records.filter((review) => review.score !== null);
+  const averageRating = ratedRecords.length
+    ? (ratedRecords.reduce((total, review) => total + review.score, 0) / ratedRecords.length).toFixed(1)
+    : '—';
+  const positiveReviews = ratedRecords.filter((review) => review.score >= 4).length;
+  const ratingFilters = [...new Set(ratedRecords.map((review) => review.status))];
+  const columns = [
+    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
+    { key: 'name', label: 'Passenger', className: 'strong' },
+    { key: 'route', label: 'Route' },
+    {
+      key: 'rating',
+      label: 'Rating',
+      render: (record) => {
+        const score = record.score || 0;
+        return (
+          <span className="rating-stars" aria-label={`${score} out of 5 stars`}>
+            {Array.from({ length: 5 }, (_value, index) => (
+              <Icon key={index} name="star" size={13} filled={index < score} />
+            ))}
+          </span>
+        );
+      },
+    },
+    { key: 'comment', label: 'Comment' },
+    { key: 'date', label: 'Date' },
   ];
 
   return (
-    <div className="dashboard-container">
-      <Sidebar />
-      <div className="main-wrapper">
-        <Header />
-        <div className="content-body">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Feedback & Reviews</h1>
-              <p className="page-desc">View and manage passenger feedback and reviews</p>
-            </div>
-            <button className="btn-primary">+ Add Feedback</button>
-          </div>
+    <section className="page">
+      <PageHeader title="Feedback & Reviews" subtitle="Passenger feedback and trip reviews" />
 
-          <div className="stats-grid">
-            <div className="stat-card pink">
-              <span className="stat-icon">💬</span>
-              <div><div className="stat-title">Total Reviews</div><div className="stat-value">125</div></div>
-            </div>
-            <div className="stat-card green">
-              <span className="stat-icon">⭐</span>
-              <div><div className="stat-title">Average Rating</div><div className="stat-value">4.3</div></div>
-            </div>
-            <div className="stat-card blue">
-              <span className="stat-icon">👍</span>
-              <div><div className="stat-title">Positive Reviews</div><div className="stat-value">102</div></div>
-            </div>
-            <div className="stat-card orange">
-              <span className="stat-icon">👎</span>
-              <div><div className="stat-title">Complaints</div><div className="stat-value">8</div></div>
-            </div>
-          </div>
-
-          <div className="table-card">
-            <div className="table-header-title">Passenger Reviews</div>
-            <div className="filters-row">
-              <input type="text" className="filter-input search" placeholder="🔍 Search reviews..." />
-              <select className="filter-input select"><option>All Routes</option></select>
-              <select className="filter-input select"><option>All Ratings</option></select>
-              <input type="date" className="filter-input date" />
-            </div>
-
-            <table className="custom-table">
-              <thead>
-                <tr>
-                  <th>#</th><th>Passenger</th><th>Route</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reviews.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.id}</td><td>{r.name}</td><td>{r.route}</td>
-                    <td style={{ color: '#f59e0b' }}>{r.rating}</td>
-                    <td>{r.comment}</td><td>{r.date}</td>
-                    <td>
-                      <div className="action-btns">
-                        <button className="btn-icon view">👁️</button>
-                        <button className="btn-icon edit">✏️</button>
-                        <button className="btn-icon delete">🗑️</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="stats-grid">
+        <article className="stat-card pink">
+          <Icon name="message" size={22} />
+          <div><div className="stat-title">Reviews</div><div className="stat-value">{reviews.length}</div></div>
+        </article>
+        <article className="stat-card green">
+          <Icon name="star" size={22} />
+          <div><div className="stat-title">Average Rating</div><div className="stat-value">{averageRating}</div></div>
+        </article>
+        <article className="stat-card blue">
+          <Icon name="thumbsUp" size={22} />
+          <div><div className="stat-title">Positive Reviews</div><div className="stat-value">{positiveReviews}</div></div>
+        </article>
       </div>
-    </div>
-  );
-};
 
-export default FeedbackReviews;
+      <SearchFilters
+        search={list.search}
+        onSearchChange={list.setSearch}
+        searchPlaceholder="Search passenger feedback..."
+        status={list.status}
+        onStatusChange={list.setStatus}
+        statuses={ratingFilters}
+        showDate={false}
+      />
+      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} wide emptyMessage="No reviews found." />
+    </section>
+  );
+}

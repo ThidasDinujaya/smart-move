@@ -220,7 +220,13 @@ tbody tr:hover td {
   background: #fff0dc;
 }
 
+.badge.scheduled {
+  color: #1769aa;
+  background: #e3f2ff;
+}
+
 .badge.inactive,
+.badge.overdue,
 .badge.cancelled,
 .badge.failed,
 .badge.blocked {
@@ -313,4 +319,216 @@ tbody tr:hover td {
   background: transparent;
   text-decoration: underline;
   font-size: 10px;
+}
+
+.stats-grid,
+.report-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.stat-card > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+}
+
+.stat-card.green > svg { color: #168750; }
+.stat-card.orange > svg { color: #bf6a15; }
+.stat-card.purple > svg { color: #7c3aed; }
+.stat-card.pink > svg { color: #c02675; }
+
+.stat-card.blue { background: #eff6ff; }
+.stat-card.green { background: #f0fdf4; }
+.stat-card.orange { background: #fff7ed; }
+.stat-card.purple { background: #faf5ff; }
+.stat-card.pink { background: #fdf2f8; }
+
+.stat-icon {
+  font-size: 23px;
+}
+
+.stat-title {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.stat-value {
+  margin-top: 3px;
+  color: #17263d;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.stat-note {
+  margin-top: 2px;
+  color: #77859a;
+  font-size: 9px;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.report-panel {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 5px #14284608;
+}
+
+.report-panel h2 {
+  margin: 0;
+  color: #263750;
+  font-size: 12px;
+}
+
+.maintenance-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 170px;
+}
+
+.maintenance-total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  border: 13px solid #30a46c;
+  border-top-color: #ef6464;
+  border-right-color: #f3b94f;
+  border-radius: 50%;
+}
+
+.maintenance-total strong {
+  font-size: 19px;
+}
+
+.maintenance-total span {
+  color: #77859a;
+  font-size: 9px;
+}
+
+.maintenance-summary ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  color: #53637a;
+  font-size: 10px;
+  list-style: none;
+}
+
+.maintenance-summary li {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.maintenance-summary li b {
+  color: #263750;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.completed { background: #30a46c; }
+.legend-dot.scheduled { background: #2597d4; }
+.legend-dot.pending { background: #f3b94f; }
+.legend-dot.overdue { background: #ef6464; }
+
+.rating-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 170px;
+  padding: 14px 12px 0;
+}
+
+.rating-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  height: 100%;
+  color: #77859a;
+  font-size: 9px;
+}
+
+.rating-bar div {
+  width: 25px;
+  border-radius: 4px 4px 0 0;
+  background: #3b82f6;
+}
+
+.rating-bar b {
+  color: #53637a;
+  font-size: 9px;
+}
+
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #d99a14;
+}
+
+.rating-stars svg {
+  flex: 0 0 auto;
+}
+
+.report-empty {
+  display: grid;
+  min-height: 170px;
+  margin: 0;
+  place-items: center;
+  color: #8290a2;
+  font-size: 10px;
+}
+
+.app-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1500px;
+  margin: 0 auto 14px;
+  padding: 10px 12px;
+  border: 1px solid #c9dff5;
+  border-radius: 7px;
+  color: #28577d;
+  background: #eef7ff;
+  font-size: 11px;
+}
+
+.app-notice.error {
+  border-color: #f1c5c5;
+  color: #912d2d;
+  background: #fff1f1;
 }

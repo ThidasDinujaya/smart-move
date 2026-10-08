@@ -1,80 +1,98 @@
-import React from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import PageHeader from '../../components/PageHeader.jsx';
 
-const AddMaintenance = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="dashboard-container">
-      <Sidebar />
-      <div className="main-wrapper">
-        <Header />
-        <div className="content-body">
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Add Maintenance Record</h1>
-              <p className="page-desc">Enter maintenance details for the vehicle</p>
-            </div>
-          </div>
-
-          <div className="form-grid">
-            <div className="form-section">
-              <div className="form-section-title">Maintenance Details</div>
-              <div className="form-group">
-                <label>Vehicle *</label>
-                <select className="form-control"><option>NB-1234 (Bus)</option></select>
-              </div>
-              <div className="form-group">
-                <label>Maintenance Type *</label>
-                <select className="form-control"><option>Oil Change</option></select>
-              </div>
-              <div className="form-group">
-                <label>Service Date *</label>
-                <input type="text" className="form-control" defaultValue="28/09/2025" />
-              </div>
-              <div className="form-group">
-                <label>Next Service Date *</label>
-                <input type="text" className="form-control" defaultValue="28/03/2026" />
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea className="form-control" rows="3" defaultValue="Change engine oil and oil filter."></textarea>
-              </div>
-            </div>
-
-            <div className="form-section">
-              <div className="form-section-title">Additional Information</div>
-              <div className="form-group">
-                <label>Service Cost (Rs.)</label>
-                <input type="text" className="form-control" defaultValue="8500.00" />
-              </div>
-              <div className="form-group">
-                <label>Service Provider</label>
-                <input type="text" className="form-control" defaultValue="ABC Auto Services" />
-              </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select className="form-control"><option>Scheduled</option></select>
-              </div>
-              <div className="form-group">
-                <label>Attachment (Invoice/Document)</label>
-                <div className="file-upload">
-                  📄 Choose File <span style={{ color: '#64748b' }}>invoice.pdf</span>
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button className="btn-primary" onClick={() => navigate('/maintenance')}>💾 Save</button>
-                <button className="btn-secondary" onClick={() => navigate('/maintenance')}>🚫 Cancel</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+const initialForm = {
+  vehicleNo: '',
+  type: '',
+  date: '',
+  nextService: '',
+  description: '',
+  cost: '',
+  provider: '',
+  status: '',
 };
 
-export default AddMaintenance;
+export default function AddMaintenance({ options = {}, onSave, onCancel }) {
+  const [form, setForm] = useState(initialForm);
+  const vehicles = options.vehicles || [];
+  const types = options.types || [];
+  const statuses = options.statuses || [];
+
+  function updateField(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function submit(event) {
+    event.preventDefault();
+    onSave({
+      ...form,
+      cost: form.cost === '' ? '' : Number(form.cost),
+    });
+  }
+
+  return (
+    <section className="page form-page">
+      <PageHeader title="Add Maintenance Record" subtitle="Enter maintenance details for the vehicle" />
+      <form className="form-card form-grid" onSubmit={submit}>
+        <label>
+          Vehicle <b>*</b>
+          {vehicles.length ? (
+            <select name="vehicleNo" value={form.vehicleNo} onChange={updateField} required>
+              <option value="">Select a vehicle</option>
+              {vehicles.map((vehicle) => <option key={vehicle} value={vehicle}>{vehicle}</option>)}
+            </select>
+          ) : (
+            <input name="vehicleNo" placeholder="Enter vehicle number" value={form.vehicleNo} onChange={updateField} required />
+          )}
+        </label>
+        <label>
+          Maintenance Type <b>*</b>
+          {types.length ? (
+            <select name="type" value={form.type} onChange={updateField} required>
+              <option value="">Select a maintenance type</option>
+              {types.map((type) => <option key={type} value={type}>{type}</option>)}
+            </select>
+          ) : (
+            <input name="type" placeholder="Enter maintenance type" value={form.type} onChange={updateField} required />
+          )}
+        </label>
+        <label>
+          Service Date <b>*</b>
+          <input name="date" type="date" value={form.date} onChange={updateField} required />
+        </label>
+        <label>
+          Next Service Date <b>*</b>
+          <input name="nextService" type="date" value={form.nextService} onChange={updateField} required />
+        </label>
+        <label>
+          Service Cost (Rs.)
+          <input name="cost" type="number" min="0" step="0.01" value={form.cost} onChange={updateField} />
+        </label>
+        <label>
+          Service Provider
+          <input name="provider" value={form.provider} onChange={updateField} />
+        </label>
+        <label>
+          Status
+          {statuses.length ? (
+            <select name="status" value={form.status} onChange={updateField} required>
+              <option value="">Select a status</option>
+              {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+            </select>
+          ) : (
+            <input name="status" placeholder="Enter status" value={form.status} onChange={updateField} required />
+          )}
+        </label>
+        <label className="span-two">
+          Description
+          <textarea name="description" rows="3" value={form.description} onChange={updateField} />
+        </label>
+        <div className="form-actions span-two">
+          <button className="primary" type="submit">Save Record</button>
+          <button className="secondary" type="button" onClick={onCancel}>Cancel</button>
+        </div>
+      </form>
+    </section>
+  );
+}

@@ -6,10 +6,9 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDate, formatMoney } from '../../utils/formatters.js';
 
-const statuses = ['Confirmed', 'Pending', 'Cancelled'];
-
 export default function BookingsPage({ bookings, routes, onAdd, onOpen }) {
   const list = useRecordList(bookings, { filterRoute: true });
+  const statuses = [...new Set(bookings.map((record) => record.status).filter(Boolean))];
   const columns = [
     { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'id', label: 'Booking ID', className: 'strong' },

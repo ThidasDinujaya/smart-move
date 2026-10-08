@@ -1,91 +1,123 @@
 import { useMemo, useState } from 'react';
-import { nextCode, nextNumericId } from '../utils/formatters.js';
+
+const collectionKeys = ['passengers', 'trips', 'bookings', 'payments', 'maintenance', 'feedback'];
+
+function createEmptyCollections() {
+  return Object.fromEntries(collectionKeys.map((key) => [key, []]));
+}
+
+function createLocalId() {
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function uniqueValues(values) {
+  return [...new Set(values.map((value) => String(value ?? '').trim()).filter(Boolean))];
+}
+
+const collectionByType = {
+  passenger: 'passengers',
+  trip: 'trips',
+  booking: 'bookings',
+  payment: 'payments',
+};
 
 export default function useSmartMoveData() {
-  const [passengers, setPassengers] = useState([]);
-  const [trips, setTrips] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [payments, setPayments] = useState([]);
+  const [collections, setCollections] = useState(createEmptyCollections);
 
-  const routes = useMemo(() => [...new Set(
-    [...trips, ...bookings].map((record) => record.route).filter(Boolean),
-  )], [bookings, trips]);
+  const routes = useMemo(() => uniqueValues([
+    ...collections.trips.map((trip) => trip.route),
+    ...collections.bookings.map((booking) => booking.route),
+  ]), [collections.trips, collections.bookings]);
 
   const tripOptions = useMemo(() => ({
-    routes: [...new Set(trips.map((trip) => trip.route).filter(Boolean))],
-    vehicles: [...new Set(trips.map((trip) => trip.vehicle).filter(Boolean))],
-    drivers: [...new Set(trips.map((trip) => trip.driver).filter(Boolean))],
-  }), [trips]);
+    routes,
+    vehicles: uniqueValues(collections.trips.map((trip) => trip.vehicle)),
+    drivers: uniqueValues(collections.trips.map((trip) => trip.driver)),
+    statuses: uniqueValues(collections.trips.map((trip) => trip.status)),
+  }), [collections.trips, routes]);
 
-  function saveRecord(dialog, value) {
-    const { type, mode, item } = dialog;
+  const maintenanceOptions = useMemo(() => ({
+    vehicles: uniqueValues([
+      ...collections.trips.map((trip) => trip.vehicle),
+      ...collections.maintenance.map((record) => record.vehicleNo),
+    ]),
+    types: uniqueValues(collections.maintenance.map((record) => record.type)),
+    statuses: uniqueValues(collections.maintenance.map((record) => record.status)),
+  }), [collections.trips, collections.maintenance]);
 
-    if (type === 'passenger') {
-      setPassengers((current) => mode === 'add'
-        ? [...current, { ...value, id: nextNumericId(current) }]
-        : current.map((record) => record.id === item.id ? { ...record, ...value } : record));
-    }
+  function saveRecord({ type, mode, item }, value) {
+    const collection = collectionByType[type];
+    if (!collection) return false;
 
-    if (type === 'booking') {
-      setBookings((current) => current.map((record) => (
-        record.id === item.id ? { ...record, ...value } : record
-      )));
-    }
-
-    if (type === 'payment') {
-      setPayments((current) => mode === 'add'
-        ? [...current, {
-          ...value,
-          id: nextCode(current, 'PAY'),
-          date: new Date().toISOString(),
-        }]
-        : current.map((record) => record.id === item.id ? { ...record, ...value } : record));
-    }
+    setCollections((current) => {
+      const records = current[collection];
+      const next = mode === 'edit'
+        ? records.map((record) => String(record.id) === String(item.id) ? { ...record, ...value } : record)
+        : [{ ...value, id: createLocalId() }, ...records];
+      return { ...current, [collection]: next };
+    });
+    return true;
   }
 
   function deleteRecord(type, item) {
-    if (type === 'passenger') {
-      setPassengers((current) => current.filter((record) => record.id !== item.id));
-    }
-    if (type === 'booking') {
-      setBookings((current) => current.filter((record) => record.id !== item.id));
-    }
-    if (type === 'payment') {
-      setPayments((current) => current.filter((record) => record.id !== item.id));
-    }
-    if (type === 'trip') {
-      setTrips((current) => current.filter((record) => record.id !== item.id));
-    }
+    const collection = collectionByType[type];
+    if (!collection) return false;
+
+    setCollections((current) => ({
+      ...current,
+      [collection]: current[collection].filter((record) => String(record.id) !== String(item.id)),
+    }));
+    return true;
   }
 
   function saveTrip(value, editingTrip) {
-    setTrips((current) => editingTrip
-      ? current.map((trip) => trip.id === editingTrip.id ? { ...value, id: trip.id } : trip)
-      : [...current, { ...value, id: nextNumericId(current) }]);
+    setCollections((current) => ({
+      ...current,
+      trips: editingTrip
+        ? current.trips.map((trip) => String(trip.id) === String(editingTrip.id) ? { ...trip, ...value } : trip)
+        : [{ ...value, id: createLocalId() }, ...current.trips],
+    }));
+    return true;
   }
 
-  function saveBooking({ trip, passenger, count, seats, amount }) {
-    setBookings((current) => [...current, {
-      id: nextCode(current, 'BK'),
-      passenger,
-      route: trip.route,
-      date: trip.date,
-      seats: seats || Array.from({ length: count }, (_value, index) => index + 1).join(', '),
-      amount,
-      status: 'Confirmed',
-    }]);
+  function saveBooking({ tripId, passengerId, seatCount, seats }) {
+    const trip = collections.trips.find((record) => String(record.id) === String(tripId));
+    const passenger = collections.passengers.find((record) => String(record.id) === String(passengerId));
+    if (!trip || !passenger) return false;
+
+    setCollections((current) => ({
+      ...current,
+      bookings: [{
+        id: createLocalId(),
+        passenger: passenger.name,
+        route: trip.route,
+        date: trip.date,
+        seats: seats || String(seatCount),
+        amount: Number(trip.fare || 0) * Number(seatCount || 0),
+        status: '',
+      }, ...current.bookings],
+    }));
+    return true;
+  }
+
+  function saveMaintenance(value) {
+    setCollections((current) => ({
+      ...current,
+      maintenance: [{ ...value, id: createLocalId() }, ...current.maintenance],
+    }));
+    return true;
   }
 
   return {
-    passengers,
-    trips,
-    bookings,
-    payments,
+    ...collections,
+    reports: null,
     routes,
     tripOptions,
+    maintenanceOptions,
     saveRecord,
     deleteRecord,
     saveTrip,
     saveBooking,
+    saveMaintenance,
   };
 }

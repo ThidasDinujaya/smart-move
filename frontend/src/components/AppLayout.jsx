@@ -1,10 +1,23 @@
 import Icon from './Icon.jsx';
 
 const navigationItems = [
-  { id: 'passengers', label: 'Passengers', icon: 'users' },
-  { id: 'trips', label: 'Trips', icon: 'bus' },
-  { id: 'bookings', label: 'Bookings', icon: 'ticket' },
-  { id: 'payments', label: 'Payments', icon: 'card' },
+  {
+    label: 'Operations',
+    items: [
+      { id: 'passengers', label: 'Passengers', icon: 'users' },
+      { id: 'trips', label: 'Trips', icon: 'bus' },
+      { id: 'bookings', label: 'Bookings', icon: 'ticket' },
+      { id: 'payments', label: 'Payments', icon: 'card' },
+    ],
+  },
+  {
+    label: 'Management',
+    items: [
+      { id: 'maintenance', label: 'Maintenance', icon: 'wrench' },
+      { id: 'feedback', label: 'Feedback', icon: 'message' },
+      { id: 'reports', label: 'Reports', icon: 'chart' },
+    ],
+  },
 ];
 
 export default function AppLayout({ activePage, onNavigate, children }) {
@@ -22,31 +35,26 @@ export default function AppLayout({ activePage, onNavigate, children }) {
         </div>
 
         <nav aria-label="Main navigation">
-          <p>Operations</p>
-          {navigationItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-label={item.label}
-              className={'nav-link ' + (activePage === item.id ? 'active' : '')}
-              onClick={() => onNavigate(item.id)}
-            >
-              <Icon name={item.icon} size={17} />
-              <span>{item.label}</span>
-            </button>
+          {navigationItems.map((group) => (
+            <div key={group.label}>
+              <p>{group.label}</p>
+              {group.items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-label={item.label}
+                  aria-current={activePage === item.id ? 'page' : undefined}
+                  className={'nav-link ' + (activePage === item.id ? 'active' : '')}
+                  onClick={() => onNavigate(item.id)}
+                >
+                  <Icon name={item.icon} size={17} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
 
-        <div className="side-user">
-          <span className="user-avatar">
-            <Icon name="users" size={14} />
-          </span>
-          <span>
-            <b>Admin</b>
-            <small>Administrator</small>
-          </span>
-          <Icon name="chevronDown" size={14} />
-        </div>
       </aside>
 
       <div className="workspace">
@@ -54,13 +62,6 @@ export default function AppLayout({ activePage, onNavigate, children }) {
           <div className="mobile-brand">
             <Icon name="bus" size={22} />
             <b>SmartMove</b>
-          </div>
-          <div className="top-user">
-            <span className="user-avatar">
-              <Icon name="users" size={14} />
-            </span>
-            <span>Admin</span>
-            <Icon name="chevronDown" size={13} />
           </div>
         </header>
         <main>{children}</main>

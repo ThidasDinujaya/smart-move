@@ -11,13 +11,13 @@ const emptyTrip = {
   arrival: '',
   seats: '',
   fare: '',
-  status: 'Scheduled',
+  status: '',
   notes: '',
 };
 
 export default function TripForm({ value, onCancel, onSave, options = {} }) {
   const [form, setForm] = useState({ ...emptyTrip, ...(value || {}) });
-  const { routes = [], vehicles = [], drivers = [] } = options;
+  const { routes = [], vehicles = [], drivers = [], statuses = [] } = options;
 
   function update(key, nextValue) {
     setForm((current) => ({ ...current, [key]: nextValue }));
@@ -126,14 +126,23 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           </label>
           <label>
             <span>Status <b>*</b></span>
+            {statuses.length ? (
               <select
+                required
                 value={form.status}
                 onChange={(event) => update('status', event.target.value)}
               >
-              <option>Scheduled</option>
-              <option>Cancelled</option>
-              <option>Completed</option>
-            </select>
+                <option value="">Select Status</option>
+                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+            ) : (
+              <input
+                required
+                placeholder="Enter status"
+                value={form.status}
+                onChange={(event) => update('status', event.target.value)}
+              />
+            )}
           </label>
           <label>
             <span>Departure Time <b>*</b></span>
