@@ -1,0 +1,162 @@
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  display: flex;
+  flex: 0 0 220px;
+  flex-direction: column;
+  width: 220px;
+  height: 100vh;
+  color: #eef5fc;
+  background: linear-gradient(180deg, #092b4c, #061f39);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 76px;
+  padding: 0 18px;
+  border-bottom: 1px solid #ffffff14;
+}
+
+.brand-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: #ffffff20;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand strong {
+  font-size: 15px;
+  letter-spacing: -0.03em;
+}
+
+.brand small {
+  margin-top: 3px;
+  color: #b7c8da;
+  font-size: 9px;
+}
+
+.sidebar nav {
+  flex: 1;
+  padding: 19px 10px;
+  overflow: auto;
+}
+
+.sidebar nav p {
+  padding: 0 11px;
+  color: #91a9bf;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 39px;
+  margin: 3px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #d4dfeb;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+}
+
+.nav-link:hover {
+  color: white;
+  background: #ffffff16;
+}
+
+.nav-link.active {
+  color: white;
+  background: #0875ed;
+  font-weight: 700;
+  box-shadow: 0 3px 8px #0003;
+}
+
+.side-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 12px;
+  padding: 14px 3px 17px;
+  border-top: 1px solid #ffffff20;
+  font-size: 10px;
+}
+
+.side-user b,
+.side-user small {
+  display: block;
+}
+
+.side-user small {
+  margin-top: 2px;
+  color: #a9bed2;
+  font-size: 9px;
+}
+
+.side-user > svg {
+  margin-left: auto;
+}
+
+.user-avatar {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  color: #17446e;
+  background: #dce9f9;
+  font-weight: 700;
+}
+
+.workspace {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  height: 62px;
+  padding: 0 27px;
+  border-bottom: 1px solid #eaf0f6;
+  background: #fff;
+}
+
+.top-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: #35465d;
+  font-size: 11px;
+}
+
+.mobile-brand {
+  display: none;
+}
+
+main {
+  padding: 27px 30px 42px;
+}
