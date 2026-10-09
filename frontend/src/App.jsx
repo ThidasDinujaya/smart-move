@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// Layout & Components
 import AppLayout from './components/AppLayout.jsx';
 import BookingForm from './components/BookingForm.jsx';
 import RecordDialog from './components/RecordDialog.jsx';
 import TripForm from './components/TripForm.jsx';
+
+// Admin Pages
 import BookingsPage from './pages/admin/BookingsPage.jsx';
 import PassengersPage from './pages/admin/PassengersPage.jsx';
 import PaymentReceiptPage from './pages/admin/PaymentReceiptPage.jsx';
@@ -12,6 +17,15 @@ import MaintenanceManagement from './pages/admin/MaintenanceManagement.jsx';
 import AddMaintenance from './pages/admin/AddMaintenance.jsx';
 import FeedbackReviews from './pages/admin/FeedbackReviews.jsx';
 import ReportsDashboard from './pages/admin/ReportsDashboard.jsx';
+
+// Customer Pages
+import CustomerHome from './pages/customer/CustomerHome.jsx';
+import MyBookings from './pages/customer/MyBookings.jsx';
+import CustomerProfile from './pages/customer/CustomerProfile.jsx';
+import PaymentPage from './pages/customer/PaymentPage.jsx';
+import BookingSuccess from './pages/customer/BookingSuccess.jsx';
+
+// Hooks & Utilities
 import useSmartMoveData from './hooks/useSmartMoveData.js';
 import downloadReceipt from './utils/downloadReceipt.js';
 
@@ -31,7 +45,8 @@ const emptyPayment = {
   status: '',
 };
 
-export default function App() {
+// Admin View Wrapper to retain existing logic completely
+function AdminApp() {
   const data = useSmartMoveData();
   const [page, setPage] = useState('passengers');
   const [dialog, setDialog] = useState(null);
@@ -186,5 +201,26 @@ export default function App() {
         />
       )}
     </AppLayout>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        {/* Customer Portal Routes */}
+        <Route path="/" element={<CustomerHome />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/profile" element={<CustomerProfile />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/booking-success" element={<BookingSuccess />} />
+
+        {/* Admin Dashboard Portal Route */}
+        <Route path="/admin/*" element={<AdminApp />} />
+
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
