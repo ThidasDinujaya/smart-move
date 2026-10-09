@@ -1,6 +1,6 @@
 /* SmartMove — index.css */
 
-@import "./styles/Layout.css";
+@import "./styles/AdminLayout.css";
 @import "./styles/Dashboard.css";
 @import "./styles/Management.css";
 @import "./styles/Vehicles.css";
