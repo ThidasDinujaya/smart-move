@@ -1,0 +1,186 @@
+
+/* =====================================
+   SMARTMOVE - ADD ROUTE PAGE
+===================================== */
+
+.add-route-page {
+  padding: 28px 32px;
+  background: #f3f6fb;
+  min-height: 100%;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* PAGE TITLE */
+
+.add-route-page h1 {
+  font-size: 34px;
+  font-weight: 700;
+  color: #102d50;
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.add-route-page .form-heading p,
+.add-route-page > p {
+  font-size: 17px;
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+/* FORM CARD */
+
+.add-route-page form {
+  width: 100%;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid #e3eaf3;
+  border-radius: 12px;
+  box-shadow: 0 5px 22px rgba(15, 45, 80, 0.05);
+}
+
+/* LABELS */
+
+.add-route-page label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1c3553;
+}
+
+/* INPUT FIELDS */
+
+.add-route-page input,
+.add-route-page select,
+.add-route-page textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: 1px solid #d5dfeb;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.add-route-page input::placeholder,
+.add-route-page textarea::placeholder {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.add-route-page input:focus,
+.add-route-page select:focus,
+.add-route-page textarea:focus {
+  border-color: #087cf2;
+  box-shadow: 0 0 0 3px rgba(8, 124, 242, 0.1);
+}
+
+/* DESCRIPTION */
+
+.add-route-page textarea {
+  min-height: 125px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* FIELD SPACING */
+
+.add-route-page .form-group {
+  margin-bottom: 18px;
+}
+
+/* ACTION BUTTONS */
+
+.add-route-page .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid #edf1f7;
+}
+
+/* CANCEL BUTTON */
+
+.add-route-page .cancel-button,
+.add-route-page button[type="button"] {
+  min-width: 120px;
+  height: 46px;
+  padding: 0 20px;
+  background: #f1f5f9;
+  border: 1px solid #d5dfeb;
+  border-radius: 7px;
+  color: #475569;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.add-route-page .cancel-button:hover,
+.add-route-page button[type="button"]:hover {
+  background: #e2e8f0;
+}
+
+/* SAVE ROUTE BUTTON */
+
+.add-route-page .save-button,
+.add-route-page button[type="submit"] {
+  min-width: 150px;
+  height: 46px;
+  padding: 0 22px;
+  background: #087cf2;
+  border: 1px solid #087cf2;
+  border-radius: 7px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.add-route-page .save-button:hover,
+.add-route-page button[type="submit"]:hover {
+  background: #006bd6;
+  border-color: #006bd6;
+  box-shadow: 0 4px 12px rgba(8, 124, 242, 0.2);
+}
+
+.add-route-page button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+  .add-route-page {
+    padding: 20px 15px;
+  }
+
+  .add-route-page h1 {
+    font-size: 27px;
+  }
+
+  .add-route-page form {
+    padding: 20px;
+  }
+
+  .add-route-page .form-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-route-page .form-actions button {
+    width: 100%;
+  }
+}

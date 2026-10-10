@@ -1,0 +1,30 @@
+
+/* DRIVER MANAGEMENT */
+
+.drivers-page .driver-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #f2f4f7;
+  color: #475467;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.drivers-page .driver-status.active {
+  background: #dcfae6;
+  color: #087443;
+}
+
+.drivers-page .driver-status.on-leave {
+  background: #fef0c7;
+  color: #b54708;
+}
+
+.drivers-page .driver-status.inactive {
+  background: #fee4e2;
+  color: #b42318;
+}

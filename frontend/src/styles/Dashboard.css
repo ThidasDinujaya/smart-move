@@ -1,0 +1,310 @@
+
+/* SmartMove Admin Dashboard */
+
+.dashboard-page {
+  width: 100%;
+  min-width: 0;
+}
+
+.dashboard-heading {
+  margin-bottom: 24px;
+}
+
+.dashboard-heading h1 {
+  color: #1d2939;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.dashboard-heading p {
+  color: #7b8794;
+  font-size: 15px;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.summary-card {
+  min-height: 112px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 9px;
+}
+
+.summary-icon {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.summary-card p {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.summary-card h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.vehicle-card {
+  background: #e4f2ff;
+  color: #0876d9;
+}
+
+.vehicle-card .summary-icon {
+  background: #cce6ff;
+}
+
+.driver-card {
+  background: #e3f8ec;
+  color: #159957;
+}
+
+.driver-card .summary-icon {
+  background: #c9efd9;
+}
+
+.route-card {
+  background: #f0e9ff;
+  color: #7453d6;
+}
+
+.route-card .summary-icon {
+  background: #e2d5ff;
+}
+
+.trip-card {
+  background: #fff2d9;
+  color: #e38a13;
+}
+
+.trip-card .summary-icon {
+  background: #ffe4b2;
+}
+
+.dashboard-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.35fr);
+  gap: 18px;
+}
+
+.dashboard-panel {
+  min-width: 0;
+  min-height: 290px;
+  background: #fff;
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.04);
+}
+
+.dashboard-panel h3 {
+  color: #263445;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.vehicle-status-content {
+  min-height: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.donut-chart {
+  position: relative;
+  width: 145px;
+  height: 145px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #20b76b 0deg 270deg,
+    #2d91ed 270deg 315deg,
+    #f4a62a 315deg 345deg,
+    #ef5350 345deg 360deg
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.donut-chart::before {
+  content: "";
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.donut-middle {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-middle strong {
+  color: #283747;
+  font-size: 27px;
+}
+
+.donut-middle span {
+  margin-top: 2px;
+  color: #8994a2;
+  font-size: 13px;
+}
+
+.vehicle-status-list {
+  width: 190px;
+  max-width: 100%;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  color: #5e6c7b;
+  font-size: 14px;
+}
+
+.status-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-row strong {
+  color: #344253;
+  font-size: 14px;
+}
+
+.status-color {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+
+.status-green {
+  background: #20b76b;
+}
+
+.status-blue {
+  background: #2d91ed;
+}
+
+.status-orange {
+  background: #f4a62a;
+}
+
+.status-red {
+  background: #ef5350;
+}
+
+.dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.dashboard-panel-header button {
+  border: none;
+  background: transparent;
+  color: #147ee5;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-panel-header button:hover {
+  text-decoration: underline;
+}
+
+.dashboard-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dashboard-table thead {
+  background: #edf2f6;
+}
+
+.dashboard-table th {
+  color: #344253;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 13px 11px;
+  border-bottom: 1px solid #e5e9ed;
+  white-space: nowrap;
+}
+
+.dashboard-table td {
+  color: #566474;
+  font-size: 13px;
+  padding: 14px 11px;
+  border-bottom: 1px solid #edf0f3;
+  white-space: nowrap;
+}
+
+.dashboard-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-heading h1 {
+    font-size: 26px;
+  }
+
+  .dashboard-panel {
+    padding: 16px;
+  }
+
+  .vehicle-status-content {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px 0;
+  }
+}
