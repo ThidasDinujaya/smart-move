@@ -1,12 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CustomerNavbar from '../../components/CustomerNavbar';
-import { Bus } from 'lucide-react';
+import { Bus, LogIn } from 'lucide-react';
 
 const MyBookings = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
-  
-  // Dynamic state initialized empty, ready for API/Backend fetching
   const [bookings, setBookings] = useState([]);
+
+  useEffect(() => {
+    // 1. Check if user is logged in (localStorage haraha pariksha kirima)
+    const loggedInUser = localStorage.getItem("smartMoveUser");
+    if (loggedInUser) {
+      const parsedUser = JSON.parse(loggedInUser);
+      setUser(parsedUser);
+      fetchUserBookings(parsedUser.id);
+    } else {
+      setUser(null);
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchUserBookings = async (userId) => {
+    try {
+      // Backend / Database eken data fetch karana thana (Dynamic API call)
+      // const response = await fetch(`/api/bookings?userId=${userId}`);
+      // const data = await response.json();
+      
+      setBookings([]); // Hardcoded data nathuwa empty array eka thaba athi
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // User login vī nathnam pennana Please Login view eka
+  if (!user && !loading) {
+    return (
+      <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+        <CustomerNavbar />
+        <div style={{ maxWidth: '600px', margin: '64px auto', padding: '0 20px', textAlign: 'center' }}>
+          <div style={{ backgroundColor: 'white', padding: '40px 30px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ backgroundColor: '#eff6ff', width: '64px', height: '64px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#0066ff' }}>
+              <LogIn size={32} />
+            </div>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', marginBottom: '8px' }}>Please Login</h2>
+            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '24px' }}>
+              You need to be logged in to view your bookings and travel history. Please log in to continue.
+            </p>
+            <button
+              onClick={() => navigate('/login')}
+              style={{
+                backgroundColor: '#0066ff',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '10px',
+                fontWeight: '700',
+                fontSize: '14px',
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              Login to Account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredBookings = filter === 'All' 
     ? bookings 
@@ -17,7 +82,7 @@ const MyBookings = () => {
       <CustomerNavbar />
       
       <div style={{ maxWidth: '900px', margin: '32px auto', padding: '0 20px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px' }}>My Bookings</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px', color: '#0f172a' }}>My Bookings</h2>
 
         {/* Category Filters */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
@@ -40,7 +105,9 @@ const MyBookings = () => {
         </div>
 
         {/* Bookings List or Empty State */}
-        {filteredBookings.length > 0 ? (
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading your bookings...</div>
+        ) : filteredBookings.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filteredBookings.map((b) => (
               <div key={b.id} style={{
