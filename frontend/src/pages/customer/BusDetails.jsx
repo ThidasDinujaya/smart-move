@@ -38,9 +38,9 @@ const BusDetails = () => {
                 <span style={{ backgroundColor: '#f3e8ff', color: '#9333ea', padding: '2px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700' }}>{bus.category}</span>
               </div>
               <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9', padding: '16px 0', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'between' }}><span>Route:</span> <strong style={{ color: '#0f172a' }}>{queryParams.from} → {queryParams.to}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'between' }}><span>Departure:</span> <strong style={{ color: '#0f172a' }}>{bus.departure}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'between' }}><span>Price:</span> <strong style={{ color: '#0066ff', fontSize: '16px' }}>Rs. {bus.price}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Route:</span> <strong style={{ color: '#0f172a' }}>{queryParams.from} → {queryParams.to}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Departure:</span> <strong style={{ color: '#0f172a' }}>{bus.departure}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Price:</span> <strong style={{ color: '#0066ff', fontSize: '16px' }}>Rs. {bus.price}</strong></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', color: '#475569' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Wind size={16} color="#0284c7" /> AC</div>
@@ -49,7 +49,7 @@ const BusDetails = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={16} color="#0284c7" /> Charging Points</div>
               </div>
             </div>
-            <button onClick={() => navigate('/booking-form', { state: { bus, queryParams } })} style={{ width: '100%', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '20px' }}>
+            <button onClick={() => navigate('/seat-selection', { state: { bus, queryParams } })} style={{ width: '100%', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '20px' }}>
               Select Seats
             </button>
           </div>
