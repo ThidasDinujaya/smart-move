@@ -62,7 +62,7 @@ const SeatSelection = () => {
 
   const handleProceedToPayment = () => {
     if (!selectedSeat) {
-      alert('Krupa kari koyi pan asan pasand karo.');
+      alert('Please select a seat before proceeding');
       return;
     }
     navigate('/payment', {
