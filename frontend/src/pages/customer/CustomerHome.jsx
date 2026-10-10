@@ -11,10 +11,8 @@ const CustomerHome = () => {
     date: ''
   });
 
-  // Dynamic location list ready for API/Database integration
   const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
 
-  // Dynamic feature highlights list
   const features = [
     { icon: <MapPin color="#0284c7" size={22} />, title: 'Wide Coverage', subtitle: 'Across Cities' },
     { icon: <ShieldCheck color="#0284c7" size={22} />, title: 'Safe & Secure', subtitle: 'Travel' },
@@ -24,7 +22,7 @@ const CustomerHome = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate('/payment', { state: searchParams });
+    navigate('/search-results', { state: searchParams });
   };
 
   return (
