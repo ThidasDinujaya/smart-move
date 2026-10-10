@@ -1,51 +1,57 @@
-
-import { useState } from "react";
+import React, { useState } from "react";
+import {
+  BrowserRouter as Router,
+  Routes as RouterRoutes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import AppLayout from "./components/AppLayout.jsx";
 import Login from "./pages/Login.jsx";
 
-// Dashboard
+// Admin dashboard
 import Dashboard from "./pages/admin/Dashboard.jsx";
 
-// Vehicle Management
+// Vehicle management
 import Vehicles from "./pages/admin/Vehicles.jsx";
 import AddVehicle from "./pages/admin/AddVehicle.jsx";
 import ViewVehicle from "./pages/admin/ViewVehicle.jsx";
 import EditVehicle from "./pages/admin/EditVehicle.jsx";
 
-// Driver Management
+// Driver management
 import Drivers from "./pages/admin/Drivers.jsx";
 import AddDriver from "./pages/admin/AddDriver.jsx";
 import ViewDriver from "./pages/admin/ViewDriver.jsx";
 import EditDriver from "./pages/admin/EditDriver.jsx";
 
-// Route Management
-import Routes from "./pages/admin/Routes.jsx";
+// Route management (alias avoids conflict with React Router's Routes)
+import RoutesPage from "./pages/admin/Routes.jsx";
 import AddRoute from "./pages/admin/AddRoute.jsx";
 import ViewRoute from "./pages/admin/ViewRoute.jsx";
 import EditRoute from "./pages/admin/EditRoute.jsx";
 
-// Operations
+// Operations and management
 import PassengersPage from "./pages/admin/PassengersPage.jsx";
 import TripsPage from "./pages/admin/TripsPage.jsx";
 import BookingsPage from "./pages/admin/BookingsPage.jsx";
 import PaymentsPage from "./pages/admin/PaymentsPage.jsx";
 import PaymentReceiptPage from "./pages/admin/PaymentReceiptPage.jsx";
-
-// Management
 import MaintenanceManagement from "./pages/admin/MaintenanceManagement.jsx";
 import AddMaintenance from "./pages/admin/AddMaintenance.jsx";
 import FeedbackReviews from "./pages/admin/FeedbackReviews.jsx";
 import ReportsDashboard from "./pages/admin/ReportsDashboard.jsx";
 
-// Data Hook
+// Customer portal
+import CustomerHome from "./pages/customer/CustomerHome.jsx";
+import MyBookings from "./pages/customer/MyBookings.jsx";
+import CustomerProfile from "./pages/customer/CustomerProfile.jsx";
+import PaymentPage from "./pages/customer/PaymentPage.jsx";
+import BookingSuccess from "./pages/customer/BookingSuccess.jsx";
+
+// Shared data hook
 import useSmartMoveData from "./hooks/useSmartMoveData.js";
 
-function App() {
-  // ==========================================
-  // LOGIN STATE
-  // ==========================================
-
+function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return (
       sessionStorage.getItem("smartmove_admin_demo") === "true" ||
@@ -55,10 +61,6 @@ function App() {
 
   const [page, setPage] = useState("dashboard");
   const [selectedRecord, setSelectedRecord] = useState(null);
-
-  // ==========================================
-  // SMARTMOVE DATA
-  // ==========================================
 
   const data = useSmartMoveData();
 
@@ -77,9 +79,9 @@ function App() {
     maintenanceOptions,
   } = data;
 
-  // ==========================================
+  // 
   // LOGIN / LOGOUT
-  // ==========================================
+  // 
 
   function handleLogin({ rememberMe = false } = {}) {
     sessionStorage.removeItem("smartmove_admin_demo");
@@ -105,9 +107,9 @@ function App() {
     setPage("dashboard");
   }
 
-  // ==========================================
+  // 
   // NAVIGATION
-  // ==========================================
+  // 
 
   function navigate(nextPage) {
     setSelectedRecord(null);
@@ -119,9 +121,9 @@ function App() {
     setPage(nextPage);
   }
 
-  // ==========================================
+  // 
   // VEHICLE CRUD
-  // ==========================================
+  // 
 
   async function handleAddVehicle(vehicle) {
     try {
@@ -162,9 +164,9 @@ function App() {
     }
   }
 
-  // ==========================================
+  // 
   // DRIVER CRUD
-  // ==========================================
+  // 
 
   async function handleAddDriver(driver) {
     try {
@@ -205,9 +207,9 @@ function App() {
     }
   }
 
-  // ==========================================
+  // 
   // ROUTE CRUD
-  // ==========================================
+  // 
 
   async function handleAddRoute(route) {
     try {
@@ -248,9 +250,9 @@ function App() {
     }
   }
 
-  // ==========================================
+  // 
   // TEAMMATE DATA FUNCTIONS
-  // ==========================================
+  // 
 
   async function handleSaveRecord(config, value) {
     return data.saveRecord(config, value);
@@ -278,9 +280,9 @@ function App() {
     return result;
   }
 
-  // ==========================================
+  // 
   // PAGE RENDERING
-  // ==========================================
+  // 
 
   function renderPage() {
     switch (page) {
@@ -300,9 +302,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // VEHICLES
-      // ======================================
+      // ===
 
       case "vehicles":
         return (
@@ -349,9 +351,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // DRIVERS
-      // ======================================
+      // ===
 
       case "drivers":
         return (
@@ -401,13 +403,13 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // ROUTES
-      // ======================================
+      // ===
 
       case "routes":
         return (
-          <Routes
+          <RoutesPage
             routes={routeRecords}
             onAdd={() => navigate("add-route")}
             onView={(route) =>
@@ -450,9 +452,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // PASSENGERS
-      // ======================================
+      // ===
 
       case "passengers":
         return (
@@ -464,9 +466,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // TRIPS
-      // ======================================
+      // ===
 
       case "trips":
         return (
@@ -482,9 +484,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // BOOKINGS
-      // ======================================
+      // ===
 
       case "bookings":
         return (
@@ -499,9 +501,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // PAYMENTS
-      // ======================================
+      // ===
 
       case "payments":
         return (
@@ -526,9 +528,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // MAINTENANCE
-      // ======================================
+      // ===
 
       case "maintenance":
         return (
@@ -550,9 +552,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // FEEDBACK
-      // ======================================
+      // ===
 
       case "feedback":
         return (
@@ -562,9 +564,9 @@ function App() {
           />
         );
 
-      // ======================================
+      // ===
       // REPORTS
-      // ======================================
+      // ===
 
       case "reports":
         return (
@@ -593,17 +595,17 @@ function App() {
     }
   }
 
-  // ==========================================
+  // 
   // LOGIN PAGE
-  // ==========================================
+  // 
 
   if (!isAuthenticated) {
     return <Login onLogin={handleLogin} />;
   }
 
-  // ==========================================
+  // 
   // SIDEBAR ACTIVE PAGE
-  // ==========================================
+  // 
 
   const sidebarPage = page.includes("vehicle")
     ? "vehicles"
@@ -617,9 +619,9 @@ function App() {
             ? "payments"
             : page;
 
-  // ==========================================
+  // 
   // ADMIN LAYOUT
-  // ==========================================
+  // 
 
   return (
     <AppLayout
@@ -632,4 +634,23 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <RouterRoutes>
+        {/* Customer portal */}
+        <Route path="/" element={<CustomerHome />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/profile" element={<CustomerProfile />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/booking-success" element={<BookingSuccess />} />
+
+        {/* Admin dashboard */}
+        <Route path="/admin/*" element={<AdminApp />} />
+
+        {/* Unknown paths return to the customer home page */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </RouterRoutes>
+    </Router>
+  );
+}
