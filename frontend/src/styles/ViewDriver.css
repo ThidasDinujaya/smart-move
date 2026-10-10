@@ -1,0 +1,200 @@
+
+/* VIEW DRIVER PAGE */
+
+.view-driver-page {
+  width: 100%;
+  padding: 28px;
+  box-sizing: border-box;
+}
+
+/* HEADER */
+
+.view-driver-page .details-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.view-driver-page .details-page-header h1 {
+  margin: 0 0 8px;
+  color: #172b4d;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.view-driver-page .details-page-header p {
+  margin: 0;
+  color: #7b8794;
+  font-size: 14px;
+}
+
+/* EDIT BUTTON */
+
+.view-driver-page .details-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-driver-page .details-edit-button:hover {
+  background: #1d4ed8;
+}
+
+/* DETAILS CARD */
+
+.view-driver-page .details-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e5eaf0;
+  border-radius: 14px;
+  padding: 30px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 18px rgba(20, 40, 80, 0.05);
+}
+
+/* DRIVER NAME AND STATUS */
+
+.view-driver-page .details-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 22px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #e5eaf0;
+}
+
+.view-driver-page .details-title h2 {
+  margin: 0 0 7px;
+  color: #172b4d;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.view-driver-page .details-title p {
+  margin: 0;
+  color: #7b8794;
+  font-size: 13px;
+}
+
+/* STATUS */
+
+.view-driver-page .driver-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.view-driver-page .driver-status.active {
+  background: #dcfae6;
+  color: #087443;
+}
+
+.view-driver-page .driver-status.on-leave {
+  background: #fef0c7;
+  color: #b54708;
+}
+
+.view-driver-page .driver-status.inactive {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+/* DETAILS GRID */
+
+.view-driver-page .details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.view-driver-page .detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 9px;
+}
+
+.view-driver-page .detail-item span {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.view-driver-page .detail-item strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #172b4d;
+  overflow-wrap: anywhere;
+}
+
+/* BACK BUTTON */
+
+.view-driver-page .details-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e5eaf0;
+}
+
+.view-driver-page .back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #dbe2ea;
+  border-radius: 8px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-driver-page .back-button:hover {
+  background: #e2e8f0;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+  .view-driver-page {
+    padding: 16px;
+  }
+
+  .view-driver-page .details-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .view-driver-page .details-title {
+    flex-wrap: wrap;
+  }
+
+  .view-driver-page .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view-driver-page .details-card {
+    padding: 20px;
+  }
+}
