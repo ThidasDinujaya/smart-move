@@ -1,29 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
-import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, ShieldCheck, Bus, Ticket } from 'lucide-react';
+import { MapPin, ShieldCheck, Bus, Ticket } from 'lucide-react';
 
 const CustomerHome = () => {
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useState({
-    from: '',
-    to: '',
-    date: ''
-  });
-
-  const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
-
   const features = [
     { icon: <MapPin color="#0284c7" size={22} />, title: 'Wide Coverage', subtitle: 'Across Cities' },
     { icon: <ShieldCheck color="#0284c7" size={22} />, title: 'Safe & Secure', subtitle: 'Travel' },
     { icon: <Bus color="#0284c7" size={22} />, title: 'Affordable', subtitle: 'Ticket Prices' },
     { icon: <Ticket color="#0284c7" size={22} />, title: 'Easy Online', subtitle: 'Booking' }
   ];
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    navigate('/search-results', { state: searchParams });
-  };
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
@@ -48,80 +33,10 @@ const CustomerHome = () => {
           Safe • Comfortable • Reliable
         </p>
 
-        <form onSubmit={handleSearch} style={{
-          position: 'absolute',
-          bottom: '-40px',
-          left: '60px',
-          right: '60px',
-          backgroundColor: 'white',
-          padding: '20px 24px',
-          borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr auto',
-          gap: '16px',
-          alignItems: 'end'
-        }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>From</label>
-            <select 
-              value={searchParams.from}
-              onChange={(e) => setSearchParams({ ...searchParams, from: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }}
-              required
-            >
-              <option value="">Select starting point</option>
-              {locations.map((loc) => (
-                <option key={`from-${loc}`} value={loc}>{loc}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>To</label>
-            <select 
-              value={searchParams.to}
-              onChange={(e) => setSearchParams({ ...searchParams, to: e.target.value })}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }}
-              required
-            >
-              <option value="">Select destination</option>
-              {locations.map((loc) => (
-                <option key={`to-${loc}`} value={loc}>{loc}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Date</label>
-            <input 
-              type="date" 
-              value={searchParams.date}
-              onChange={(e) => setSearchParams({ ...searchParams, date: e.target.value })}
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
-              required
-            />
-          </div>
-          <button 
-            type="submit"
-            style={{
-              backgroundColor: '#0066ff',
-              color: 'white',
-              border: 'none',
-              padding: '12px 28px',
-              borderRadius: '8px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-            <Search size={18} />
-            Search Buses
-          </button>
-        </form>
       </div>
 
       <div style={{
-        marginTop: '90px',
+        marginTop: '32px',
         padding: '0 60px 40px 60px',
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',

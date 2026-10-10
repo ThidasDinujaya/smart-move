@@ -43,6 +43,9 @@ import ReportsDashboard from "./pages/admin/ReportsDashboard.jsx";
 
 // Customer portal
 import CustomerHome from "./pages/customer/CustomerHome.jsx";
+import CustomerLogin from "./pages/customer/CustomerLogin.jsx";
+import CustomerRegister from "./pages/customer/CustomerRegister.jsx";
+import SearchBuses from "./pages/customer/SearchBuses.jsx";
 import SearchResults from "./pages/customer/SearchResults.jsx";
 import BusDetails from "./pages/customer/BusDetails.jsx";
 import SeatSelection from "./pages/customer/SeatSelection.jsx";
@@ -53,6 +56,11 @@ import BookingSuccess from "./pages/customer/BookingSuccess.jsx";
 
 // Shared data hook
 import useSmartMoveData from "./hooks/useSmartMoveData.js";
+import { getCurrentCustomer } from "./utils/customerAuth.js";
+
+function CustomerAuthRoute({ children }) {
+  return getCurrentCustomer() ? children : <Navigate to="/login" replace />;
+}
 
 function AdminApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -643,11 +651,14 @@ export default function App() {
       <RouterRoutes>
         {/* Customer portal */}
         <Route path="/" element={<CustomerHome />} />
+        <Route path="/login" element={<CustomerLogin />} />
+        <Route path="/register" element={<CustomerRegister />} />
+        <Route path="/search" element={<SearchBuses />} />
         <Route path="/search-results" element={<SearchResults />} />
         <Route path="/bus-details" element={<BusDetails />} />
         <Route path="/seat-selection" element={<SeatSelection />} />
         <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/profile" element={<CustomerProfile />} />
+        <Route path="/profile" element={<CustomerAuthRoute><CustomerProfile /></CustomerAuthRoute>} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/booking-success" element={<BookingSuccess />} />
 

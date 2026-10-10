@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { useNavigate } from 'react-router-dom';
 import { User, Ticket, KeyRound, LogOut } from 'lucide-react';
+import { getCurrentCustomer, logoutCustomer, updateCurrentCustomer } from '../../utils/customerAuth.js';
 
 const CustomerProfile = () => {
   const navigate = useNavigate();
 
-  // Initialized with structured state ready for API fetch integration
-  const [profile, setProfile] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    nic: ''
+  const [profile, setProfile] = useState(() => {
+    const customer = getCurrentCustomer() || {};
+    return {
+      fullName: customer.fullName || '',
+      email: customer.email || '',
+      phone: customer.phone || '',
+      nic: '',
+    };
   });
+  const [profileError, setProfileError] = useState('');
 
   // Dynamic sidebar navigation list ready for routing handlers
   const navItems = [
@@ -24,7 +28,14 @@ const CustomerProfile = () => {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    alert('Profile Updated Successfully!');
+    setProfileError('');
+    try {
+      const updated = updateCurrentCustomer(profile);
+      setProfile({ ...updated, nic: profile.nic });
+      alert('Profile Updated Successfully!');
+    } catch (error) {
+      setProfileError(error.message || 'Unable to update your profile.');
+    }
   };
 
   return (
@@ -39,7 +50,10 @@ const CustomerProfile = () => {
                 key={index}
                 onClick={() => {
                   if (!item.danger && item.path !== '/profile') navigate(item.path);
-                  if (item.path === '/logout') navigate('/');
+                  if (item.path === '/logout') {
+                    logoutCustomer();
+                    navigate('/');
+                  }
                 }}
                 style={{ 
                   display: 'flex', 
@@ -116,6 +130,8 @@ const CustomerProfile = () => {
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
               </div>
+
+              {profileError && <p role="alert" style={{ margin: 0, color: '#b91c1c', fontSize: '13px' }}>{profileError}</p>}
 
               <button type="submit" style={{ backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
                 Update Profile

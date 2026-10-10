@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bus, User } from 'lucide-react';
+import { getCurrentCustomer } from '../utils/customerAuth.js';
 
 const CustomerNavbar = () => {
+  const [customer, setCustomer] = useState(getCurrentCustomer);
+
+  useEffect(() => {
+    const syncCustomer = () => setCustomer(getCurrentCustomer());
+    window.addEventListener('storage', syncCustomer);
+    return () => window.removeEventListener('storage', syncCustomer);
+  }, []);
+
   return (
     <nav style={{
       display: 'flex',
@@ -27,20 +36,29 @@ const CustomerNavbar = () => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <User size={18} />
-          Login
-        </Link>
-        <button style={{
-          backgroundColor: '#0066ff',
-          color: 'white',
-          border: 'none',
-          padding: '8px 20px',
-          borderRadius: '8px',
-          fontWeight: '600',
-          fontSize: '14px',
-          cursor: 'pointer'
-        }}>Register</button>
+        {customer ? (
+          <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <User size={18} />
+            Profile
+          </Link>
+        ) : (
+          <>
+            <Link to="/login" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={18} />
+              Login
+            </Link>
+            <Link to="/register" style={{
+              backgroundColor: '#0066ff',
+              color: 'white',
+              border: 'none',
+              padding: '8px 20px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              fontSize: '14px',
+              textDecoration: 'none'
+            }}>Register</Link>
+          </>
+        )}
       </div>
     </nav>
   );
