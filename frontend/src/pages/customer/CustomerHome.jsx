@@ -76,11 +76,6 @@ const CustomerHome = () => (
             </article>
           ))}
         </div>
-
-        <div className="home-about-action">
-          <span>Ready to plan your next journey?</span>
-          <Link to="/search">Search buses <ArrowRight size={16} aria-hidden="true" /></Link>
-        </div>
       </section>
     </main>
 

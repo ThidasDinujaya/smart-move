@@ -1,106 +1,171 @@
 import React, { useState } from 'react';
-import CustomerNavbar from '../../components/CustomerNavbar';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  ArrowRight,
+  Bus,
+  CalendarDays,
+  Mail,
+  MapPin,
+  Phone,
+  Search,
+  Ticket,
+} from 'lucide-react';
+import CustomerNavbar from '../../components/CustomerNavbar';
+import '../../styles/SearchBuses.css';
+import '../../styles/CustomerFooter.css';
+
+const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
+
+const bookingSteps = [
+  { icon: MapPin, title: 'Choose your route', text: 'Select your departure city, destination, and travel date.' },
+  { icon: Bus, title: 'Compare services', text: 'Review bus types, departure times, available seats, and fares.' },
+  { icon: Ticket, title: 'Book your seat', text: 'Choose your seats and keep your trip details together.' },
+];
+
+const getLocalDate = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const SearchBuses = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState({ from: '', to: '', date: '' });
-  const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
+  const [error, setError] = useState('');
+
+  const updateSearch = (key, value) => {
+    setSearchParams((current) => ({ ...current, [key]: value }));
+    setError('');
+  };
 
   const handleSearch = (event) => {
     event.preventDefault();
+
+    if (searchParams.from === searchParams.to) {
+      setError('Choose two different cities for your journey.');
+      return;
+    }
+
     navigate('/search-results', { state: searchParams });
   };
 
-  return (
-    <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <CustomerNavbar />
-      <div style={{
-        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1200")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        height: '380px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '0 60px',
-        color: 'white',
-        position: 'relative'
-      }}>
-        <h1 style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.2' }}>
-          Travel Smarter<br />with SmartMove
-        </h1>
-        <p style={{ fontSize: '18px', marginTop: '12px', fontWeight: '500', opacity: 0.9 }}>
-          Safe • Comfortable • Reliable
-        </p>
+  const swapLocations = () => {
+    setSearchParams((current) => ({ ...current, from: current.to, to: current.from }));
+    setError('');
+  };
 
-        <form onSubmit={handleSearch} style={{
-          position: 'absolute',
-          bottom: '-40px',
-          left: '60px',
-          right: '60px',
-          backgroundColor: 'white',
-          padding: '20px 24px',
-          borderRadius: '16px',
-          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr auto',
-          gap: '16px',
-          alignItems: 'end'
-        }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>From</label>
-            <select
-              value={searchParams.from}
-              onChange={(event) => setSearchParams({ ...searchParams, from: event.target.value })}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }}
-              required
-            >
-              <option value="">Select starting point</option>
-              {locations.map((location) => <option key={`from-${location}`} value={location}>{location}</option>)}
-            </select>
+  return (
+    <div className="search-buses-page">
+      <CustomerNavbar />
+
+      <main>
+        <section className="search-hero">
+          <div className="search-hero-inner">
+            <div className="search-hero-copy">
+              <span className="search-eyebrow"><Bus size={15} aria-hidden="true" /> SMARTMOVE JOURNEY PLANNER</span>
+              <h1>Find the right vehicle<br /><span>for your next journey</span></h1>
+              <p>Explore available travel options between cities across Sri Lanka and plan your trip with confidence.</p>
+            </div>
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>To</label>
-            <select
-              value={searchParams.to}
-              onChange={(event) => setSearchParams({ ...searchParams, to: event.target.value })}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }}
-              required
-            >
-              <option value="">Select destination</option>
-              {locations.map((location) => <option key={`to-${location}`} value={location}>{location}</option>)}
-            </select>
+        </section>
+
+        <div className="search-content">
+          <form className="search-form-card" onSubmit={handleSearch}>
+            <div className="search-form-heading">
+              <div>
+                <span className="search-section-kicker">PLAN YOUR TRIP</span>
+                <h2>Where would you like to go?</h2>
+                <p>Enter your route and travel date to find available services.</p>
+              </div>
+            </div>
+
+            <div className="search-fields-grid">
+              <div className="search-field-group">
+                <label htmlFor="search-from">From</label>
+                <div className="search-field-control">
+                  <MapPin size={17} aria-hidden="true" />
+                  <select id="search-from" value={searchParams.from} onChange={(event) => updateSearch('from', event.target.value)} required>
+                    <option value="">Select departure city</option>
+                    {locations.map((city) => <option key={`from-${city}`} value={city}>{city}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <button className="search-swap-button" type="button" onClick={swapLocations} aria-label="Swap departure and destination">
+                <ArrowLeftRight size={17} aria-hidden="true" />
+              </button>
+
+              <div className="search-field-group">
+                <label htmlFor="search-to">To</label>
+                <div className="search-field-control">
+                  <MapPin size={17} aria-hidden="true" />
+                  <select id="search-to" value={searchParams.to} onChange={(event) => updateSearch('to', event.target.value)} required>
+                    <option value="">Select destination</option>
+                    {locations.map((city) => <option key={`to-${city}`} value={city}>{city}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="search-field-group search-date-field">
+                <label htmlFor="search-date">Travel date</label>
+                <div className="search-field-control">
+                  <CalendarDays size={17} aria-hidden="true" />
+                  <input id="search-date" type="date" value={searchParams.date} min={getLocalDate()} onChange={(event) => updateSearch('date', event.target.value)} required />
+                </div>
+              </div>
+
+              <button className="search-submit-button" type="submit">
+                <Search size={17} aria-hidden="true" /> Search vehicles <ArrowRight size={16} aria-hidden="true" />
+              </button>
+            </div>
+            {error && <p className="search-form-error" role="alert">{error}</p>}
+          </form>
+
+          <section className="search-steps" aria-labelledby="search-steps-heading">
+            <div className="search-section-heading">
+              <div>
+                <span className="search-section-kicker">FROM SEARCH TO SEAT</span>
+                <h2 id="search-steps-heading">Your journey, made simple</h2>
+              </div>
+            </div>
+            <div className="search-steps-grid">
+              {bookingSteps.map(({ icon: Icon, title, text }, index) => (
+                <article className="search-step-card" key={title}>
+                  <span className="search-step-number">0{index + 1}</span>
+                  <span className="search-step-icon"><Icon size={19} aria-hidden="true" /></span>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <footer className="customer-footer">
+        <div className="customer-footer-main">
+          <div className="customer-footer-brand">
+            <span className="customer-footer-logo"><Bus size={22} aria-hidden="true" /></span>
+            <div>
+              <strong>SmartMove</strong>
+              <p>Simple, reliable bus travel across Sri Lanka.</p>
+            </div>
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#0f172a', marginBottom: '6px' }}>Date</label>
-            <input
-              type="date"
-              value={searchParams.date}
-              onChange={(event) => setSearchParams({ ...searchParams, date: event.target.value })}
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }}
-              required
-            />
+
+          <div className="customer-footer-contact">
+            <h2>Contact</h2>
+            <a href="mailto:smartmove@gmail.com"><Mail size={16} aria-hidden="true" /><span>smartmove@gmail.com</span></a>
+            <a href="tel:0771234567"><Phone size={16} aria-hidden="true" /><span>0771234567</span></a>
           </div>
-          <button type="submit" style={{
-            backgroundColor: '#0066ff',
-            color: 'white',
-            border: 'none',
-            padding: '12px 28px',
-            borderRadius: '8px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Search size={18} />
-            Search Buses
-          </button>
-        </form>
-      </div>
-      <div style={{ height: '90px' }} />
+        </div>
+        <div className="customer-footer-bottom">
+          <span>© {new Date().getFullYear()} SmartMove</span>
+          <span>Travel safely. Travel SmartMove.</span>
+        </div>
+      </footer>
     </div>
   );
 };
