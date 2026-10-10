@@ -1,59 +1,117 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Bus, Mail, MapPin, Phone, ShieldCheck, Ticket } from 'lucide-react';
 import CustomerNavbar from '../../components/CustomerNavbar';
-import { MapPin, ShieldCheck, Bus, Ticket } from 'lucide-react';
+import '../../styles/CustomerHome.css';
+import '../../styles/CustomerFooter.css';
 
-const CustomerHome = () => {
-  const features = [
-    { icon: <MapPin color="#0284c7" size={22} />, title: 'Wide Coverage', subtitle: 'Across Cities' },
-    { icon: <ShieldCheck color="#0284c7" size={22} />, title: 'Safe & Secure', subtitle: 'Travel' },
-    { icon: <Bus color="#0284c7" size={22} />, title: 'Affordable', subtitle: 'Ticket Prices' },
-    { icon: <Ticket color="#0284c7" size={22} />, title: 'Easy Online', subtitle: 'Booking' }
-  ];
+const features = [
+  { icon: MapPin, title: 'Popular routes', subtitle: 'Travel between cities across Sri Lanka' },
+  { icon: ShieldCheck, title: 'Book with confidence', subtitle: 'A clear and simple booking journey' },
+  { icon: Bus, title: 'Compare bus options', subtitle: 'Review times, seats, and fares' },
+  { icon: Ticket, title: 'Your trips in one place', subtitle: 'Return to your booking details anytime' },
+];
 
-  return (
-    <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      <CustomerNavbar />
-      
-      <div style={{
-        backgroundImage: 'linear-gradient(rgba(15, 23, 42, 0.45), rgba(15, 23, 42, 0.45)), url("https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1200")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        height: '380px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '0 60px',
-        color: 'white',
-        position: 'relative'
-      }}>
-        <h1 style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.2' }}>
-          Travel Smarter<br />with SmartMove
-        </h1>
-        <p style={{ fontSize: '18px', marginTop: '12px', fontWeight: '500', opacity: 0.9 }}>
-          Safe • Comfortable • Reliable
-        </p>
+const highlights = [
+  {
+    icon: MapPin,
+    title: 'Choose your route',
+    text: 'Search journeys between cities such as Colombo, Kandy, Galle, Matara, Jaffna, and Negombo.',
+  },
+  {
+    icon: Bus,
+    title: 'Compare buses',
+    text: 'Review the available services, departure times, seat availability, and ticket prices for your trip.',
+  },
+  {
+    icon: Ticket,
+    title: 'Keep your booking together',
+    text: 'Select seats, complete your booking, and return to My Bookings when you need your trip details.',
+  },
+];
 
-      </div>
+const CustomerHome = () => (
+  <div className="customer-home">
+    <CustomerNavbar />
 
-      <div style={{
-        marginTop: '32px',
-        padding: '0 60px 40px 60px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: '20px'
-      }}>
-        {features.map((feature, index) => (
-          <div key={index} style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}>{feature.icon}</div>
-            <div>
-              <div style={{ fontWeight: '700', fontSize: '14px' }}>{feature.title}</div>
-              <div style={{ fontSize: '12px', color: '#64748b' }}>{feature.subtitle}</div>
-            </div>
-          </div>
+    <main>
+      <section className="home-hero">
+        <div className="home-hero-content">
+          <span className="home-hero-eyebrow"><Bus size={16} aria-hidden="true" /> BUS TRAVEL, MADE SIMPLE</span>
+          <h1>Travel Smarter<br /><span>with SmartMove</span></h1>
+          <p>Find a bus, compare your options, and plan your next journey across Sri Lanka.</p>
+          <Link className="home-hero-button" to="/search">
+            Search buses <ArrowRight size={17} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+
+      <section className="home-features" aria-label="SmartMove benefits">
+        {features.map(({ icon: Icon, title, subtitle }) => (
+          <article className="home-feature-card" key={title}>
+            <span className="home-feature-icon"><Icon size={21} aria-hidden="true" /></span>
+            <span className="home-feature-copy">
+              <strong>{title}</strong>
+              <span>{subtitle}</span>
+            </span>
+          </article>
         ))}
+      </section>
+
+      <section className="home-about" aria-labelledby="home-about-heading">
+        <div className="home-about-intro">
+          <span className="home-section-eyebrow">ABOUT SMARTMOVE</span>
+          <h2 id="home-about-heading">Travel planning, all in one place</h2>
+          <p>
+            SmartMove helps passengers find a bus for their journey, compare available services, choose seats, and manage booking details. Start with your route and travel date, then follow the booking steps through to your ticket.
+          </p>
+        </div>
+
+        <div className="home-highlights">
+          {highlights.map(({ icon: Icon, title, text }) => (
+            <article className="home-highlight-card" key={title}>
+              <span className="home-highlight-icon"><Icon size={21} aria-hidden="true" /></span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="home-about-action">
+          <span>Ready to plan your next journey?</span>
+          <Link to="/search">Search buses <ArrowRight size={16} aria-hidden="true" /></Link>
+        </div>
+      </section>
+    </main>
+
+    <footer className="customer-footer">
+      <div className="customer-footer-main">
+        <div className="customer-footer-brand">
+          <span className="customer-footer-logo"><Bus size={22} aria-hidden="true" /></span>
+          <div>
+            <strong>SmartMove</strong>
+            <p>Simple, reliable bus travel across Sri Lanka.</p>
+          </div>
+        </div>
+
+        <div className="customer-footer-contact">
+          <h2>Contact</h2>
+          <a href="mailto:smartmove@gmail.com">
+            <Mail size={16} aria-hidden="true" />
+            <span>smartmove@gmail.com</span>
+          </a>
+          <a href="tel:0771234567">
+            <Phone size={16} aria-hidden="true" />
+            <span>0771234567</span>
+          </a>
+        </div>
       </div>
-    </div>
-  );
-};
+      <div className="customer-footer-bottom">
+        <span>© {new Date().getFullYear()} SmartMove</span>
+        <span>Travel safely. Travel SmartMove.</span>
+      </div>
+    </footer>
+  </div>
+);
 
 export default CustomerHome;
