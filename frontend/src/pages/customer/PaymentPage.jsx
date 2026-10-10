@@ -1,23 +1,38 @@
 import React, { useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { CreditCard, Landmark, Wallet, Banknote } from 'lucide-react';
 
 const PaymentPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [bookingDetails] = useState({
-    route: 'Colombo ➔ Kandy',
-    date: '2024-10-20',
-    time: '07:00 AM',
-    bus: 'SmartMove Express',
-    seat: '10',
-    price: 'Rs. 1,200'
-  });
+
+  // Dynamically extract search/booking data passed from CustomerHome or previous step
+  const passedState = location.state || {};
+  
+  const bookingDetails = {
+    route: passedState.from && passedState.to ? `${passedState.from} ➔ ${passedState.to}` : 'Colombo ➔ Kandy',
+    date: passedState.date || 'N/A',
+    time: passedState.time || '07:00 AM',
+    bus: passedState.bus || 'SmartMove Express',
+    seat: passedState.seat || '10',
+    price: passedState.price || 'Rs. 1,200',
+    bookingId: passedState.bookingId || `SM${Date.now().toString().slice(-8)}`
+  };
+
+  const paymentOptions = [
+    { id: 'card', label: 'Credit / Debit Card', icon: <CreditCard size={18} color="#0066ff" /> },
+    { id: 'bank', label: 'Bank Transfer', icon: <Landmark size={18} color="#0066ff" /> },
+    { id: 'ewallet', label: 'eWallet (eZ Cash / mCash)', icon: <Wallet size={18} color="#0066ff" /> },
+    { id: 'cash', label: 'Cash on Service', icon: <Banknote size={18} color="#0066ff" /> }
+  ];
 
   const handlePayment = (e) => {
     e.preventDefault();
-    navigate('/booking-success', { state: bookingDetails });
+    // Pass completed booking state forward to success page
+    navigate('/booking-success', { state: { ...bookingDetails, paymentMethod } });
   };
 
   return (
@@ -28,7 +43,8 @@ const PaymentPage = () => {
         <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '24px' }}>Payment</h2>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          {/* Booking Summary */}
+          <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', height: 'fit-content' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '20px' }}>Booking Details</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: '#334155' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Route</span><strong style={{ color: '#0f172a' }}>: {bookingDetails.route}</strong></div>
@@ -42,32 +58,37 @@ const PaymentPage = () => {
             </div>
           </div>
 
+          {/* Payment Method Form */}
           <form onSubmit={handlePayment} style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>Select Payment Method</h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', border: paymentMethod === 'card' ? '2px solid #0066ff' : '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', backgroundColor: paymentMethod === 'card' ? '#eff6ff' : 'white' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <input type="radio" name="pay" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
-                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Credit / Debit Card</span>
-                </div>
-                <CreditCard size={18} color="#0066ff" />
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', padding: '12px', border: paymentMethod === 'bank' ? '2px solid #0066ff' : '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', backgroundColor: paymentMethod === 'bank' ? '#eff6ff' : 'white' }}>
-                <input type="radio" name="pay" checked={paymentMethod === 'bank'} onChange={() => setPaymentMethod('bank')} style={{ marginRight: '10px' }} />
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>Bank Transfer</span>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', padding: '12px', border: paymentMethod === 'ewallet' ? '2px solid #0066ff' : '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', backgroundColor: paymentMethod === 'ewallet' ? '#eff6ff' : 'white' }}>
-                <input type="radio" name="pay" checked={paymentMethod === 'ewallet'} onChange={() => setPaymentMethod('ewallet')} style={{ marginRight: '10px' }} />
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>eWallet (eZ Cash / mCash)</span>
-              </label>
-
-              <label style={{ display: 'flex', alignItems: 'center', padding: '12px', border: paymentMethod === 'cash' ? '2px solid #0066ff' : '1px solid #e2e8f0', borderRadius: '8px', cursor: 'pointer', backgroundColor: paymentMethod === 'cash' ? '#eff6ff' : 'white' }}>
-                <input type="radio" name="pay" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} style={{ marginRight: '10px' }} />
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>Cash on Service</span>
-              </label>
+              {paymentOptions.map((opt) => (
+                <label 
+                  key={opt.id}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    padding: '12px', 
+                    border: paymentMethod === opt.id ? '2px solid #0066ff' : '1px solid #e2e8f0', 
+                    borderRadius: '8px', 
+                    cursor: 'pointer', 
+                    backgroundColor: paymentMethod === opt.id ? '#eff6ff' : 'white' 
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      checked={paymentMethod === opt.id} 
+                      onChange={() => setPaymentMethod(opt.id)} 
+                    />
+                    <span style={{ fontSize: '13px', fontWeight: '600' }}>{opt.label}</span>
+                  </div>
+                  {opt.icon}
+                </label>
+              ))}
             </div>
 
             <button type="submit" style={{ width: '100%', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>

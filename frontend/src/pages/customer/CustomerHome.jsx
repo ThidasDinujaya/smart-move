@@ -11,6 +11,17 @@ const CustomerHome = () => {
     date: ''
   });
 
+  // Dynamic location list ready for API/Database integration
+  const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
+
+  // Dynamic feature highlights list
+  const features = [
+    { icon: <MapPin color="#0284c7" size={22} />, title: 'Wide Coverage', subtitle: 'Across Cities' },
+    { icon: <ShieldCheck color="#0284c7" size={22} />, title: 'Safe & Secure', subtitle: 'Travel' },
+    { icon: <Bus color="#0284c7" size={22} />, title: 'Affordable', subtitle: 'Ticket Prices' },
+    { icon: <Ticket color="#0284c7" size={22} />, title: 'Easy Online', subtitle: 'Booking' }
+  ];
+
   const handleSearch = (e) => {
     e.preventDefault();
     navigate('/payment', { state: searchParams });
@@ -62,9 +73,9 @@ const CustomerHome = () => {
               required
             >
               <option value="">Select starting point</option>
-              <option value="Colombo">Colombo</option>
-              <option value="Kandy">Kandy</option>
-              <option value="Galle">Galle</option>
+              {locations.map((loc) => (
+                <option key={`from-${loc}`} value={loc}>{loc}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -76,9 +87,9 @@ const CustomerHome = () => {
               required
             >
               <option value="">Select destination</option>
-              <option value="Kandy">Kandy</option>
-              <option value="Galle">Galle</option>
-              <option value="Matara">Matara</option>
+              {locations.map((loc) => (
+                <option key={`to-${loc}`} value={loc}>{loc}</option>
+              ))}
             </select>
           </div>
           <div>
@@ -118,34 +129,15 @@ const CustomerHome = () => {
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '20px'
       }}>
-        <div style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}><MapPin color="#0284c7" size={22} /></div>
-          <div>
-            <div style={{ fontWeight: '700', fontSize: '14px' }}>Wide Coverage</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>Across Cities</div>
+        {features.map((feature, index) => (
+          <div key={index} style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}>{feature.icon}</div>
+            <div>
+              <div style={{ fontWeight: '700', fontSize: '14px' }}>{feature.title}</div>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>{feature.subtitle}</div>
+            </div>
           </div>
-        </div>
-        <div style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}><ShieldCheck color="#0284c7" size={22} /></div>
-          <div>
-            <div style={{ fontWeight: '700', fontSize: '14px' }}>Safe & Secure</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>Travel</div>
-          </div>
-        </div>
-        <div style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}><Bus color="#0284c7" size={22} /></div>
-          <div>
-            <div style={{ fontWeight: '700', fontSize: '14px' }}>Affordable</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>Ticket Prices</div>
-          </div>
-        </div>
-        <div style={{ backgroundColor: 'white', padding: '16px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <div style={{ backgroundColor: '#e0f2fe', padding: '10px', borderRadius: '10px', display: 'flex' }}><Ticket color="#0284c7" size={22} /></div>
-          <div>
-            <div style={{ fontWeight: '700', fontSize: '14px' }}>Easy Online</div>
-            <div style={{ fontSize: '12px', color: '#64748b' }}>Booking</div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

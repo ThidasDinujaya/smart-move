@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
+import { useNavigate } from 'react-router-dom';
 import { User, Ticket, KeyRound, LogOut } from 'lucide-react';
 
 const CustomerProfile = () => {
+  const navigate = useNavigate();
+
+  // Initialized with structured state ready for API fetch integration
   const [profile, setProfile] = useState({
-    fullName: 'Dinuni Perera',
-    email: 'dinuni@example.com',
-    phone: '077 123 4567',
-    nic: '200012345678'
+    fullName: '',
+    email: '',
+    phone: '',
+    nic: ''
   });
+
+  // Dynamic sidebar navigation list ready for routing handlers
+  const navItems = [
+    { label: 'Profile', icon: <User size={16} />, path: '/profile', active: true },
+    { label: 'My Bookings', icon: <Ticket size={16} />, path: '/my-bookings', active: false },
+    { label: 'Change Password', icon: <KeyRound size={16} />, path: '/change-password', active: false },
+    { label: 'Logout', icon: <LogOut size={16} />, path: '/logout', danger: true, active: false }
+  ];
 
   const handleUpdate = (e) => {
     e.preventDefault();
@@ -22,18 +34,31 @@ const CustomerProfile = () => {
       <div style={{ maxWidth: '900px', margin: '32px auto', display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', padding: '0 20px' }}>
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '16px', height: 'fit-content', border: '1px solid #e2e8f0' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: 'none', backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
-              <User size={16} /> Profile
-            </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: 'none', backgroundColor: 'transparent', color: '#64748b', fontWeight: '600', cursor: 'pointer' }}>
-              <Ticket size={16} /> My Bookings
-            </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: 'none', backgroundColor: 'transparent', color: '#64748b', fontWeight: '600', cursor: 'pointer' }}>
-              <KeyRound size={16} /> Change Password
-            </button>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 14px', border: 'none', backgroundColor: 'transparent', color: '#ef4444', fontWeight: '600', cursor: 'pointer' }}>
-              <LogOut size={16} /> Logout
-            </button>
+            {navItems.map((item, index) => (
+              <button 
+                key={index}
+                onClick={() => {
+                  if (!item.danger && item.path !== '/profile') navigate(item.path);
+                  if (item.path === '/logout') navigate('/');
+                }}
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  padding: '10px 14px', 
+                  border: 'none', 
+                  backgroundColor: item.active ? '#e0f2fe' : 'transparent', 
+                  color: item.danger ? '#ef4444' : item.active ? '#0284c7' : '#64748b', 
+                  borderRadius: '8px', 
+                  fontWeight: item.active ? '700' : '600', 
+                  cursor: 'pointer',
+                  width: '100%',
+                  textAlign: 'left'
+                }}
+              >
+                {item.icon} {item.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -56,6 +81,7 @@ const CustomerProfile = () => {
                 <input 
                   type="text" 
                   value={profile.fullName} 
+                  placeholder="Enter full name"
                   onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
@@ -65,6 +91,7 @@ const CustomerProfile = () => {
                 <input 
                   type="email" 
                   value={profile.email} 
+                  placeholder="Enter email address"
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
@@ -74,6 +101,7 @@ const CustomerProfile = () => {
                 <input 
                   type="text" 
                   value={profile.phone} 
+                  placeholder="Enter phone number"
                   onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
@@ -83,6 +111,7 @@ const CustomerProfile = () => {
                 <input 
                   type="text" 
                   value={profile.nic} 
+                  placeholder="Enter NIC number"
                   onChange={(e) => setProfile({ ...profile, nic: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
