@@ -1,190 +1,635 @@
-import { useState } from 'react';
-import AppLayout from './components/AppLayout.jsx';
-import BookingForm from './components/BookingForm.jsx';
-import RecordDialog from './components/RecordDialog.jsx';
-import TripForm from './components/TripForm.jsx';
-import BookingsPage from './pages/admin/BookingsPage.jsx';
-import PassengersPage from './pages/admin/PassengersPage.jsx';
-import PaymentReceiptPage from './pages/admin/PaymentReceiptPage.jsx';
-import PaymentsPage from './pages/admin/PaymentsPage.jsx';
-import TripsPage from './pages/admin/TripsPage.jsx';
-import MaintenanceManagement from './pages/admin/MaintenanceManagement.jsx';
-import AddMaintenance from './pages/admin/AddMaintenance.jsx';
-import FeedbackReviews from './pages/admin/FeedbackReviews.jsx';
-import ReportsDashboard from './pages/admin/ReportsDashboard.jsx';
-import useSmartMoveData from './hooks/useSmartMoveData.js';
-import downloadReceipt from './utils/downloadReceipt.js';
 
-const emptyPassenger = {
-  name: '',
-  email: '',
-  phone: '',
-  gender: '',
-  status: '',
-};
+import { useState } from "react";
 
-const emptyPayment = {
-  booking: '',
-  passenger: '',
-  amount: '',
-  method: '',
-  status: '',
-};
+import AppLayout from "./components/AppLayout.jsx";
+import Login from "./pages/Login.jsx";
 
-export default function App() {
+// Dashboard
+import Dashboard from "./pages/admin/Dashboard.jsx";
+
+// Vehicle Management
+import Vehicles from "./pages/admin/Vehicles.jsx";
+import AddVehicle from "./pages/admin/AddVehicle.jsx";
+import ViewVehicle from "./pages/admin/ViewVehicle.jsx";
+import EditVehicle from "./pages/admin/EditVehicle.jsx";
+
+// Driver Management
+import Drivers from "./pages/admin/Drivers.jsx";
+import AddDriver from "./pages/admin/AddDriver.jsx";
+import ViewDriver from "./pages/admin/ViewDriver.jsx";
+import EditDriver from "./pages/admin/EditDriver.jsx";
+
+// Route Management
+import Routes from "./pages/admin/Routes.jsx";
+import AddRoute from "./pages/admin/AddRoute.jsx";
+import ViewRoute from "./pages/admin/ViewRoute.jsx";
+import EditRoute from "./pages/admin/EditRoute.jsx";
+
+// Operations
+import PassengersPage from "./pages/admin/PassengersPage.jsx";
+import TripsPage from "./pages/admin/TripsPage.jsx";
+import BookingsPage from "./pages/admin/BookingsPage.jsx";
+import PaymentsPage from "./pages/admin/PaymentsPage.jsx";
+import PaymentReceiptPage from "./pages/admin/PaymentReceiptPage.jsx";
+
+// Management
+import MaintenanceManagement from "./pages/admin/MaintenanceManagement.jsx";
+import AddMaintenance from "./pages/admin/AddMaintenance.jsx";
+import FeedbackReviews from "./pages/admin/FeedbackReviews.jsx";
+import ReportsDashboard from "./pages/admin/ReportsDashboard.jsx";
+
+// Data Hook
+import useSmartMoveData from "./hooks/useSmartMoveData.js";
+
+function App() {
+  // ==========================================
+  // LOGIN STATE
+  // ==========================================
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return (
+      sessionStorage.getItem("smartmove_admin_demo") === "true" ||
+      localStorage.getItem("smartmove_admin_demo") === "true"
+    );
+  });
+
+  const [page, setPage] = useState("dashboard");
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
+  // ==========================================
+  // SMARTMOVE DATA
+  // ==========================================
+
   const data = useSmartMoveData();
-  const [page, setPage] = useState('passengers');
-  const [dialog, setDialog] = useState(null);
-  const [editingTrip, setEditingTrip] = useState(null);
-  const [receipt, setReceipt] = useState(null);
 
-  const activePage = {
-    'trip-form': 'trips',
-    'booking-form': 'bookings',
-    'maintenance-form': 'maintenance',
-    receipt: 'payments',
-  }[page] || page;
-  const receiptBooking = data.bookings.find((booking) => String(booking.id) === String(receipt?.booking));
+  const {
+    vehicles = [],
+    drivers = [],
+    routeRecords = [],
+    routes = [],
+    passengers = [],
+    trips = [],
+    bookings = [],
+    payments = [],
+    maintenance = [],
+    feedback = [],
+    tripOptions,
+    maintenanceOptions,
+  } = data;
 
-  function openDialog(type, mode, item = {}) {
-    setDialog({ type, mode, item });
+  // ==========================================
+  // LOGIN / LOGOUT
+  // ==========================================
+
+  function handleLogin({ rememberMe = false } = {}) {
+    sessionStorage.removeItem("smartmove_admin_demo");
+    localStorage.removeItem("smartmove_admin_demo");
+
+    if (rememberMe) {
+      localStorage.setItem("smartmove_admin_demo", "true");
+    } else {
+      sessionStorage.setItem("smartmove_admin_demo", "true");
+    }
+
+    setIsAuthenticated(true);
+    setSelectedRecord(null);
+    setPage("dashboard");
   }
 
-  function closeDialog() {
-    setDialog(null);
+  function handleLogout() {
+    sessionStorage.removeItem("smartmove_admin_demo");
+    localStorage.removeItem("smartmove_admin_demo");
+
+    setIsAuthenticated(false);
+    setSelectedRecord(null);
+    setPage("dashboard");
   }
 
-  function openReceipt(payment) {
-    setReceipt(payment);
-    setPage('receipt');
-  }
+  // ==========================================
+  // NAVIGATION
+  // ==========================================
 
   function navigate(nextPage) {
+    setSelectedRecord(null);
     setPage(nextPage);
-    closeDialog();
   }
 
+  function openRecord(nextPage, record) {
+    setSelectedRecord(record);
+    setPage(nextPage);
+  }
+
+  // ==========================================
+  // VEHICLE CRUD
+  // ==========================================
+
+  async function handleAddVehicle(vehicle) {
+    try {
+      const result = await data.saveVehicle(vehicle);
+
+      if (result !== false) {
+        navigate("vehicles");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to save vehicle.");
+      return false;
+    }
+  }
+
+  async function handleUpdateVehicle(vehicle) {
+    try {
+      const result = await data.updateVehicle(vehicle);
+
+      if (result !== false) {
+        navigate("vehicles");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to update vehicle.");
+      return false;
+    }
+  }
+
+  async function handleDeleteVehicle(vehicle) {
+    try {
+      return await data.deleteVehicle(vehicle?.id ?? vehicle);
+    } catch (error) {
+      window.alert(error.message || "Unable to delete vehicle.");
+      return false;
+    }
+  }
+
+  // ==========================================
+  // DRIVER CRUD
+  // ==========================================
+
+  async function handleAddDriver(driver) {
+    try {
+      const result = await data.saveDriver(driver);
+
+      if (result !== false) {
+        navigate("drivers");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to save driver.");
+      return false;
+    }
+  }
+
+  async function handleUpdateDriver(driver) {
+    try {
+      const result = await data.updateDriver(driver);
+
+      if (result !== false) {
+        navigate("drivers");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to update driver.");
+      return false;
+    }
+  }
+
+  async function handleDeleteDriver(driver) {
+    try {
+      return await data.deleteDriver(driver?.id ?? driver);
+    } catch (error) {
+      window.alert(error.message || "Unable to delete driver.");
+      return false;
+    }
+  }
+
+  // ==========================================
+  // ROUTE CRUD
+  // ==========================================
+
+  async function handleAddRoute(route) {
+    try {
+      const result = await data.saveRoute(route);
+
+      if (result !== false) {
+        navigate("routes");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to save route.");
+      return false;
+    }
+  }
+
+  async function handleUpdateRoute(route) {
+    try {
+      const result = await data.updateRoute(route);
+
+      if (result !== false) {
+        navigate("routes");
+      }
+
+      return result;
+    } catch (error) {
+      window.alert(error.message || "Unable to update route.");
+      return false;
+    }
+  }
+
+  async function handleDeleteRoute(route) {
+    try {
+      return await data.deleteRoute(route?.id ?? route);
+    } catch (error) {
+      window.alert(error.message || "Unable to delete route.");
+      return false;
+    }
+  }
+
+  // ==========================================
+  // TEAMMATE DATA FUNCTIONS
+  // ==========================================
+
+  async function handleSaveRecord(config, value) {
+    return data.saveRecord(config, value);
+  }
+
+  async function handleDeleteRecord(type, item) {
+    return data.deleteRecord(type, item);
+  }
+
+  async function handleSaveTrip(value, editingTrip) {
+    return data.saveTrip(value, editingTrip);
+  }
+
+  async function handleSaveBooking(value) {
+    return data.saveBooking(value);
+  }
+
+  async function handleSaveMaintenance(value) {
+    const result = await data.saveMaintenance(value);
+
+    if (result !== false) {
+      navigate("maintenance");
+    }
+
+    return result;
+  }
+
+  // ==========================================
+  // PAGE RENDERING
+  // ==========================================
+
+  function renderPage() {
+    switch (page) {
+      // DASHBOARD
+      case "dashboard":
+        return (
+          <Dashboard
+            vehicles={vehicles}
+            drivers={drivers}
+            routes={routes}
+            passengers={passengers}
+            trips={trips}
+            bookings={bookings}
+            payments={payments}
+            maintenance={maintenance}
+            onNavigate={navigate}
+          />
+        );
+
+      // ======================================
+      // VEHICLES
+      // ======================================
+
+      case "vehicles":
+        return (
+          <Vehicles
+            vehicles={vehicles}
+            onAdd={() => navigate("add-vehicle")}
+            onView={(vehicle) =>
+              openRecord("view-vehicle", vehicle)
+            }
+            onEdit={(vehicle) =>
+              openRecord("edit-vehicle", vehicle)
+            }
+            onDelete={handleDeleteVehicle}
+          />
+        );
+
+      case "add-vehicle":
+        return (
+          <AddVehicle
+            vehicles={vehicles}
+            onSave={handleAddVehicle}
+            onCancel={() => navigate("vehicles")}
+          />
+        );
+
+      case "view-vehicle":
+        return (
+          <ViewVehicle
+            vehicle={selectedRecord}
+            onBack={() => navigate("vehicles")}
+            onEdit={() =>
+              openRecord("edit-vehicle", selectedRecord)
+            }
+          />
+        );
+
+      case "edit-vehicle":
+        return (
+          <EditVehicle
+            vehicle={selectedRecord}
+            vehicles={vehicles}
+            onSave={handleUpdateVehicle}
+            onCancel={() => navigate("vehicles")}
+          />
+        );
+
+      // ======================================
+      // DRIVERS
+      // ======================================
+
+      case "drivers":
+        return (
+          <Drivers
+            drivers={drivers}
+            vehicles={vehicles}
+            onAdd={() => navigate("add-driver")}
+            onView={(driver) =>
+              openRecord("view-driver", driver)
+            }
+            onEdit={(driver) =>
+              openRecord("edit-driver", driver)
+            }
+            onDelete={handleDeleteDriver}
+          />
+        );
+
+      case "add-driver":
+        return (
+          <AddDriver
+            drivers={drivers}
+            vehicles={vehicles}
+            onSave={handleAddDriver}
+            onCancel={() => navigate("drivers")}
+          />
+        );
+
+      case "view-driver":
+        return (
+          <ViewDriver
+            driver={selectedRecord}
+            onBack={() => navigate("drivers")}
+            onEdit={() =>
+              openRecord("edit-driver", selectedRecord)
+            }
+          />
+        );
+
+      case "edit-driver":
+        return (
+          <EditDriver
+            driver={selectedRecord}
+            drivers={drivers}
+            vehicles={vehicles}
+            onSave={handleUpdateDriver}
+            onCancel={() => navigate("drivers")}
+          />
+        );
+
+      // ======================================
+      // ROUTES
+      // ======================================
+
+      case "routes":
+        return (
+          <Routes
+            routes={routeRecords}
+            onAdd={() => navigate("add-route")}
+            onView={(route) =>
+              openRecord("view-route", route)
+            }
+            onEdit={(route) =>
+              openRecord("edit-route", route)
+            }
+            onDelete={handleDeleteRoute}
+          />
+        );
+
+      case "add-route":
+        return (
+          <AddRoute
+            routes={routeRecords}
+            onSave={handleAddRoute}
+            onCancel={() => navigate("routes")}
+          />
+        );
+
+      case "view-route":
+        return (
+          <ViewRoute
+            route={selectedRecord}
+            onBack={() => navigate("routes")}
+            onEdit={() =>
+              openRecord("edit-route", selectedRecord)
+            }
+          />
+        );
+
+      case "edit-route":
+        return (
+          <EditRoute
+            route={selectedRecord}
+            routes={routeRecords}
+            onSave={handleUpdateRoute}
+            onCancel={() => navigate("routes")}
+          />
+        );
+
+      // ======================================
+      // PASSENGERS
+      // ======================================
+
+      case "passengers":
+        return (
+          <PassengersPage
+            passengers={passengers}
+            onSaveRecord={handleSaveRecord}
+            onDeleteRecord={handleDeleteRecord}
+            data={data}
+          />
+        );
+
+      // ======================================
+      // TRIPS
+      // ======================================
+
+      case "trips":
+        return (
+          <TripsPage
+            trips={trips}
+            vehicles={vehicles}
+            drivers={drivers}
+            routes={routes}
+            tripOptions={tripOptions}
+            onSaveTrip={handleSaveTrip}
+            onDeleteRecord={handleDeleteRecord}
+            data={data}
+          />
+        );
+
+      // ======================================
+      // BOOKINGS
+      // ======================================
+
+      case "bookings":
+        return (
+          <BookingsPage
+            bookings={bookings}
+            passengers={passengers}
+            trips={trips}
+            onSaveBooking={handleSaveBooking}
+            onSaveRecord={handleSaveRecord}
+            onDeleteRecord={handleDeleteRecord}
+            data={data}
+          />
+        );
+
+      // ======================================
+      // PAYMENTS
+      // ======================================
+
+      case "payments":
+        return (
+          <PaymentsPage
+            payments={payments}
+            bookings={bookings}
+            onSaveRecord={handleSaveRecord}
+            onDeleteRecord={handleDeleteRecord}
+            onViewReceipt={(payment) =>
+              openRecord("payment-receipt", payment)
+            }
+            data={data}
+          />
+        );
+
+      case "payment-receipt":
+        return (
+          <PaymentReceiptPage
+            payment={selectedRecord}
+            onBack={() => navigate("payments")}
+            data={data}
+          />
+        );
+
+      // ======================================
+      // MAINTENANCE
+      // ======================================
+
+      case "maintenance":
+        return (
+          <MaintenanceManagement
+            maintenance={maintenance}
+            vehicles={vehicles}
+            maintenanceOptions={maintenanceOptions}
+            onAdd={() => navigate("add-maintenance")}
+            data={data}
+          />
+        );
+
+      case "add-maintenance":
+        return (
+          <AddMaintenance
+            vehicles={vehicles}
+            onSave={handleSaveMaintenance}
+            onCancel={() => navigate("maintenance")}
+          />
+        );
+
+      // ======================================
+      // FEEDBACK
+      // ======================================
+
+      case "feedback":
+        return (
+          <FeedbackReviews
+            feedback={feedback}
+            data={data}
+          />
+        );
+
+      // ======================================
+      // REPORTS
+      // ======================================
+
+      case "reports":
+        return (
+          <ReportsDashboard
+            vehicles={vehicles}
+            drivers={drivers}
+            routes={routes}
+            trips={trips}
+            bookings={bookings}
+            payments={payments}
+            data={data}
+          />
+        );
+
+      default:
+        return (
+          <Dashboard
+            vehicles={vehicles}
+            drivers={drivers}
+            routes={routes}
+            trips={trips}
+            bookings={bookings}
+            onNavigate={navigate}
+          />
+        );
+    }
+  }
+
+  // ==========================================
+  // LOGIN PAGE
+  // ==========================================
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // ==========================================
+  // SIDEBAR ACTIVE PAGE
+  // ==========================================
+
+  const sidebarPage = page.includes("vehicle")
+    ? "vehicles"
+    : page.includes("driver")
+      ? "drivers"
+      : page.includes("route")
+        ? "routes"
+        : page.includes("maintenance")
+          ? "maintenance"
+          : page === "payment-receipt"
+            ? "payments"
+            : page;
+
+  // ==========================================
+  // ADMIN LAYOUT
+  // ==========================================
+
   return (
-    <AppLayout activePage={activePage} onNavigate={navigate}>
-      {page === 'passengers' && (
-        <PassengersPage
-          passengers={data.passengers}
-          onAdd={() => openDialog('passenger', 'add', emptyPassenger)}
-          onOpen={openDialog}
-        />
-      )}
-
-      {page === 'trips' && (
-        <TripsPage
-          trips={data.trips}
-          routes={data.routes}
-          statuses={data.tripOptions.statuses}
-          onAdd={() => {
-            setEditingTrip(null);
-            setPage('trip-form');
-          }}
-          onOpen={openDialog}
-          onEdit={(trip) => {
-            setEditingTrip(trip);
-            setPage('trip-form');
-          }}
-        />
-      )}
-
-      {page === 'bookings' && (
-        <BookingsPage
-          bookings={data.bookings}
-          routes={data.routes}
-          onAdd={() => setPage('booking-form')}
-          onOpen={openDialog}
-        />
-      )}
-
-      {page === 'payments' && (
-        <PaymentsPage
-          payments={data.payments}
-          onAdd={() => openDialog('payment', 'add', emptyPayment)}
-          onOpen={openDialog}
-          onOpenReceipt={openReceipt}
-        />
-      )}
-
-      {page === 'maintenance' && (
-        <MaintenanceManagement
-          records={data.maintenance}
-          statuses={data.maintenanceOptions.statuses}
-          onAdd={() => setPage('maintenance-form')}
-        />
-      )}
-
-      {page === 'maintenance-form' && (
-        <AddMaintenance
-          options={data.maintenanceOptions}
-          onCancel={() => setPage('maintenance')}
-          onSave={async (record) => {
-            if (await data.saveMaintenance(record)) setPage('maintenance');
-          }}
-        />
-      )}
-
-      {page === 'feedback' && <FeedbackReviews reviews={data.feedback} />}
-
-      {page === 'reports' && <ReportsDashboard report={data.reports} />}
-
-      {page === 'trip-form' && (
-        <section className="page form-page">
-          <TripForm
-            value={editingTrip}
-            options={data.tripOptions}
-            onCancel={() => {
-              setEditingTrip(null);
-              setPage('trips');
-            }}
-            onSave={async (trip) => {
-              if (await data.saveTrip(trip, editingTrip)) {
-                setEditingTrip(null);
-                setPage('trips');
-              }
-            }}
-          />
-        </section>
-      )}
-
-      {page === 'booking-form' && (
-        <section className="page form-page">
-          <BookingForm
-            trips={data.trips}
-            passengers={data.passengers}
-            onCancel={() => setPage('bookings')}
-            onSave={async (booking) => {
-              if (await data.saveBooking(booking)) setPage('bookings');
-            }}
-          />
-        </section>
-      )}
-
-      {page === 'receipt' && (
-        <PaymentReceiptPage
-          receipt={receipt}
-          booking={receiptBooking}
-          onDownload={() => downloadReceipt(receipt, receiptBooking)}
-          onBack={() => setPage('bookings')}
-        />
-      )}
-
-      {dialog && (
-        <RecordDialog
-          key={[dialog.type, dialog.mode, dialog.item.id || 'new'].join(':')}
-          data={dialog}
-          onClose={closeDialog}
-          onSave={async (value) => {
-            if (await data.saveRecord(dialog, value)) closeDialog();
-          }}
-          onDelete={async (item) => {
-            if (await data.deleteRecord(dialog.type, item)) closeDialog();
-          }}
-        />
-      )}
+    <AppLayout
+      activePage={sidebarPage}
+      onNavigate={navigate}
+      onLogout={handleLogout}
+    >
+      {renderPage()}
     </AppLayout>
   );
 }
+
+export default App;
