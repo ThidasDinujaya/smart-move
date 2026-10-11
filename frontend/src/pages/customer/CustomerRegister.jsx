@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import '../../styles/Login.css';
 import loginBg from '../../assets/login-bg.png';
 import { registerCustomer } from '../../utils/customerAuth.js';
+import { getCustomerReturnLocation } from '../../utils/roleAccess.js';
 
 export default function CustomerRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +32,8 @@ export default function CustomerRegister() {
     setIsSubmitting(true);
     try {
       await registerCustomer(form);
-      navigate('/profile', { replace: true });
+      const destination = getCustomerReturnLocation(location.state?.from);
+      navigate(destination.to, { replace: true, state: destination.state });
     } catch (registrationError) {
       setError(registrationError.message || 'Unable to create your account. Please try again.');
     } finally {
@@ -142,7 +145,7 @@ export default function CustomerRegister() {
               {isSubmitting ? 'Creating account…' : 'Register'}
             </button>
             <p className="account-switch">
-              Already have an account? <Link to="/login">Login</Link>
+              Already have an account? <Link to="/login" state={location.state}>Login</Link>
             </p>
           </form>
         </div>

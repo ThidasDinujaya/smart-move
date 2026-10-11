@@ -1,3 +1,5 @@
+import { ROLES } from './roleAccess.js';
+
 const ACCOUNTS_KEY = 'smartmove_customer_accounts';
 const CURRENT_CUSTOMER_KEY = 'smartMoveUser';
 const PASSWORD_ITERATIONS = 120_000;
@@ -49,6 +51,7 @@ function publicCustomer(account) {
     fullName: account.fullName,
     email: account.email,
     phone: account.phone || '',
+    roles: Array.isArray(account.roles) ? account.roles : [ROLES.CUSTOMER],
   };
 }
 
@@ -59,7 +62,9 @@ function saveSession(customer) {
 export function getCurrentCustomer() {
   try {
     const customer = JSON.parse(localStorage.getItem(CURRENT_CUSTOMER_KEY) || 'null');
-    return customer && customer.id && customer.email ? customer : null;
+    return customer && customer.id && customer.email
+      ? { ...customer, roles: Array.isArray(customer.roles) ? customer.roles : [ROLES.CUSTOMER] }
+      : null;
   } catch {
     return null;
   }
@@ -79,6 +84,7 @@ export async function registerCustomer({ fullName, email, phone, password }) {
     fullName: fullName.trim(),
     email: normalizedEmail,
     phone: phone.trim(),
+    roles: [ROLES.CUSTOMER],
     passwordSalt: salt,
     passwordHash: await hashPassword(password, salt),
   };

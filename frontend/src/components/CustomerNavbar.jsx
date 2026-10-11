@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bus, User } from 'lucide-react';
 import { getCurrentCustomer } from '../utils/customerAuth.js';
+import { hasRole, ROLES } from '../utils/roleAccess.js';
 
 const CustomerNavbar = () => {
   const [customer, setCustomer] = useState(getCurrentCustomer);
@@ -29,16 +30,23 @@ const CustomerNavbar = () => {
 
       <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
         <Link to="/" style={{ textDecoration: 'none', color: '#0066ff', fontWeight: '600', fontSize: '14px' }}>Home</Link>
-        <Link to="/search" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Search Buses</Link>
+        <Link to="/search" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Search Vehicles</Link>
         <Link to="/my-bookings" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>My Bookings</Link>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {customer ? (
-          <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <User size={18} />
-            Profile
-          </Link>
+          <>
+            {hasRole(customer, ROLES.ADMIN) && (
+              <Link to="/admin" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px' }}>
+                Admin portal
+              </Link>
+            )}
+            <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={18} />
+              Profile
+            </Link>
+          </>
         ) : (
           <>
             <Link to="/login" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>

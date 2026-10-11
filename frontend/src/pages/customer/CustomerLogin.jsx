@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import '../../styles/Login.css';
 import loginBg from '../../assets/login-bg.png';
 import { loginCustomer } from '../../utils/customerAuth.js';
+import { getCustomerReturnLocation } from '../../utils/roleAccess.js';
 
 export default function CustomerLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +22,8 @@ export default function CustomerLogin() {
 
     try {
       await loginCustomer({ email, password });
-      navigate('/profile', { replace: true });
+      const destination = getCustomerReturnLocation(location.state?.from);
+      navigate(destination.to, { replace: true, state: destination.state });
     } catch (loginError) {
       setError(loginError.message || 'Unable to log in. Please try again.');
     } finally {
@@ -92,7 +95,10 @@ export default function CustomerLogin() {
               {isSubmitting ? 'Logging in…' : 'Login'}
             </button>
             <p className="account-switch">
-              Don’t have an account? <Link to="/register">Register</Link>
+              Don’t have an account? <Link to="/register" state={location.state}>Register</Link>
+            </p>
+            <p className="account-switch">
+              Staff member? <Link to="/admin/login">Sign in to the admin portal</Link>
             </p>
           </form>
         </div>
