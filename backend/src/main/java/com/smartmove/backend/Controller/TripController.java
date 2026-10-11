@@ -1,5 +1,6 @@
 package com.smartmove.backend.controller;
 
+import com.smartmove.backend.service.BookingService;
 import com.smartmove.backend.service.CustomerAuthService;
 import com.smartmove.backend.service.TripService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,9 +29,11 @@ import java.util.Map;
 public class TripController {
 
     private final TripService tripService;
+    private final BookingService bookingService;
 
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, BookingService bookingService) {
         this.tripService = tripService;
+        this.bookingService = bookingService;
     }
 
     @GetMapping("/search")
@@ -44,6 +47,11 @@ public class TripController {
     @GetMapping("/{id}")
     public TripService.TripView getTripById(@PathVariable Long id) {
         return tripService.getTripById(id);
+    }
+
+    @GetMapping("/{id}/seats")
+    public BookingService.SeatAvailabilityView getSeatAvailability(@PathVariable Long id) {
+        return bookingService.getSeatAvailability(id);
     }
 
     @GetMapping
@@ -100,6 +108,13 @@ public class TripController {
     @ExceptionHandler(TripService.TripResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleTripResourceNotFound(
             TripService.TripResourceNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(BookingService.TripNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleBookingTripNotFound(
+            BookingService.TripNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", exception.getMessage()));
     }
