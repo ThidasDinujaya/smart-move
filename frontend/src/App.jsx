@@ -4,6 +4,8 @@ import {
   Routes as RouterRoutes,
   Route,
   Navigate,
+  useLocation,
+  useNavigate,
 } from "react-router-dom";
 
 import AppLayout from "./components/AppLayout.jsx";
@@ -43,6 +45,9 @@ import ReportsDashboard from "./pages/admin/ReportsDashboard.jsx";
 
 // Customer portal
 import CustomerHome from "./pages/customer/CustomerHome.jsx";
+import CustomerLogin from "./pages/customer/CustomerLogin.jsx";
+import CustomerRegister from "./pages/customer/CustomerRegister.jsx";
+import SearchBuses from "./pages/customer/SearchBuses.jsx";
 import SearchResults from "./pages/customer/SearchResults.jsx";
 import BusDetails from "./pages/customer/BusDetails.jsx";
 import SeatSelection from "./pages/customer/SeatSelection.jsx";
@@ -53,14 +58,29 @@ import BookingSuccess from "./pages/customer/BookingSuccess.jsx";
 
 // Shared data hook
 import useSmartMoveData from "./hooks/useSmartMoveData.js";
+import { getCurrentCustomer } from "./utils/customerAuth.js";
+import { getCurrentAdminDemoUser, hasPermission, hasRole, PERMISSIONS, ROLES } from "./utils/roleAccess.js";
+
+function CustomerAuthRoute({ children, permission }) {
+  const location = useLocation();
+  const customer = getCurrentCustomer();
+
+  if (!customer) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!hasRole(customer, ROLES.CUSTOMER) || !hasPermission(customer, permission)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
 
 function AdminApp() {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return (
-      sessionStorage.getItem("smartmove_admin_demo") === "true" ||
-      localStorage.getItem("smartmove_admin_demo") === "true"
-    );
-  });
+  const location = useLocation();
+  const routerNavigate = useNavigate();
+  const [adminUser, setAdminUser] = useState(getCurrentAdminDemoUser);
+  const isAuthenticated = hasRole(adminUser, ROLES.ADMIN);
 
   const [page, setPage] = useState("dashboard");
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -96,30 +116,53 @@ function AdminApp() {
       sessionStorage.setItem("smartmove_admin_demo", "true");
     }
 
-    setIsAuthenticated(true);
+    setAdminUser(getCurrentAdminDemoUser());
     setSelectedRecord(null);
     setPage("dashboard");
+    routerNavigate("/admin", { replace: true });
   }
 
   function handleLogout() {
     sessionStorage.removeItem("smartmove_admin_demo");
     localStorage.removeItem("smartmove_admin_demo");
 
-    setIsAuthenticated(false);
+    setAdminUser(null);
     setSelectedRecord(null);
     setPage("dashboard");
+    routerNavigate("/admin/login", { replace: true });
   }
 
   // 
   // NAVIGATION
   // 
 
+  function permissionForPage(nextPage) {
+    if (nextPage === "dashboard") return PERMISSIONS.ADMIN_DASHBOARD_READ;
+    if (nextPage.includes("vehicle")) return PERMISSIONS.FLEET_VEHICLES_MANAGE;
+    if (nextPage.includes("driver")) return PERMISSIONS.FLEET_DRIVERS_MANAGE;
+    if (nextPage.includes("route")) return PERMISSIONS.FLEET_ROUTES_MANAGE;
+    if (nextPage.includes("maintenance")) return PERMISSIONS.FLEET_MAINTENANCE_MANAGE;
+    if (nextPage === "passengers") return PERMISSIONS.OPERATIONS_PASSENGERS_READ;
+    if (nextPage === "trips") return PERMISSIONS.OPERATIONS_TRIPS_MANAGE;
+    if (nextPage === "bookings") return PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE;
+    if (nextPage === "payments" || nextPage === "payment-receipt") return PERMISSIONS.FINANCE_PAYMENTS_MANAGE;
+    if (nextPage === "feedback") return PERMISSIONS.SUPPORT_FEEDBACK_MANAGE;
+    if (nextPage === "reports") return PERMISSIONS.REPORTS_READ;
+    return null;
+  }
+
   function navigate(nextPage) {
+    const requiredPermission = permissionForPage(nextPage);
+    if (!requiredPermission || !hasPermission(adminUser, requiredPermission)) return;
+
     setSelectedRecord(null);
     setPage(nextPage);
   }
 
   function openRecord(nextPage, record) {
+    const requiredPermission = permissionForPage(nextPage);
+    if (!requiredPermission || !hasPermission(adminUser, requiredPermission)) return;
+
     setSelectedRecord(record);
     setPage(nextPage);
   }
@@ -603,7 +646,14 @@ function AdminApp() {
   // 
 
   if (!isAuthenticated) {
+    if (location.pathname !== "/admin/login") {
+      return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    }
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (location.pathname === "/admin/login") {
+    return <Navigate to="/admin" replace />;
   }
 
   // 
@@ -631,6 +681,7 @@ function AdminApp() {
       activePage={sidebarPage}
       onNavigate={navigate}
       onLogout={handleLogout}
+      user={adminUser}
     >
       {renderPage()}
     </AppLayout>
@@ -643,15 +694,19 @@ export default function App() {
       <RouterRoutes>
         {/* Customer portal */}
         <Route path="/" element={<CustomerHome />} />
+        <Route path="/login" element={<CustomerLogin />} />
+        <Route path="/register" element={<CustomerRegister />} />
+        <Route path="/search" element={<SearchBuses />} />
         <Route path="/search-results" element={<SearchResults />} />
         <Route path="/bus-details" element={<BusDetails />} />
         <Route path="/seat-selection" element={<SeatSelection />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
-        <Route path="/profile" element={<CustomerProfile />} />
-        <Route path="/payment" element={<PaymentPage />} />
-        <Route path="/booking-success" element={<BookingSuccess />} />
+        <Route path="/my-bookings" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKINGS_READ}><MyBookings /></CustomerAuthRoute>} />
+        <Route path="/profile" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_PROFILE_READ}><CustomerProfile /></CustomerAuthRoute>} />
+        <Route path="/payment" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKING_CREATE}><PaymentPage /></CustomerAuthRoute>} />
+        <Route path="/booking-success" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKINGS_READ}><BookingSuccess /></CustomerAuthRoute>} />
 
         {/* Admin dashboard */}
+        <Route path="/admin/login" element={<AdminApp />} />
         <Route path="/admin/*" element={<AdminApp />} />
 
         {/* Unknown paths return to the customer home page */}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "../styles/Login.css";
 import loginBg from "../assets/login-bg.png";
@@ -140,6 +141,10 @@ function Login({ onLogin }) {
             </button>
 
           </form>
+
+          <p className="account-switch">
+            Customer account? <Link to="/login">Go to customer login</Link>
+          </p>
         </div>
       </section>
     </div>

@@ -1,6 +1,8 @@
 
 import Icon from "./Icon.jsx";
-import { Route, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ExternalLink, Route, LogOut } from "lucide-react";
+import { hasPermission, PERMISSIONS, ROLES } from "../utils/roleAccess.js";
 
 const navigationItems = [
   {
@@ -10,6 +12,7 @@ const navigationItems = [
         id: "dashboard",
         label: "Dashboard",
         icon: "chart",
+        permission: PERMISSIONS.ADMIN_DASHBOARD_READ,
       },
     ],
   },
@@ -20,16 +23,19 @@ const navigationItems = [
         id: "vehicles",
         label: "Vehicles",
         icon: "bus",
+        permission: PERMISSIONS.FLEET_VEHICLES_MANAGE,
       },
       {
         id: "drivers",
         label: "Drivers",
         icon: "users",
+        permission: PERMISSIONS.FLEET_DRIVERS_MANAGE,
       },
       {
         id: "routes",
         label: "Routes",
         icon: "route",
+        permission: PERMISSIONS.FLEET_ROUTES_MANAGE,
       },
     ],
   },
@@ -40,21 +46,25 @@ const navigationItems = [
         id: "passengers",
         label: "Passengers",
         icon: "users",
+        permission: PERMISSIONS.OPERATIONS_PASSENGERS_READ,
       },
       {
         id: "trips",
         label: "Trips",
         icon: "bus",
+        permission: PERMISSIONS.OPERATIONS_TRIPS_MANAGE,
       },
       {
         id: "bookings",
         label: "Bookings",
         icon: "ticket",
+        permission: PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE,
       },
       {
         id: "payments",
         label: "Payments",
         icon: "card",
+        permission: PERMISSIONS.FINANCE_PAYMENTS_MANAGE,
       },
     ],
   },
@@ -65,16 +75,19 @@ const navigationItems = [
         id: "maintenance",
         label: "Maintenance",
         icon: "wrench",
+        permission: PERMISSIONS.FLEET_MAINTENANCE_MANAGE,
       },
       {
         id: "feedback",
         label: "Feedback",
         icon: "message",
+        permission: PERMISSIONS.SUPPORT_FEEDBACK_MANAGE,
       },
       {
         id: "reports",
         label: "Reports",
         icon: "chart",
+        permission: PERMISSIONS.REPORTS_READ,
       },
     ],
   },
@@ -84,8 +97,19 @@ export default function AppLayout({
   activePage,
   onNavigate,
   onLogout,
+  user,
   children,
 }) {
+  const visibleGroups = navigationItems
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => hasPermission(user, item.permission)),
+    }))
+    .filter((group) => group.items.length > 0);
+  const isAdmin = user?.roles?.includes(ROLES.ADMIN);
+  const displayName = user?.fullName || user?.username || "Staff";
+  const roleLabel = isAdmin ? "Administrator" : user?.roles?.[0] || "Staff";
+
   return (
     <div className="app-shell">
 
@@ -108,7 +132,7 @@ export default function AppLayout({
 
         {/* NAVIGATION */}
         <nav aria-label="Main navigation">
-          {navigationItems.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label}>
 
               <p>{group.label}</p>
@@ -146,6 +170,24 @@ export default function AppLayout({
 
         {/* SIDEBAR LOGOUT */}
         <div className="sidebar-footer">
+          <Link
+            to="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: "10px 14px",
+              marginBottom: "8px",
+              borderRadius: "8px",
+              color: "#64748b",
+              fontSize: "14px",
+              fontWeight: "600",
+              textDecoration: "none",
+            }}
+          >
+            <ExternalLink size={17} />
+            <span>Customer portal</span>
+          </Link>
           <button
             type="button"
             className="sidebar-logout"
@@ -174,12 +216,12 @@ export default function AppLayout({
           <div className="topbar-right">
             <div className="admin-profile">
               <div className="admin-avatar">
-                A
+                {displayName.charAt(0).toUpperCase()}
               </div>
 
               <div className="admin-info">
-                <strong>Admin</strong>
-                <small>Administrator</small>
+                <strong>{displayName}</strong>
+                <small>{roleLabel}</small>
               </div>
             </div>
           </div>

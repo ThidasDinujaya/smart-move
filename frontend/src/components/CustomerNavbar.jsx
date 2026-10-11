@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bus, User } from 'lucide-react';
+import { getCurrentCustomer } from '../utils/customerAuth.js';
+import { hasRole, ROLES } from '../utils/roleAccess.js';
 
 const CustomerNavbar = () => {
+  const [customer, setCustomer] = useState(getCurrentCustomer);
+
+  useEffect(() => {
+    const syncCustomer = () => setCustomer(getCurrentCustomer());
+    window.addEventListener('storage', syncCustomer);
+    return () => window.removeEventListener('storage', syncCustomer);
+  }, []);
+
   return (
     <nav style={{
       display: 'flex',
@@ -20,27 +30,41 @@ const CustomerNavbar = () => {
 
       <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
         <Link to="/" style={{ textDecoration: 'none', color: '#0066ff', fontWeight: '600', fontSize: '14px' }}>Home</Link>
-        <Link to="/search" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Search Buses</Link>
+        <Link to="/search" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Search Vehicles</Link>
         <Link to="/my-bookings" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>My Bookings</Link>
-        <Link to="/about" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>About</Link>
-        <Link to="/contact" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Contact</Link>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <User size={18} />
-          Login
-        </Link>
-        <button style={{
-          backgroundColor: '#0066ff',
-          color: 'white',
-          border: 'none',
-          padding: '8px 20px',
-          borderRadius: '8px',
-          fontWeight: '600',
-          fontSize: '14px',
-          cursor: 'pointer'
-        }}>Register</button>
+        {customer ? (
+          <>
+            {hasRole(customer, ROLES.ADMIN) && (
+              <Link to="/admin" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px' }}>
+                Admin portal
+              </Link>
+            )}
+            <Link to="/profile" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={18} />
+              Profile
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link to="/login" style={{ textDecoration: 'none', color: '#334155', fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={18} />
+              Login
+            </Link>
+            <Link to="/register" style={{
+              backgroundColor: '#0066ff',
+              color: 'white',
+              border: 'none',
+              padding: '8px 20px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              fontSize: '14px',
+              textDecoration: 'none'
+            }}>Register</Link>
+          </>
+        )}
       </div>
     </nav>
   );

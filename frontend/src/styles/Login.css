@@ -377,6 +377,28 @@
   outline-offset: 3px;
 }
 
+.login-page .login-button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.login-page .account-switch {
+  margin: 20px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+
+.login-page .account-switch a {
+  color: #087cf2;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-page .account-switch a:hover {
+  text-decoration: underline;
+}
+
 /* =========================================
    TABLET
 ========================================= */
