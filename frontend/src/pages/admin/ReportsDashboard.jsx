@@ -11,6 +11,7 @@ const metricCards = [
 const maintenanceStatusItems = [
   { key: 'completed', label: 'Completed' },
   { key: 'scheduled', label: 'Scheduled' },
+  { key: 'due', label: 'Due' },
   { key: 'pending', label: 'Pending' },
   { key: 'overdue', label: 'Overdue' },
 ];

@@ -3,30 +3,33 @@ import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import "../styles/Login.css";
 import loginBg from "../assets/login-bg.png";
+import { loginStaff } from "../utils/customerAuth.js";
 
 function Login({ onLogin }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!username.trim() || !password) {
-      setError("Please enter username and password.");
+    if (!email.trim() || !password) {
+      setError("Please enter email and password.");
       return;
     }
 
-    // DEMO ONLY: Replace with backend authentication later.
-    if (username.trim() === "admin" && password === "admin123") {
-      if (typeof onLogin === "function") {
-        onLogin({ rememberMe });
-      }
-    } else {
-      setError("Invalid username or password.");
+    if (typeof onLogin !== "function") return;
+    setIsSubmitting(true);
+    try {
+      await onLogin({ email, password, rememberMe });
+    } catch (loginError) {
+      setError(loginError.message || "Unable to sign in.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,15 +77,15 @@ function Login({ onLogin }) {
           <form onSubmit={handleSubmit}>
 
             <div className="form-group">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="username">Email</label>
 
               <input
                 id="username"
-                type="text"
-                placeholder="Enter your username"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="Enter your work email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -136,8 +139,8 @@ function Login({ onLogin }) {
               </p>
             )}
 
-            <button type="submit" className="login-button">
-              Login
+            <button type="submit" className="login-button" disabled={isSubmitting}>
+              {isSubmitting ? "Signing in…" : "Login"}
             </button>
 
           </form>

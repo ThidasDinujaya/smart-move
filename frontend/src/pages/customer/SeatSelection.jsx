@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CustomerNavbar from '../../components/CustomerNavbar';
+import { api } from '../../api/client.js';
 
 const SeatSelection = () => {
   const location = useLocation();
@@ -14,32 +15,30 @@ const SeatSelection = () => {
   const [seats, setSeats] = useState([]);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Database / Backend ekan seat layout ane status fetch karva mate API call
     const fetchBusSeats = async () => {
       try {
-        // const response = await fetch(`/api/buses/${bus.id}/seats?date=${queryParams.date}`);
-        // const data = await response.json();
-        // setSeats(data);
-
-        // Simulation for dynamic state (No hardcoding)
-        const initialSeats = [
-          { id: 1, status: 'available' }, { id: 2, status: 'available' }, { id: 3, status: 'available' }, { id: 4, status: 'available' },
-          { id: 5, status: 'booked' },    { id: 6, status: 'booked' },    { id: 7, status: 'available' }, { id: 8, status: 'available' },
-          { id: 9, status: 'booked' },    { id: 10, status: 'available' }, { id: 11, status: 'available' }, { id: 12, status: 'available' },
-          { id: 13, status: 'available' }, { id: 14, status: 'booked' },  { id: 15, status: 'booked' },    { id: 16, status: 'available' }
-        ];
-        setSeats(initialSeats);
-      } catch (error) {
-        console.error("Error fetching seats:", error);
+        if (!bus.id) {
+          navigate('/search', { replace: true });
+          return;
+        }
+        const availability = await api.get(`/api/trips/${bus.id}/seats`);
+        const reserved = new Set(availability.reservedSeats || []);
+        setSeats(Array.from({ length: availability.capacity || 0 }, (_value, index) => {
+          const seatNo = index + 1;
+          return { id: seatNo, status: reserved.has(seatNo) ? 'booked' : 'available' };
+        }));
+      } catch (requestError) {
+        setError(requestError.message || 'Unable to load seat availability.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchBusSeats();
-  }, [bus.id, queryParams.date]);
+  }, [bus.id, queryParams.date, navigate]);
 
   const handleSeatClick = (id) => {
     const target = seats.find((s) => s.id === id);
@@ -67,12 +66,12 @@ const SeatSelection = () => {
     }
     navigate('/payment', {
       state: {
-        busName: bus.name || 'SmartMove Express',
-        route: `${queryParams.from || 'Colombo'} → ${queryParams.to || 'Kandy'}`,
-        date: queryParams.date || '2026-10-20',
-        time: bus.departure || '07:00 AM',
-        seatNo: selectedSeat,
-        amount: bus.price || 1200
+        trip: bus,
+        tripId: bus.id,
+        from: bus.from || queryParams.from,
+        to: bus.to || queryParams.to,
+        date: bus.date || queryParams.date,
+        seatNumbers: [selectedSeat],
       }
     });
   };
@@ -91,6 +90,8 @@ const SeatSelection = () => {
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Loading seat layout...</div>
+        ) : error ? (
+          <div role="alert" style={{ textAlign: 'center', padding: '40px', color: '#b91c1c' }}>{error}</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px' }}>
             <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '20px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -132,12 +133,12 @@ const SeatSelection = () => {
             <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', height: 'fit-content' }}>
               <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Booking Summary</h3>
               <div style={{ fontSize: '14px', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Route</span> <strong style={{ color: '#0f172a' }}>{queryParams.from || 'Colombo'} → {queryParams.to || 'Kandy'}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Date</span> <strong style={{ color: '#0f172a' }}>{queryParams.date || '2026-10-20'}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Time</span> <strong style={{ color: '#0f172a' }}>{bus.departure || '07:00 AM'}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Bus</span> <strong style={{ color: '#0f172a' }}>{bus.name || 'SmartMove Express'}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Route</span> <strong style={{ color: '#0f172a' }}>{bus.from || queryParams.from} → {bus.to || queryParams.to}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Date</span> <strong style={{ color: '#0f172a' }}>{bus.date || queryParams.date}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Time</span> <strong style={{ color: '#0f172a' }}>{bus.departure}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Vehicle</span> <strong style={{ color: '#0f172a' }}>{bus.vehicle}</strong></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Selected Seat</span> <strong style={{ color: '#0066ff' }}>{selectedSeat ? `#${selectedSeat}` : 'None'}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '14px', fontSize: '16px' }}><span>Price</span> <strong style={{ color: '#0f172a' }}>Rs. {bus.price || 1200}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '14px', fontSize: '16px' }}><span>Price</span> <strong style={{ color: '#0f172a' }}>Rs. {bus.fare}</strong></div>
               </div>
 
               <button

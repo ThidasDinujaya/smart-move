@@ -2,6 +2,8 @@
 package com.smartmove.backend.Controller;
 
 import com.smartmove.backend.Data.Vehicle;
+import com.smartmove.backend.Data.VehicleMediaDocument;
+import com.smartmove.backend.Data.VehicleMediaRepository;
 import com.smartmove.backend.Service.VehicleService;
 
 import org.springframework.http.HttpStatus;
@@ -13,13 +15,15 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vehicles")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class VehicleController {
 
     private final VehicleService vehicleService;
+    private final VehicleMediaRepository vehicleMediaRepository;
 
-    public VehicleController(VehicleService vehicleService) {
+    public VehicleController(VehicleService vehicleService, VehicleMediaRepository vehicleMediaRepository) {
         this.vehicleService = vehicleService;
+        this.vehicleMediaRepository = vehicleMediaRepository;
     }
 
     // ADD VEHICLE
@@ -66,6 +70,11 @@ public class VehicleController {
                     .status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", e.getMessage()));
         }
+    }
+
+    @GetMapping("/{id}/media")
+    public List<VehicleMediaDocument> getVehicleMedia(@PathVariable Long id) {
+        return vehicleMediaRepository.findByVehicleOracleIdOrderByUploadedAtDesc(id);
     }
 
     // UPDATE VEHICLE

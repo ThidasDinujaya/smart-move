@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { UploadCloud, ImagePlus } from 'lucide-react';
+import fileToDataUrl from '../../utils/fileToDataUrl.js';
 
 export default function AddVehicle({
   vehicles = [],
@@ -13,6 +14,7 @@ export default function AddVehicle({
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [capacity, setCapacity] = useState('');
+  const [fuelType, setFuelType] = useState('');
   const [status, setStatus] = useState('Active');
   const [serviceDate, setServiceDate] = useState('');
 
@@ -137,15 +139,15 @@ export default function AddVehicle({
       model: trimmedModel,
       year,
       capacity: seats,
+      fuelType,
       status,
       lastService: serviceDate,
+      imageData: await fileToDataUrl(vehicleImage),
     };
 
     try {
       setSaving(true);
 
-      // Vehicle fields are sent to the parent save handler.
-      // Image uploading requires a separate backend/storage integration.
       const result = await onSave(newVehicle);
 
       if (result !== false) {
@@ -234,6 +236,7 @@ export default function AddVehicle({
                 >
                   <option value="">Select Type</option>
                   <option value="Bus">Bus</option>
+                  <option value="Coach">Coach</option>
                   <option value="Van">Van</option>
                   <option value="Car">Car</option>
                 </select>
@@ -257,6 +260,17 @@ export default function AddVehicle({
                   }
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="fuelType">Fuel Type</label>
+                <select id="fuelType" value={fuelType} onChange={(event) => setFuelType(event.target.value)}>
+                  <option value="">Select Fuel Type</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Electric">Electric</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
               </div>
 
               {/* Brand */}

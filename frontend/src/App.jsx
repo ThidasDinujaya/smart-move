@@ -10,6 +10,8 @@ import {
 
 import AppLayout from "./components/AppLayout.jsx";
 import Login from "./pages/Login.jsx";
+import RecordDialog from "./components/RecordDialog.jsx";
+import TripForm from "./components/TripForm.jsx";
 
 // Admin dashboard
 import Dashboard from "./pages/admin/Dashboard.jsx";
@@ -58,8 +60,8 @@ import BookingSuccess from "./pages/customer/BookingSuccess.jsx";
 
 // Shared data hook
 import useSmartMoveData from "./hooks/useSmartMoveData.js";
-import { getCurrentCustomer } from "./utils/customerAuth.js";
-import { getCurrentAdminDemoUser, hasPermission, hasRole, PERMISSIONS, ROLES } from "./utils/roleAccess.js";
+import { getCurrentCustomer, getCurrentStaffUser, loginStaff, logoutCustomer } from "./utils/customerAuth.js";
+import { hasPermission, hasRole, PERMISSIONS, ROLES } from "./utils/roleAccess.js";
 
 function CustomerAuthRoute({ children, permission }) {
   const location = useLocation();
@@ -79,13 +81,16 @@ function CustomerAuthRoute({ children, permission }) {
 function AdminApp() {
   const location = useLocation();
   const routerNavigate = useNavigate();
-  const [adminUser, setAdminUser] = useState(getCurrentAdminDemoUser);
-  const isAuthenticated = hasRole(adminUser, ROLES.ADMIN);
+  const [adminUser, setAdminUser] = useState(getCurrentStaffUser);
+  const isAuthenticated = Boolean(adminUser && adminUser.roles?.some((role) => (
+    [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE].includes(role)
+  )));
 
   const [page, setPage] = useState("dashboard");
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [dialogData, setDialogData] = useState(null);
 
-  const data = useSmartMoveData();
+  const data = useSmartMoveData(isAuthenticated, adminUser?.roles || []);
 
   const {
     vehicles = [],
@@ -106,30 +111,26 @@ function AdminApp() {
   // LOGIN / LOGOUT
   // 
 
-  function handleLogin({ rememberMe = false } = {}) {
-    sessionStorage.removeItem("smartmove_admin_demo");
-    localStorage.removeItem("smartmove_admin_demo");
-
-    if (rememberMe) {
-      localStorage.setItem("smartmove_admin_demo", "true");
-    } else {
-      sessionStorage.setItem("smartmove_admin_demo", "true");
-    }
-
-    setAdminUser(getCurrentAdminDemoUser());
+  async function handleLogin({ email, password, rememberMe = false } = {}) {
+    const user = await loginStaff({ email, password }, rememberMe);
+    setAdminUser(user);
     setSelectedRecord(null);
     setPage("dashboard");
     routerNavigate("/admin", { replace: true });
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem("smartmove_admin_demo");
-    localStorage.removeItem("smartmove_admin_demo");
-
-    setAdminUser(null);
-    setSelectedRecord(null);
-    setPage("dashboard");
-    routerNavigate("/admin/login", { replace: true });
+  async function handleLogout() {
+    try {
+      await logoutCustomer();
+    } catch {
+      // Local credentials are cleared even when the API session is unreachable.
+    } finally {
+      setAdminUser(null);
+      setSelectedRecord(null);
+      setDialogData(null);
+      setPage("dashboard");
+      routerNavigate("/admin/login", { replace: true });
+    }
   }
 
   // 
@@ -143,7 +144,7 @@ function AdminApp() {
     if (nextPage.includes("route")) return PERMISSIONS.FLEET_ROUTES_MANAGE;
     if (nextPage.includes("maintenance")) return PERMISSIONS.FLEET_MAINTENANCE_MANAGE;
     if (nextPage === "passengers") return PERMISSIONS.OPERATIONS_PASSENGERS_READ;
-    if (nextPage === "trips") return PERMISSIONS.OPERATIONS_TRIPS_MANAGE;
+    if (nextPage.includes("trip")) return PERMISSIONS.OPERATIONS_TRIPS_MANAGE;
     if (nextPage === "bookings") return PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE;
     if (nextPage === "payments" || nextPage === "payment-receipt") return PERMISSIONS.FINANCE_PAYMENTS_MANAGE;
     if (nextPage === "feedback") return PERMISSIONS.SUPPORT_FEEDBACK_MANAGE;
@@ -165,6 +166,28 @@ function AdminApp() {
 
     setSelectedRecord(record);
     setPage(nextPage);
+  }
+
+  function showDialog(type, mode, item = {}) {
+    setDialogData({ type, mode, item });
+  }
+
+  async function saveDialogRecord(value) {
+    try {
+      await data.saveRecord(dialogData, value);
+      setDialogData(null);
+    } catch (error) {
+      window.alert(error.message || "Unable to save this record.");
+    }
+  }
+
+  async function deleteDialogRecord(item) {
+    try {
+      await data.deleteRecord(dialogData.type, item);
+      setDialogData(null);
+    } catch (error) {
+      window.alert(error.message || "Unable to remove this record.");
+    }
   }
 
   // 
@@ -300,20 +323,8 @@ function AdminApp() {
   // TEAMMATE DATA FUNCTIONS
   // 
 
-  async function handleSaveRecord(config, value) {
-    return data.saveRecord(config, value);
-  }
-
-  async function handleDeleteRecord(type, item) {
-    return data.deleteRecord(type, item);
-  }
-
   async function handleSaveTrip(value, editingTrip) {
     return data.saveTrip(value, editingTrip);
-  }
-
-  async function handleSaveBooking(value) {
-    return data.saveBooking(value);
   }
 
   async function handleSaveMaintenance(value) {
@@ -506,9 +517,8 @@ function AdminApp() {
         return (
           <PassengersPage
             passengers={passengers}
-            onSaveRecord={handleSaveRecord}
-            onDeleteRecord={handleDeleteRecord}
-            data={data}
+            onAdd={() => showDialog("passenger", "add")}
+            onOpen={(type, mode, item) => showDialog(type, mode, item)}
           />
         );
 
@@ -520,13 +530,29 @@ function AdminApp() {
         return (
           <TripsPage
             trips={trips}
-            vehicles={vehicles}
-            drivers={drivers}
             routes={routes}
-            tripOptions={tripOptions}
-            onSaveTrip={handleSaveTrip}
-            onDeleteRecord={handleDeleteRecord}
-            data={data}
+            statuses={tripOptions.statuses}
+            onAdd={() => navigate("add-trip")}
+            onOpen={(type, mode, item) => showDialog(type, mode, item)}
+            onEdit={(trip) => { setSelectedRecord(trip); navigate("edit-trip"); }}
+          />
+        );
+
+      case "add-trip":
+      case "edit-trip":
+        return (
+          <TripForm
+            value={page === "edit-trip" ? selectedRecord : null}
+            options={tripOptions}
+            onCancel={() => navigate("trips")}
+            onSave={async (value) => {
+              try {
+                await handleSaveTrip(value, page === "edit-trip" ? selectedRecord : null);
+                navigate("trips");
+              } catch (error) {
+                window.alert(error.message || "Unable to save trip.");
+              }
+            }}
           />
         );
 
@@ -538,12 +564,9 @@ function AdminApp() {
         return (
           <BookingsPage
             bookings={bookings}
-            passengers={passengers}
-            trips={trips}
-            onSaveBooking={handleSaveBooking}
-            onSaveRecord={handleSaveRecord}
-            onDeleteRecord={handleDeleteRecord}
-            data={data}
+            routes={routes}
+            onAdd={() => showDialog("booking", "add")}
+            onOpen={(type, mode, item) => showDialog(type, mode, item)}
           />
         );
 
@@ -555,22 +578,20 @@ function AdminApp() {
         return (
           <PaymentsPage
             payments={payments}
-            bookings={bookings}
-            onSaveRecord={handleSaveRecord}
-            onDeleteRecord={handleDeleteRecord}
+            onAdd={() => showDialog("payment", "add")}
             onViewReceipt={(payment) =>
               openRecord("payment-receipt", payment)
             }
-            data={data}
           />
         );
 
       case "payment-receipt":
         return (
           <PaymentReceiptPage
-            payment={selectedRecord}
+            receipt={selectedRecord}
+            booking={bookings.find((booking) => String(booking.id) === String(selectedRecord?.bookingId))}
+            onDownload={() => import("./utils/downloadReceipt.js").then(({ default: download }) => download(selectedRecord, bookings.find((booking) => String(booking.id) === String(selectedRecord?.bookingId))))}
             onBack={() => navigate("payments")}
-            data={data}
           />
         );
 
@@ -581,18 +602,16 @@ function AdminApp() {
       case "maintenance":
         return (
           <MaintenanceManagement
-            maintenance={maintenance}
-            vehicles={vehicles}
-            maintenanceOptions={maintenanceOptions}
+            records={maintenance}
+            statuses={maintenanceOptions.statuses}
             onAdd={() => navigate("add-maintenance")}
-            data={data}
           />
         );
 
       case "add-maintenance":
         return (
           <AddMaintenance
-            vehicles={vehicles}
+            options={maintenanceOptions}
             onSave={handleSaveMaintenance}
             onCancel={() => navigate("maintenance")}
           />
@@ -605,8 +624,8 @@ function AdminApp() {
       case "feedback":
         return (
           <FeedbackReviews
-            feedback={feedback}
-            data={data}
+            reviews={feedback}
+            onStatusChange={(id, status) => data.updateFeedbackStatus(id, status).catch((error) => window.alert(error.message || "Unable to update feedback status."))}
           />
         );
 
@@ -617,13 +636,7 @@ function AdminApp() {
       case "reports":
         return (
           <ReportsDashboard
-            vehicles={vehicles}
-            drivers={drivers}
-            routes={routes}
-            trips={trips}
-            bookings={bookings}
-            payments={payments}
-            data={data}
+            report={data.reports}
           />
         );
 
@@ -668,6 +681,8 @@ function AdminApp() {
         ? "routes"
         : page.includes("maintenance")
           ? "maintenance"
+        : page.includes("trip")
+          ? "trips"
           : page === "payment-receipt"
             ? "payments"
             : page;
@@ -683,7 +698,20 @@ function AdminApp() {
       onLogout={handleLogout}
       user={adminUser}
     >
+      {data.error && <p role="alert" style={{ margin: "16px 24px", padding: "12px 16px", color: "#991b1b", background: "#fef2f2", borderRadius: "8px" }}>{data.error}</p>}
+      {data.loading && <p role="status" style={{ margin: "16px 24px", color: "#64748b" }}>Loading records from the database…</p>}
       {renderPage()}
+      {dialogData && (
+        <RecordDialog
+          data={dialogData}
+          passengers={passengers}
+          trips={trips.filter((trip) => String(trip.status).toLowerCase() === "scheduled")}
+          bookings={bookings.filter((booking) => booking.status === "Pending Payment")}
+          onClose={() => setDialogData(null)}
+          onSave={saveDialogRecord}
+          onDelete={deleteDialogRecord}
+        />
+      )}
     </AppLayout>
   );
 }
@@ -699,7 +727,7 @@ export default function App() {
         <Route path="/search" element={<SearchBuses />} />
         <Route path="/search-results" element={<SearchResults />} />
         <Route path="/bus-details" element={<BusDetails />} />
-        <Route path="/seat-selection" element={<SeatSelection />} />
+        <Route path="/seat-selection" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKING_CREATE}><SeatSelection /></CustomerAuthRoute>} />
         <Route path="/my-bookings" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKINGS_READ}><MyBookings /></CustomerAuthRoute>} />
         <Route path="/profile" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_PROFILE_READ}><CustomerProfile /></CustomerAuthRoute>} />
         <Route path="/payment" element={<CustomerAuthRoute permission={PERMISSIONS.CUSTOMER_BOOKING_CREATE}><PaymentPage /></CustomerAuthRoute>} />

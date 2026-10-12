@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/passengers")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class PassengerController {
 
     private final PassengerService passengerService;
@@ -32,35 +32,35 @@ public class PassengerController {
     }
 
     @GetMapping("/me")
-    public Passenger getMyProfile(@RequestHeader(name = "Authorization", required = false) String authorization) {
-        return passengerService.getMyProfile(readBearerToken(authorization));
+    public Passenger getMyProfile(@RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return passengerService.getMyProfile(userId);
     }
 
     @PutMapping("/me")
     public Passenger updateMyProfile(
             @RequestBody PassengerService.ProfileUpdateRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return passengerService.updateMyProfile(request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return passengerService.updateMyProfile(request, userId);
     }
 
     @GetMapping
     public List<Passenger> getAllPassengers(
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return passengerService.getAllPassengers(readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return passengerService.getAllPassengers(userId);
     }
 
     @GetMapping("/{id}")
     public Passenger getPassengerById(
             @PathVariable Long id,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return passengerService.getPassengerById(id, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return passengerService.getPassengerById(id, userId);
     }
 
     @PostMapping
     public ResponseEntity<Passenger> createPassenger(
             @RequestBody PassengerService.PassengerRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        Passenger passenger = passengerService.createPassenger(request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        Passenger passenger = passengerService.createPassenger(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(passenger);
     }
 
@@ -68,15 +68,15 @@ public class PassengerController {
     public Passenger updatePassenger(
             @PathVariable Long id,
             @RequestBody PassengerService.PassengerRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return passengerService.updatePassenger(id, request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return passengerService.updatePassenger(id, request, userId);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivatePassenger(
             @PathVariable Long id,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        passengerService.deactivatePassenger(id, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        passengerService.deactivatePassenger(id, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -114,11 +114,4 @@ public class PassengerController {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
-    private String readBearerToken(String authorization) {
-        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
-        String token = authorization.substring(7).trim();
-        return token.isEmpty() ? null : token;
-    }
 }

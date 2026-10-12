@@ -22,6 +22,13 @@ public class Driver {
 
     private String contact;
 
+    private String email;
+
+    private String assignedVehicle;
+
+    @Lob
+    private String imageData;
+
     private String address;
 
     private String status;
@@ -68,6 +75,13 @@ public class Driver {
     public void setContact(String contact) {
         this.contact = contact;
     }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getAssignedVehicle() { return assignedVehicle; }
+    public void setAssignedVehicle(String assignedVehicle) { this.assignedVehicle = assignedVehicle; }
+    public String getImageData() { return imageData; }
+    public void setImageData(String imageData) { this.imageData = imageData; }
 
     public String getAddress() {
         return address;

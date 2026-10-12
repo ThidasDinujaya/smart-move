@@ -15,6 +15,8 @@ public class Maintenance {
     private String description;
     private BigDecimal cost;
     private LocalDate startDate;
+    private LocalDate nextServiceDate;
+    private String provider;
     private String status;
 
     public Long getId() { return id; }
@@ -29,6 +31,10 @@ public class Maintenance {
     public void setCost(BigDecimal cost) { this.cost = cost; }
     public LocalDate getStartDate() { return startDate; }
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
+    public LocalDate getNextServiceDate() { return nextServiceDate; }
+    public void setNextServiceDate(LocalDate nextServiceDate) { this.nextServiceDate = nextServiceDate; }
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }

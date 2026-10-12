@@ -1,0 +1,16 @@
+[
+  {
+    "recipientOracleId": 3,
+    "recipientRole": "CUSTOMER",
+    "notificationType": "BOOKING_CONFIRMED",
+    "title": "Your trip is confirmed",
+    "message": "Your Colombo to Kandy booking has been confirmed.",
+    "relatedTripOracleId": 2,
+    "channel": "IN_APP",
+    "createdAt": { "$date": "2026-10-12T00:00:00Z" },
+    "readAt": null,
+    "status": "UNREAD",
+    "bookingReference": "SMB-DEMO-0002",
+    "details": { "bookingReference": "SMB-DEMO-0002" }
+  }
+]

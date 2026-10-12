@@ -28,8 +28,9 @@ public class BookingService {
     private static final String PENDING_PAYMENT = "Pending Payment";
     private static final String RESERVED = "Reserved";
     private static final String CONFIRMED = "Confirmed";
+    private static final String ISSUED = "Issued";
     private static final String CANCELLED = "Cancelled";
-    private static final List<String> ACTIVE_TICKET_STATUSES = List.of(RESERVED, CONFIRMED);
+    private static final List<String> ACTIVE_TICKET_STATUSES = List.of(RESERVED, CONFIRMED, ISSUED);
 
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;
@@ -52,8 +53,26 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingView createBooking(BookingRequest request, String token) {
-        Passenger passenger = requireCustomer(token);
+    public BookingView createBooking(BookingRequest request, String userId) {
+        Passenger passenger = requireCustomer(userId);
+        return createBookingForPassenger(request, passenger);
+    }
+
+    @Transactional
+    public BookingView createBookingForStaff(StaffBookingRequest request, String userId) {
+        requireStaffRole(userId);
+        if (request == null || request.passengerId() == null) {
+            throw new IllegalArgumentException("A passenger must be selected.");
+        }
+        Passenger passenger = passengerRepository.findById(request.passengerId())
+                .orElseThrow(() -> new BookingNotFoundException("Passenger not found."));
+        if (!"Active".equalsIgnoreCase(passenger.getStatus())) {
+            throw new BookingConflictException("This passenger account is not active.");
+        }
+        return createBookingForPassenger(new BookingRequest(request.tripId(), request.seatNumbers()), passenger);
+    }
+
+    private BookingView createBookingForPassenger(BookingRequest request, Passenger passenger) {
         if (request == null || request.tripId() == null) {
             throw new IllegalArgumentException("A trip must be selected.");
         }
@@ -97,8 +116,30 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingView> getMyBookings(String token) {
-        Passenger passenger = requireCustomer(token);
+    public List<BookingView> getAllBookingsForStaff(String userId) {
+        requireStaffReadRole(userId);
+        return bookingRepository.findAllByOrderByBookingDateDesc()
+                .stream()
+                .map(booking -> toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId())))
+                .toList();
+    }
+
+    @Transactional
+    public void cancelBookingForStaff(Long bookingId, String userId) {
+        requireStaffRole(userId);
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found."));
+        if (CANCELLED.equalsIgnoreCase(booking.getBookingStatus())) return;
+        booking.setBookingStatus(CANCELLED);
+        bookingRepository.save(booking);
+        List<Ticket> tickets = ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId());
+        tickets.forEach(ticket -> ticket.setTicketStatus(CANCELLED));
+        ticketRepository.saveAll(tickets);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BookingView> getMyBookings(String userId) {
+        Passenger passenger = requireCustomer(userId);
         return bookingRepository.findByPassenger_IdOrderByBookingDateDesc(passenger.getId())
                 .stream()
                 .map(booking -> toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId())))
@@ -106,8 +147,8 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public BookingView getMyBooking(Long bookingId, String token) {
-        Passenger passenger = requireCustomer(token);
+    public BookingView getMyBooking(Long bookingId, String userId) {
+        Passenger passenger = requireCustomer(userId);
         Booking booking = findOwnedBooking(bookingId, passenger.getId());
         return toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId()));
     }
@@ -133,8 +174,8 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelMyBooking(Long bookingId, String token) {
-        Passenger passenger = requireCustomer(token);
+    public void cancelMyBooking(Long bookingId, String userId) {
+        Passenger passenger = requireCustomer(userId);
         Booking booking = findOwnedBooking(bookingId, passenger.getId());
         Trip trip = tripRepository.findByIdForUpdate(booking.getTrip().getId())
                 .orElseThrow(() -> new TripNotFoundException("Trip not found."));
@@ -157,8 +198,8 @@ public class BookingService {
         ticketRepository.saveAll(tickets);
     }
 
-    private Passenger requireCustomer(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private Passenger requireCustomer(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean isCustomer = currentUser.roles().stream().anyMatch(role -> "CUSTOMER".equalsIgnoreCase(role));
         if (!isCustomer) {
             throw new ForbiddenBookingOperationException("A customer account is required to manage bookings.");
@@ -170,6 +211,25 @@ public class BookingService {
             throw new CustomerAuthService.AuthenticationFailedException("Your customer account is not active.");
         }
         return passenger;
+    }
+
+    private void requireStaffRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
+        boolean isStaff = currentUser.roles().stream().anyMatch(role ->
+                "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role));
+        if (!isStaff) {
+            throw new ForbiddenBookingOperationException("An admin or operations account is required.");
+        }
+    }
+
+    private void requireStaffReadRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
+        boolean canRead = currentUser.roles().stream().anyMatch(role ->
+                "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role)
+                        || "FINANCE".equalsIgnoreCase(role));
+        if (!canRead) {
+            throw new ForbiddenBookingOperationException("A staff account is required to view all bookings.");
+        }
     }
 
     private Booking findOwnedBooking(Long bookingId, Long passengerId) {
@@ -278,6 +338,9 @@ public class BookingService {
     }
 
     public record BookingRequest(Long tripId, List<Integer> seatNumbers) {
+    }
+
+    public record StaffBookingRequest(Long passengerId, Long tripId, List<Integer> seatNumbers) {
     }
 
     public record BookingView(

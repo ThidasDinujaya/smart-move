@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftRight,
@@ -12,10 +12,9 @@ import {
   Ticket,
 } from 'lucide-react';
 import CustomerNavbar from '../../components/CustomerNavbar';
+import { api } from '../../api/client.js';
 import '../../styles/SearchBuses.css';
 import '../../styles/CustomerFooter.css';
-
-const locations = ['Colombo', 'Kandy', 'Galle', 'Matara', 'Jaffna', 'Negombo'];
 
 const bookingSteps = [
   { icon: MapPin, title: 'Choose your route', text: 'Select your departure city, destination, and travel date.' },
@@ -35,6 +34,20 @@ const SearchBuses = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState({ from: '', to: '', date: '' });
   const [error, setError] = useState('');
+  const [routes, setRoutes] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/routes')
+      .then((items) => { if (active) setRoutes(Array.isArray(items) ? items : []); })
+      .catch((requestError) => { if (active) setError(requestError.message); });
+    return () => { active = false; };
+  }, []);
+
+  const locations = useMemo(() => [...new Set(routes
+    .filter((route) => String(route.status || '').toLowerCase() !== 'inactive')
+    .flatMap((route) => [route.startLocation, route.endLocation])
+    .filter(Boolean))].sort((left, right) => left.localeCompare(right)), [routes]);
 
   const updateSearch = (key, value) => {
     setSearchParams((current) => ({ ...current, [key]: value }));

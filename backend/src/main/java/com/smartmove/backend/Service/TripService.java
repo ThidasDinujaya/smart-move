@@ -63,8 +63,8 @@ public class TripService {
     }
 
     @Transactional(readOnly = true)
-    public List<TripView> getAllTrips(String token) {
-        requireStaffRole(token);
+    public List<TripView> getAllTrips(String userId) {
+        requireStaffRole(userId);
         return tripRepository.findAllByOrderByTripDateAscDepartureTimeAsc()
                 .stream()
                 .map(this::toView)
@@ -72,8 +72,8 @@ public class TripService {
     }
 
     @Transactional
-    public TripView createTrip(TripRequest request, String token) {
-        requireStaffRole(token);
+    public TripView createTrip(TripRequest request, String userId) {
+        requireStaffRole(userId);
         Trip trip = new Trip();
         applyRequest(trip, request);
         trip.setId(null);
@@ -81,16 +81,16 @@ public class TripService {
     }
 
     @Transactional
-    public TripView updateTrip(Long id, TripRequest request, String token) {
-        requireStaffRole(token);
+    public TripView updateTrip(Long id, TripRequest request, String userId) {
+        requireStaffRole(userId);
         Trip trip = findTrip(id);
         applyRequest(trip, request);
         return toView(tripRepository.save(trip));
     }
 
     @Transactional
-    public void cancelTrip(Long id, String token) {
-        requireStaffRole(token);
+    public void cancelTrip(Long id, String userId) {
+        requireStaffRole(userId);
         Trip trip = findTrip(id);
         trip.setStatus(CANCELLED_STATUS);
         tripRepository.save(trip);
@@ -158,8 +158,8 @@ public class TripService {
                 .orElseThrow(() -> new TripNotFoundException("Trip not found."));
     }
 
-    private void requireStaffRole(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private void requireStaffRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean isStaff = currentUser.roles().stream().anyMatch(role ->
                 "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role));
         if (!isStaff) {
@@ -194,6 +194,7 @@ public class TripService {
                 route.getEndLocation(),
                 vehicle.getId(),
                 vehicle.getVehicleNo(),
+                vehicle.getVehicleType(),
                 driver.getId(),
                 driver.getName(),
                 trip.getTripDate(),
@@ -227,6 +228,7 @@ public class TripService {
             String to,
             Long vehicleId,
             String vehicle,
+            String vehicleType,
             Long driverId,
             String driver,
             LocalDate date,

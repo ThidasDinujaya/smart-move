@@ -4,7 +4,7 @@ import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 
-export default function FeedbackReviews({ reviews = [] }) {
+export default function FeedbackReviews({ reviews = [], onStatusChange }) {
   const records = reviews.map((review) => {
     const rating = Number(review.rating ?? review.score);
     const passengerName = review.passengerName ?? review.passenger?.name ?? review.name ?? '';
@@ -19,7 +19,7 @@ export default function FeedbackReviews({ reviews = [] }) {
     };
   });
   const list = useRecordList(records);
-  const ratedRecords = records.filter((review) => review.score !== null);
+  const ratedRecords = records.filter((review) => review.score !== null && String(review.reviewStatus || '').toUpperCase() !== 'HIDDEN');
   const averageRating = ratedRecords.length
     ? (ratedRecords.reduce((total, review) => total + review.score, 0) / ratedRecords.length).toFixed(1)
     : '—';
@@ -43,6 +43,28 @@ export default function FeedbackReviews({ reviews = [] }) {
         );
       },
     },
+    { key: 'driverRating', label: 'Driver rating' },
+    { key: 'vehicleRating', label: 'Vehicle rating' },
+    { key: 'driverName', label: 'Driver' },
+    { key: 'registrationNo', label: 'Vehicle' },
+    { key: 'isComplaint', label: 'Complaint', render: (record) => record.isComplaint ? 'Yes' : 'No' },
+    { key: 'keywords', label: 'Keywords', render: (record) => (record.keywords || []).join(', ') },
+    { key: 'response', label: 'Response', render: (record) => record.response ? JSON.stringify(record.response) : '—' },
+    {
+      key: 'reviewStatus',
+      label: 'Review status',
+      render: (record) => (
+        <select
+          value={record.reviewStatus || 'NEW'}
+          onChange={(event) => onStatusChange?.(record.id, event.target.value)}
+          aria-label={`Review status for ${record.passengerName || 'passenger feedback'}`}
+        >
+          <option value="NEW">New</option>
+          <option value="REVIEWED">Reviewed</option>
+          <option value="HIDDEN">Hidden</option>
+        </select>
+      ),
+    },
     { key: 'comment', label: 'Comment' },
     { key: 'date', label: 'Date' },
   ];
@@ -54,7 +76,7 @@ export default function FeedbackReviews({ reviews = [] }) {
       <div className="stats-grid">
         <article className="stat-card pink">
           <Icon name="message" size={22} />
-          <div><div className="stat-title">Reviews</div><div className="stat-value">{reviews.length}</div></div>
+          <div><div className="stat-title">Reviews</div><div className="stat-value">{ratedRecords.length}</div></div>
         </article>
         <article className="stat-card green">
           <Icon name="star" size={22} />

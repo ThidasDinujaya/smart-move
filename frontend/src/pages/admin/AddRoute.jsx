@@ -118,7 +118,7 @@ function AddRoute({ routes = [], onSave, onCancel }) {
                   name="routeName"
                   value={form.routeName}
                   onChange={handleChange}
-                  placeholder="e.g. Colombo - Kandy"
+                  placeholder="Enter route name"
                   required
                 />
               </div>
