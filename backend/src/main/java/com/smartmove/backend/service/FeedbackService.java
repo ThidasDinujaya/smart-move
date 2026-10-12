@@ -8,6 +8,7 @@ import com.smartmove.backend.data.BookingRepository;
 import com.smartmove.backend.data.Trip;
 import com.smartmove.backend.data.TripRepository;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,23 +25,27 @@ public class FeedbackService {
     private final TripRepository tripRepository;
     private final BookingRepository bookingRepository;
     private final CustomerAuthService customerAuthService;
+    private final TripCompletionService tripCompletionService;
 
     public FeedbackService(
             FeedbackRepository feedbackRepository,
             FeedbackDocumentRepository feedbackDocumentRepository,
             TripRepository tripRepository,
             BookingRepository bookingRepository,
-            CustomerAuthService customerAuthService
+            CustomerAuthService customerAuthService,
+            TripCompletionService tripCompletionService
     ) {
         this.feedbackRepository = feedbackRepository;
         this.feedbackDocumentRepository = feedbackDocumentRepository;
         this.tripRepository = tripRepository;
         this.bookingRepository = bookingRepository;
         this.customerAuthService = customerAuthService;
+        this.tripCompletionService = tripCompletionService;
     }
 
     @Transactional(readOnly = true)
-    public List<Feedback> getAllFeedback() {
+    public List<Feedback> getAllFeedback(String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "SUPPORT");
         List<Feedback> feedbackRows = feedbackRepository.findAll();
         attachMongoDetails(feedbackRows);
         return feedbackRows;
@@ -85,6 +90,7 @@ public class FeedbackService {
             throw new IllegalArgumentException("Trip details are required for feedback.");
         }
         CustomerAuthService.CustomerView customer = requireCustomer(userId);
+        tripCompletionService.completeArrivedTripsBeforeReadingBookings();
         if (feedback.getRating() == null || !validRating(feedback.getRating()) || !validRating(feedback.getDriverRating())
                 || !validRating(feedback.getVehicleRating())) {
             throw new IllegalArgumentException("Choose a rating from 1 to 5 for each category.");
@@ -149,12 +155,7 @@ public class FeedbackService {
 
     @Transactional
     public Feedback updateReviewStatus(Long feedbackId, String requestedStatus, String userId) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
-        boolean canReview = currentUser.roles().stream().anyMatch(role ->
-                "ADMIN".equalsIgnoreCase(role) || "SUPPORT".equalsIgnoreCase(role));
-        if (!canReview) {
-            throw new IllegalArgumentException("An admin or support account is required to review feedback.");
-        }
+        customerAuthService.requireAnyRole(userId, "ADMIN", "SUPPORT");
 
         String status = requestedStatus == null ? "" : requestedStatus.trim().toUpperCase();
         if (!List.of("NEW", "REVIEWED", "HIDDEN").contains(status)) {
@@ -181,12 +182,29 @@ public class FeedbackService {
         return savedFeedback;
     }
 
-    private CustomerAuthService.CustomerView requireCustomer(String userId) {
-        CustomerAuthService.CustomerView customer = customerAuthService.currentCustomer(userId);
-        if (customer.roles().stream().noneMatch(role -> "CUSTOMER".equalsIgnoreCase(role))) {
-            throw new IllegalArgumentException("A customer account is required to submit feedback.");
+    @Transactional
+    public Feedback updateResponse(Long feedbackId, String requestedResponse, String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.requireAnyRole(userId, "ADMIN", "SUPPORT");
+        Feedback feedback = feedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new IllegalArgumentException("Feedback was not found."));
+        FeedbackDocument document = feedbackDocumentRepository.findByFeedbackOracleId(feedbackId)
+                .orElseGet(FeedbackDocument::new);
+        document.setFeedbackOracleId(feedbackId);
+        String message = requestedResponse == null ? "" : requestedResponse.trim();
+        if (message.length() > 2000) {
+            throw new IllegalArgumentException("The feedback response must be 2000 characters or fewer.");
         }
-        return customer;
+        Map<String, Object> response = message.isEmpty()
+                ? null
+                : Map.of("message", message, "respondedAt", Instant.now().toString(), "respondedBy", currentUser.fullName());
+        document.setResponse(response);
+        feedbackDocumentRepository.save(document);
+        feedback.setResponse(response);
+        return feedback;
+    }
+
+    private CustomerAuthService.CustomerView requireCustomer(String userId) {
+        return customerAuthService.requireAnyRole(userId, "CUSTOMER");
     }
 
     private boolean validRating(Integer rating) {

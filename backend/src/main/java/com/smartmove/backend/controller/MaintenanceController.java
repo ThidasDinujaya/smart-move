@@ -2,6 +2,7 @@ package com.smartmove.backend.controller;
 
 import com.smartmove.backend.data.Maintenance;
 import com.smartmove.backend.service.MaintenanceService;
+import com.smartmove.backend.service.CustomerAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -12,14 +13,21 @@ import java.util.List;
 public class MaintenanceController {
     @Autowired
     private MaintenanceService maintenanceService;
+    @Autowired
+    private CustomerAuthService customerAuthService;
 
     @GetMapping
-    public List<Maintenance> getAllMaintenance() {
+    public List<Maintenance> getAllMaintenance(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
         return maintenanceService.getAllMaintenance();
     }
 
     @PostMapping
-    public Maintenance createMaintenance(@RequestBody Maintenance maintenance) {
+    public Maintenance createMaintenance(
+            @RequestBody Maintenance maintenance,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
         return maintenanceService.saveMaintenance(maintenance);
     }
 }

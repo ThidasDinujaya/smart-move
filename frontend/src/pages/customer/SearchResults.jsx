@@ -25,6 +25,7 @@ export default function SearchResults() {
   const navigate = useNavigate();
   const queryParams = location.state;
   const [trips, setTrips] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,21 +39,27 @@ export default function SearchResults() {
     const query = new URLSearchParams(queryParams).toString();
     api.get(`/api/trips/search?${query}`)
       .then(async (items) => {
-        const results = await Promise.all((Array.isArray(items) ? items : []).map(async (trip) => {
-          const [availabilityResult, vehicleResult] = await Promise.allSettled([
+        const tripItems = Array.isArray(items) ? items : [];
+        const routeIds = [...new Set(tripItems.map((trip) => trip.routeId).filter((id) => id != null))];
+        const routeAnnouncements = await Promise.all(routeIds.map((routeId) => (
+          api.get(`/api/content/announcements?routeId=${encodeURIComponent(routeId)}`).catch(() => [])
+        )));
+        const uniqueAnnouncements = [...new Map(routeAnnouncements.flat().map((announcement) => [announcement.id, announcement])).values()];
+        const results = await Promise.all(tripItems.map(async (trip) => {
+          const [availabilityResult] = await Promise.allSettled([
             api.get(`/api/trips/${trip.id}/seats`),
-            api.get(`/api/vehicles/${trip.vehicleId}`),
           ]);
           const availability = availabilityResult.status === 'fulfilled' ? availabilityResult.value : null;
-          const vehicle = vehicleResult.status === 'fulfilled' ? vehicleResult.value : null;
           return {
             ...trip,
             seatsAvailable: availability?.availableSeats ?? 0,
-            vehicleType: trip.vehicleType || vehicle?.vehicleType,
-            imageData: vehicle?.imageData || null,
+            vehicleType: trip.vehicleType,
           };
         }));
-        if (active) setTrips(results);
+        if (active) {
+          setTrips(results);
+          setAnnouncements(uniqueAnnouncements);
+        }
       })
       .catch((requestError) => { if (active) setError(requestError.message); })
       .finally(() => { if (active) setLoading(false); });
@@ -76,6 +83,17 @@ export default function SearchResults() {
           </div>
           {!loading && <span style={{ fontSize: '13px', fontWeight: '700', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '6px 14px', borderRadius: '20px' }}>{filteredTrips.length} vehicles found</span>}
         </div>
+
+        {announcements.length > 0 && (
+          <section aria-label="Route announcements" style={{ display: 'grid', gap: '10px', marginBottom: '20px' }}>
+            {announcements.map((announcement) => (
+              <article key={announcement.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '10px', padding: '14px 18px' }}>
+                <strong>{announcement.title}</strong>
+                <p style={{ color: '#475569', fontSize: '13px', margin: '6px 0 0' }}>{announcement.message}</p>
+              </article>
+            ))}
+          </section>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '24px' }}>
           <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', height: 'fit-content' }}>

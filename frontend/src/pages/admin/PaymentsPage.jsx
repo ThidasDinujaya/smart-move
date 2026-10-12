@@ -4,7 +4,7 @@ import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
-import { formatMoney } from '../../utils/formatters.js';
+import { formatDateTime, formatMoney } from '../../utils/formatters.js';
 
 export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
   const list = useRecordList(payments);
@@ -17,6 +17,7 @@ export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
     { key: 'amount', label: 'Amount', render: (record) => formatMoney(record.amount) },
     { key: 'method', label: 'Method' },
     { key: 'status', label: 'Status', render: (record) => <StatusBadge>{record.status}</StatusBadge> },
+    { key: 'refundedAt', label: 'Refunded at', render: (record) => formatDateTime(record.refundedAt) },
     {
       key: 'actions',
       label: 'Actions',

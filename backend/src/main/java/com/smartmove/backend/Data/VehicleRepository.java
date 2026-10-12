@@ -1,5 +1,5 @@
 
-package com.smartmove.backend.Data;
+package com.smartmove.backend.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

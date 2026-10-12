@@ -105,42 +105,55 @@ async function migrateLegacyRecords() {
 
 export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
   const [records, setRecords] = useState(empty);
+  const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
     if (!enabled) {
       setRecords(empty);
+      setReports(null);
       return;
     }
     setLoading(true);
     setError('');
+    const isAdmin = roles.includes('admin');
+    const canOperate = isAdmin || roles.includes('operations');
+    const canSeeFinance = isAdmin || roles.includes('finance');
+    const canSupport = isAdmin || roles.includes('support');
+    if (!canSeeFinance) setReports(null);
     try {
-      await migrateLegacyRecords();
+      if (canOperate) await migrateLegacyRecords();
     } catch (migrationError) {
       setError(migrationError.message || 'Unable to move legacy browser records into the database.');
       setLoading(false);
       return;
     }
-    const isAdmin = roles.includes('admin');
-    const canOperate = isAdmin || roles.includes('operations');
-    const canSeeFinance = isAdmin || roles.includes('finance');
     const resources = [
-      ['vehicles', '/api/vehicles'],
-      ['drivers', '/api/drivers'],
-      ['routeRecords', '/api/routes'],
-      ['maintenance', '/api/maintenance'],
-      ['feedback', '/api/feedback'],
+      ...(canOperate ? [
+        ['vehicles', '/api/vehicles'],
+        ['drivers', '/api/drivers'],
+        ['routeRecords', '/api/routes'],
+        ['maintenance', '/api/maintenance'],
+      ] : []),
+      ...(canSupport ? [['feedback', '/api/feedback']] : []),
       ...(canOperate ? [['passengers', '/api/passengers'], ['trips', '/api/trips']] : []),
       ...(canOperate || canSeeFinance ? [['bookings', '/api/bookings/admin']] : []),
       ...(canSeeFinance ? [['payments', '/api/payments']] : []),
+      ...(canSeeFinance ? [['reports', '/api/reports']] : []),
     ];
     const results = await Promise.allSettled(resources.map(([, path]) => api.get(path)));
     const failed = [];
     const next = { ...empty };
     results.forEach((result, index) => {
       const [key] = resources[index];
-      if (result.status === 'fulfilled') next[key] = asArray(result.value);
+      if (key === 'reports') {
+        if (result.status === 'fulfilled') setReports(result.value);
+        else {
+          setReports(null);
+          failed.push(result.reason?.message || 'Unable to load reports.');
+        }
+      } else if (result.status === 'fulfilled') next[key] = asArray(result.value);
       else failed.push(result.reason?.message || `Unable to load ${key}.`);
     });
 
@@ -170,7 +183,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       return {
         ...payment,
         booking: payment.bookingId,
-        passenger: passengerById.get(String(payment.passengerId))?.fullName || `Passenger #${payment.passengerId}`,
+        passenger: passengerById.get(String(booking?.passengerId))?.fullName || `Passenger #${booking?.passengerId ?? '—'}`,
         amount: payment.amount,
         method: payment.paymentMethod,
         status: payment.paymentStatus,
@@ -333,7 +346,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       const booking = records.bookings.find((item) => String(item.id) === String(value.booking));
       if (!booking) throw new Error('Select an existing booking.');
       const result = await api.post('/api/payments/process', {
-        bookingId: booking.id, passengerId: booking.passengerId, amount: booking.totalAmount || booking.amount,
+        bookingId: booking.id, amount: booking.totalAmount || booking.amount,
         paymentMethod: value.method || value.paymentMethod || 'Card',
       });
       await refresh();
@@ -372,30 +385,11 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     return updated;
   }, [refresh]);
 
-  const reports = useMemo(() => {
-    const reportFeedback = records.feedback.filter((item) => String(item.reviewStatus || '').toUpperCase() !== 'HIDDEN');
-    const overallRatings = reportFeedback.map((item) => Number(item.rating)).filter(Number.isFinite);
-    const driverRatings = reportFeedback.map((item) => Number(item.driverRating ?? item.rating)).filter(Number.isFinite);
-    const vehicleRatings = reportFeedback.map((item) => Number(item.vehicleRating ?? item.rating)).filter(Number.isFinite);
-    const average = (values) => values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1) : '—';
-
-    return {
-      totalVehicles: records.vehicles.length,
-      vehiclesDueForMaintenance: records.maintenance.filter((item) => ['due', 'pending', 'overdue'].includes(String(item.status || '').toLowerCase())).length,
-      driverAverageRating: average(driverRatings),
-      vehicleAverageRating: average(vehicleRatings),
-      feedbackTotal: reportFeedback.length,
-      maintenanceStatus: records.maintenance.reduce((summary, item) => {
-        const status = String(item.status || '').toLowerCase();
-        if (Object.hasOwn(summary, status)) summary[status] += 1;
-        return summary;
-      }, { completed: 0, scheduled: 0, due: 0, pending: 0, overdue: 0 }),
-      ratingDistribution: [1, 2, 3, 4, 5].map((rating) => ({
-        rating,
-        count: overallRatings.filter((value) => value === rating).length,
-      })),
-    };
-  }, [records]);
+  const updateFeedbackResponse = useCallback(async (id, message) => {
+    const updated = await api.put(`/api/feedback/${id}/response`, { message });
+    await refresh();
+    return updated;
+  }, [refresh]);
 
   return {
     ...records,
@@ -410,6 +404,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     saveVehicle, updateVehicle, deleteVehicle,
     saveDriver, updateDriver, deleteDriver,
     saveRoute, updateRoute, deleteRoute,
-    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, updateFeedbackStatus,
+    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, updateFeedbackStatus, updateFeedbackResponse,
   };
 }

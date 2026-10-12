@@ -20,8 +20,9 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<Payment> getAllPayments() {
-        return paymentService.getAllPayments();
+    public List<Payment> getAllPayments(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return paymentService.getAllPayments(userId);
     }
 
     @PostMapping("/process")

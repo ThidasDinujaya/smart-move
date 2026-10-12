@@ -14,6 +14,7 @@ export default function PaymentReceiptPage({ receipt, booking, onDownload, onBac
     ['Amount', receipt ? formatMoney(receipt.amount) : '—'],
     ['Payment Method', receipt?.method || '—'],
     ['Payment Date', formatDateTime(receipt?.date)],
+    ...(receipt?.refundedAt ? [['Refunded At', formatDateTime(receipt.refundedAt)]] : []),
   ];
 
   return (

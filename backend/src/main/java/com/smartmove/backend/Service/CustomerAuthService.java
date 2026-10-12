@@ -6,6 +6,8 @@ import com.smartmove.backend.data.Passenger;
 import com.smartmove.backend.data.PassengerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Locale;
@@ -124,6 +126,22 @@ public class CustomerAuthService {
         }
 
         return toCustomerView(appUser);
+    }
+
+    public CustomerView requireAnyRole(String userId, String... allowedRoles) {
+        CustomerView currentUser;
+        try {
+            currentUser = currentCustomer(userId);
+        } catch (AuthenticationFailedException exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        }
+        boolean allowed = currentUser.roles().stream().anyMatch(role ->
+                java.util.Arrays.stream(allowedRoles).anyMatch(allowedRole ->
+                        allowedRole.equalsIgnoreCase(role)));
+        if (!allowed) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to do this.");
+        }
+        return currentUser;
     }
 
     private CustomerView toCustomerView(AppUser appUser) {

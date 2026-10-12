@@ -11,13 +11,19 @@ const emptyTrip = {
   arrival: '',
   seats: '',
   fare: '',
-  status: '',
+  status: 'Scheduled',
   notes: '',
 };
 
 export default function TripForm({ value, onCancel, onSave, options = {} }) {
   const [form, setForm] = useState({ ...emptyTrip, ...(value || {}) });
   const { routes = [], vehicles = [], drivers = [], statuses = [] } = options;
+  const statusOptions = value?.status
+    ? value.status === 'Scheduled'
+      ? statuses.filter((status) => status === 'Scheduled' || status === 'Cancelled')
+      : [value.status]
+    : ['Scheduled'];
+  const statusLocked = Boolean(value?.status && value.status !== 'Scheduled');
 
   function update(key, nextValue) {
     setForm((current) => ({ ...current, [key]: nextValue }));
@@ -115,10 +121,10 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
               <select
                 required
                 value={form.status}
+                disabled={statusLocked}
                 onChange={(event) => update('status', event.target.value)}
               >
-                <option value="">Select Status</option>
-                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+                {statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
               </select>
             ) : (
               <input

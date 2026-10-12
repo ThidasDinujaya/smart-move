@@ -39,15 +39,7 @@ const CustomerHome = () => {
     api.get('/api/content/announcements')
       .then((items) => {
         if (!active) return;
-        const now = Date.now();
-        setAnnouncements((Array.isArray(items) ? items : []).filter((item) => {
-          const audience = (item.audience || []).map((role) => String(role).toUpperCase());
-          const audienceMatches = !audience.length || audience.includes('ALL') || audience.includes('CUSTOMER');
-          const isActive = item.active !== false;
-          const hasStarted = !item.startsAt || new Date(item.startsAt).getTime() <= now;
-          const hasNotEnded = !item.endsAt || new Date(item.endsAt).getTime() >= now;
-          return audienceMatches && isActive && hasStarted && hasNotEnded;
-        }));
+        setAnnouncements(Array.isArray(items) ? items : []);
       })
       .catch(() => { if (active) setAnnouncements([]); });
     return () => { active = false; };

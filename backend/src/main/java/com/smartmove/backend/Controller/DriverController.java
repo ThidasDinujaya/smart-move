@@ -1,8 +1,9 @@
 
-package com.smartmove.backend.Controller;
+package com.smartmove.backend.controller;
 
-import com.smartmove.backend.Data.Driver;
-import com.smartmove.backend.Service.DriverService;
+import com.smartmove.backend.data.Driver;
+import com.smartmove.backend.service.DriverService;
+import com.smartmove.backend.service.CustomerAuthService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +18,19 @@ import java.util.Map;
 public class DriverController {
 
     private final DriverService driverService;
+    private final CustomerAuthService customerAuthService;
 
-    public DriverController(DriverService driverService) {
+    public DriverController(DriverService driverService, CustomerAuthService customerAuthService) {
         this.driverService = driverService;
+        this.customerAuthService = customerAuthService;
     }
 
     // ADD DRIVER
     @PostMapping
     public ResponseEntity<?> addDriver(
-            @RequestBody Driver driver) {
+            @RequestBody Driver driver,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Driver savedDriver = driverService.addDriver(driver);
@@ -43,34 +48,21 @@ public class DriverController {
 
     // VIEW ALL DRIVERS
     @GetMapping
-    public ResponseEntity<List<Driver>> getAllDrivers() {
+    public ResponseEntity<List<Driver>> getAllDrivers(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
         return ResponseEntity.ok(
                 driverService.getAllDrivers()
         );
-    }
-
-    // VIEW DRIVER BY ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getDriverById(
-            @PathVariable Long id) {
-
-        try {
-            Driver driver = driverService.getDriverById(id);
-
-            return ResponseEntity.ok(driver);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        }
     }
 
     // UPDATE DRIVER
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDriver(
             @PathVariable Long id,
-            @RequestBody Driver driver) {
+            @RequestBody Driver driver,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Driver updatedDriver =
@@ -94,7 +86,9 @@ public class DriverController {
     // DELETE DRIVER
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDriver(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             driverService.deleteDriver(id);

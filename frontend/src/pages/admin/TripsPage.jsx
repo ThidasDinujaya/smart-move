@@ -9,6 +9,7 @@ import { formatDate } from '../../utils/formatters.js';
 export default function TripsPage({ trips, routes, statuses, onAdd, onOpen, onEdit }) {
   const list = useRecordList(trips, { filterRoute: true });
   const tripStatuses = statuses || [...new Set(trips.map((record) => record.status).filter(Boolean))];
+  const isScheduled = (record) => String(record.status || '').toLowerCase() === 'scheduled';
   const columns = [
     { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'route', label: 'Route', className: 'strong' },
@@ -26,8 +27,8 @@ export default function TripsPage({ trips, routes, statuses, onAdd, onOpen, onEd
       render: (record) => (
         <ActionButtons
           onView={() => onOpen('trip', 'view', record)}
-          onEdit={() => onEdit(record)}
-          onDelete={() => onOpen('trip', 'delete', record)}
+          onEdit={isScheduled(record) ? () => onEdit(record) : undefined}
+          onDelete={isScheduled(record) ? () => onOpen('trip', 'delete', record) : undefined}
         />
       ),
     },

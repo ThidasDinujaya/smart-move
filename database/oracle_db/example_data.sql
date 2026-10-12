@@ -39,15 +39,6 @@ VALUES (5, 5, 'hasini@example.com', 'Welcome123!', 'CUSTOMER', 'Active');
 INSERT INTO users (user_id, passenger_id, email, password, role_code, account_status)
 VALUES (6, 6, 'dinesh@example.com', 'Welcome123!', 'CUSTOMER', 'Active');
 
-INSERT INTO drivers (id, name, nic, license_no, contact, email, assigned_vehicle, address, status)
-VALUES (1, 'Nimal Perera', '198801010001', 'B1234567', '0716000001', 'nimal@smartmove.local', 'WP-CAB-1234', 'Colombo', 'Active');
-
-INSERT INTO drivers (id, name, nic, license_no, contact, email, assigned_vehicle, address, status)
-VALUES (2, 'Sajith Fernando', '198802020002', 'B2345678', '0716000002', 'sajith@smartmove.local', 'WP-VAN-4567', 'Gampaha', 'Active');
-
-INSERT INTO drivers (id, name, nic, license_no, contact, email, assigned_vehicle, address, status)
-VALUES (3, 'Ruwan Jayasinghe', '198803030003', 'B3456789', '0716000003', 'ruwan.driver@smartmove.local', 'WP-BUS-8899', 'Kandy', 'Active');
-
 INSERT INTO routes (id, route_no, route_name, start_location, end_location, distance, fare, estimated_time, description, status)
 VALUES (1, 'SM-01', 'Colombo to Kandy', 'Colombo', 'Kandy', 115, 1800, '3 hours', 'Central route with scheduled stops.', 'Active');
 
@@ -65,6 +56,15 @@ VALUES (2, 'WP-VAN-4567', 'Van', 'Toyota', 'Hiace', 2021, 14, 'Diesel', TRUNC(SY
 
 INSERT INTO vehicles (id, vehicle_no, vehicle_type, brand, model, manufacture_year, seating_capacity, fuel_type, last_service_date, status)
 VALUES (3, 'WP-BUS-8899', 'Bus', 'Tata', 'LP 909', 2020, 32, 'Diesel', TRUNC(SYSDATE) - 100, 'Active');
+
+INSERT INTO drivers (id, name, nic, license_no, contact, email, vehicle_id, address, status)
+VALUES (1, 'Nimal Perera', '198801010001', 'B1234567', '0716000001', 'nimal@smartmove.local', 1, 'Colombo', 'Active');
+
+INSERT INTO drivers (id, name, nic, license_no, contact, email, vehicle_id, address, status)
+VALUES (2, 'Sajith Fernando', '198802020002', 'B2345678', '0716000002', 'sajith@smartmove.local', 2, 'Gampaha', 'Active');
+
+INSERT INTO drivers (id, name, nic, license_no, contact, email, vehicle_id, address, status)
+VALUES (3, 'Ruwan Jayasinghe', '198803030003', 'B3456789', '0716000003', 'ruwan.driver@smartmove.local', 3, 'Kandy', 'Active');
 
 INSERT INTO trips (trip_id, route_id, vehicle_id, driver_id, trip_date, departure_time, arrival_time, seat_capacity, fare, status, notes)
 VALUES (1, 1, 1, 1, TRUNC(SYSDATE) - 7, TO_TIMESTAMP('2000-01-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2000-01-01 11:00:00', 'YYYY-MM-DD HH24:MI:SS'), 40, 1800, 'Completed', 'Sample completed trip.');
@@ -105,14 +105,14 @@ VALUES (4, 'SMT-DEMO-0004', 3, 3, '1', 'Reserved');
 INSERT INTO tickets (ticket_id, ticket_number, booking_id, trip_id, seat_number, ticket_status)
 VALUES (5, 'SMT-DEMO-0005', 4, 4, '1', 'Issued');
 
-INSERT INTO payments (id, booking_id, passenger_id, amount, payment_method, payment_status, payment_date)
-VALUES (1, 1, 2, 1800, 'Card', 'Successful', SYSTIMESTAMP - INTERVAL '7' DAY);
+INSERT INTO payments (id, booking_id, amount, payment_method, payment_status, payment_date)
+VALUES (1, 1, 1800, 'Card', 'Successful', SYSTIMESTAMP - INTERVAL '7' DAY);
 
-INSERT INTO payments (id, booking_id, passenger_id, amount, payment_method, payment_status, payment_date)
-VALUES (2, 2, 3, 3600, 'Mobile Wallet', 'Successful', SYSTIMESTAMP - INTERVAL '1' DAY);
+INSERT INTO payments (id, booking_id, amount, payment_method, payment_status, payment_date)
+VALUES (2, 2, 3600, 'Mobile Wallet', 'Successful', SYSTIMESTAMP - INTERVAL '1' DAY);
 
-INSERT INTO payments (id, booking_id, passenger_id, amount, payment_method, payment_status, payment_date)
-VALUES (3, 4, 5, 2200, 'Cash', 'Successful', SYSTIMESTAMP - INTERVAL '2' DAY);
+INSERT INTO payments (id, booking_id, amount, payment_method, payment_status, payment_date)
+VALUES (3, 4, 2200, 'Cash', 'Successful', SYSTIMESTAMP - INTERVAL '2' DAY);
 
 INSERT INTO maintenance (id, vehicle_id, service_type, description, cost, start_date, next_service_date, provider, status)
 VALUES (1, 1, 'Routine service', 'Oil, filters, and brake inspection.', 45000, TRUNC(SYSDATE) - 60, TRUNC(SYSDATE) + 30, 'Central Fleet Care', 'Completed');

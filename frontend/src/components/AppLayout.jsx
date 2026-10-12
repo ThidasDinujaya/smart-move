@@ -78,6 +78,12 @@ const navigationItems = [
         permission: PERMISSIONS.FLEET_MAINTENANCE_MANAGE,
       },
       {
+        id: "content",
+        label: "Announcements & media",
+        icon: "message",
+        permission: PERMISSIONS.CONTENT_MANAGE,
+      },
+      {
         id: "feedback",
         label: "Feedback",
         icon: "message",

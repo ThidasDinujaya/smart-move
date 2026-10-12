@@ -1,8 +1,9 @@
 
-package com.smartmove.backend.Controller;
+package com.smartmove.backend.controller;
 
-import com.smartmove.backend.Data.Route;
-import com.smartmove.backend.Service.RouteService;
+import com.smartmove.backend.data.Route;
+import com.smartmove.backend.service.RouteService;
+import com.smartmove.backend.service.CustomerAuthService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +18,19 @@ import java.util.Map;
 public class RouteController {
 
     private final RouteService routeService;
+    private final CustomerAuthService customerAuthService;
 
-    public RouteController(RouteService routeService) {
+    public RouteController(RouteService routeService, CustomerAuthService customerAuthService) {
         this.routeService = routeService;
+        this.customerAuthService = customerAuthService;
     }
 
     // ADD ROUTE
     @PostMapping
     public ResponseEntity<?> addRoute(
-            @RequestBody Route route) {
+            @RequestBody Route route,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Route savedRoute = routeService.addRoute(route);
@@ -43,34 +48,20 @@ public class RouteController {
 
     // VIEW ALL ROUTES
     @GetMapping
-    public ResponseEntity<List<Route>> getAllRoutes() {
+    public ResponseEntity<List<Route>> getAllRoutes(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
         return ResponseEntity.ok(
                 routeService.getAllRoutes()
         );
-    }
-
-    // VIEW ROUTE BY ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getRouteById(
-            @PathVariable Long id) {
-
-        try {
-            Route route = routeService.getRouteById(id);
-
-            return ResponseEntity.ok(route);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        }
     }
 
     // UPDATE ROUTE
     @PutMapping("/{id}")
     public ResponseEntity<?> updateRoute(
             @PathVariable Long id,
-            @RequestBody Route route) {
+            @RequestBody Route route,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Route updatedRoute =
@@ -94,7 +85,9 @@ public class RouteController {
     // DELETE ROUTE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRoute(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             routeService.deleteRoute(id);

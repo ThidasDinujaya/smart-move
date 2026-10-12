@@ -43,7 +43,6 @@ const PaymentPage = () => {
       if (!pendingBooking) setPendingBooking(booking);
       const payment = await api.post('/api/payments/process', {
         bookingId: booking.id,
-        passengerId: booking.passengerId,
         amount: booking.totalAmount,
         paymentMethod,
       });

@@ -44,6 +44,7 @@ import MaintenanceManagement from "./pages/admin/MaintenanceManagement.jsx";
 import AddMaintenance from "./pages/admin/AddMaintenance.jsx";
 import FeedbackReviews from "./pages/admin/FeedbackReviews.jsx";
 import ReportsDashboard from "./pages/admin/ReportsDashboard.jsx";
+import ContentManagement from "./pages/admin/ContentManagement.jsx";
 
 // Customer portal
 import CustomerHome from "./pages/customer/CustomerHome.jsx";
@@ -83,10 +84,10 @@ function AdminApp() {
   const routerNavigate = useNavigate();
   const [adminUser, setAdminUser] = useState(getCurrentStaffUser);
   const isAuthenticated = Boolean(adminUser && adminUser.roles?.some((role) => (
-    [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE].includes(role)
+    [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE, ROLES.SUPPORT].includes(role)
   )));
 
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState(() => adminUser?.roles?.includes(ROLES.SUPPORT) ? "feedback" : "dashboard");
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [dialogData, setDialogData] = useState(null);
 
@@ -115,7 +116,7 @@ function AdminApp() {
     const user = await loginStaff({ email, password }, rememberMe);
     setAdminUser(user);
     setSelectedRecord(null);
-    setPage("dashboard");
+    setPage(user.roles.includes(ROLES.SUPPORT) ? "feedback" : "dashboard");
     routerNavigate("/admin", { replace: true });
   }
 
@@ -148,6 +149,7 @@ function AdminApp() {
     if (nextPage === "bookings") return PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE;
     if (nextPage === "payments" || nextPage === "payment-receipt") return PERMISSIONS.FINANCE_PAYMENTS_MANAGE;
     if (nextPage === "feedback") return PERMISSIONS.SUPPORT_FEEDBACK_MANAGE;
+    if (nextPage === "content") return PERMISSIONS.CONTENT_MANAGE;
     if (nextPage === "reports") return PERMISSIONS.REPORTS_READ;
     return null;
   }
@@ -626,6 +628,7 @@ function AdminApp() {
           <FeedbackReviews
             reviews={feedback}
             onStatusChange={(id, status) => data.updateFeedbackStatus(id, status).catch((error) => window.alert(error.message || "Unable to update feedback status."))}
+            onResponseChange={(id, message) => data.updateFeedbackResponse(id, message)}
           />
         );
 
@@ -639,6 +642,9 @@ function AdminApp() {
             report={data.reports}
           />
         );
+
+      case "content":
+        return <ContentManagement />;
 
       default:
         return (

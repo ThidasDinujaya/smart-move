@@ -48,7 +48,7 @@ export function getCurrentCustomer() {
 
 export function getCurrentStaffUser() {
   const user = getCurrentUser();
-  return user && user.roles.some((role) => [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE].includes(role))
+  return user && user.roles.some((role) => [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE, ROLES.SUPPORT].includes(role))
     ? user
     : null;
 }
@@ -92,7 +92,7 @@ export async function loginCustomer(credentials, rememberMe = true) {
 
 export async function loginStaff(credentials, rememberMe = true) {
   const user = await login(credentials);
-  if (!user?.roles.some((role) => [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE].includes(role))) {
+  if (!user?.roles.some((role) => [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE, ROLES.SUPPORT].includes(role))) {
     throw new Error('This account does not have a staff role.');
   }
   return saveAuth(user, rememberMe);

@@ -1,6 +1,7 @@
 
-package com.smartmove.backend.Data;
+package com.smartmove.backend.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -24,7 +25,12 @@ public class Driver {
 
     private String email;
 
+    @Transient
     private String assignedVehicle;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
 
     @Lob
     private String imageData;
@@ -78,8 +84,11 @@ public class Driver {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-    public String getAssignedVehicle() { return assignedVehicle; }
+    public String getAssignedVehicle() { return vehicle == null ? assignedVehicle : vehicle.getVehicleNo(); }
     public void setAssignedVehicle(String assignedVehicle) { this.assignedVehicle = assignedVehicle; }
+    @JsonIgnore
+    public Vehicle getVehicle() { return vehicle; }
+    public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
     public String getImageData() { return imageData; }
     public void setImageData(String imageData) { this.imageData = imageData; }
 

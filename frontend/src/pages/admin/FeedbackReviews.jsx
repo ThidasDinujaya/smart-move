@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import Icon from '../../components/Icon.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 
-export default function FeedbackReviews({ reviews = [], onStatusChange }) {
+export default function FeedbackReviews({ reviews = [], onStatusChange, onResponseChange }) {
+  const [responseDrafts, setResponseDrafts] = useState({});
   const records = reviews.map((review) => {
     const rating = Number(review.rating ?? review.score);
     const passengerName = review.passengerName ?? review.passenger?.name ?? review.name ?? '';
@@ -49,7 +51,30 @@ export default function FeedbackReviews({ reviews = [], onStatusChange }) {
     { key: 'registrationNo', label: 'Vehicle' },
     { key: 'isComplaint', label: 'Complaint', render: (record) => record.isComplaint ? 'Yes' : 'No' },
     { key: 'keywords', label: 'Keywords', render: (record) => (record.keywords || []).join(', ') },
-    { key: 'response', label: 'Response', render: (record) => record.response ? JSON.stringify(record.response) : '—' },
+    {
+      key: 'response',
+      label: 'Response',
+      render: (record) => {
+        const savedMessage = record.response?.message || '';
+        const message = Object.hasOwn(responseDrafts, record.id) ? responseDrafts[record.id] : savedMessage;
+        return (
+          <form onSubmit={(event) => {
+            event.preventDefault();
+            onResponseChange?.(record.id, message).catch((error) => window.alert(error.message || 'Unable to save the response.'));
+          }} style={{ display: 'grid', gap: '6px', minWidth: '210px' }}>
+            <textarea
+              rows="2"
+              maxLength="2000"
+              value={message}
+              onChange={(event) => setResponseDrafts((current) => ({ ...current, [record.id]: event.target.value }))}
+              aria-label={`Response to ${record.passengerName || 'passenger feedback'}`}
+              placeholder="Write a response"
+            />
+            <button type="submit">Save response</button>
+          </form>
+        );
+      },
+    },
     {
       key: 'reviewStatus',
       label: 'Review status',

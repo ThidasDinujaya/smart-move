@@ -5,8 +5,9 @@ import { Bus } from 'lucide-react';
 import { api } from '../../api/client.js';
 
 function bookingDisplayStatus(booking) {
-  if (String(booking.status).toLowerCase() === 'cancelled') return 'Cancelled';
-  if (booking.date && booking.date < new Date().toISOString().slice(0, 10)) return 'Completed';
+  const status = String(booking.status || '').toLowerCase();
+  if (status === 'cancelled') return 'Cancelled';
+  if (status === 'completed') return 'Completed';
   return 'Upcoming';
 }
 
@@ -76,7 +77,7 @@ const MyBookings = () => {
   )), [bookings, filter]);
 
   const cancelBooking = async (id) => {
-    if (!window.confirm('Cancel this booking?')) return;
+    if (!window.confirm('Cancel this booking? Any successful payment will be marked as refunded.')) return;
     try {
       await api.delete(`/api/bookings/${id}`);
       await loadBookings();
@@ -125,6 +126,7 @@ const MyBookings = () => {
                     <span>Booking reference: <strong>{booking.bookingReference}</strong></span>
                     <span>Vehicle: {booking.vehicle}</span>
                     <span>Booking status: {booking.status}</span>
+                    {booking.paymentStatus && <span>Payment status: {booking.paymentStatus}</span>}
                     <span>Booking date: {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : '—'}</span>
                     {(booking.tickets || []).map((ticket) => <span key={ticket.ticketNumber}>Ticket {ticket.ticketNumber}: seat {ticket.seatNumber}, {ticket.status}{ticket.issuedAt ? ` · issued ${new Date(ticket.issuedAt).toLocaleString()}` : ''}</span>)}
                   </div>}

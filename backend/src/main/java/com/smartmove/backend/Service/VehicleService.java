@@ -1,10 +1,10 @@
 
-package com.smartmove.backend.Service;
+package com.smartmove.backend.service;
 
-import com.smartmove.backend.Data.Vehicle;
-import com.smartmove.backend.Data.VehicleRepository;
-import com.smartmove.backend.Data.VehicleMediaDocument;
-import com.smartmove.backend.Data.VehicleMediaRepository;
+import com.smartmove.backend.data.Vehicle;
+import com.smartmove.backend.data.VehicleRepository;
+import com.smartmove.backend.data.VehicleMediaDocument;
+import com.smartmove.backend.data.VehicleMediaRepository;
 
 import org.springframework.stereotype.Service;
 

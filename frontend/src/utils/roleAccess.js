@@ -3,6 +3,7 @@ export const ROLES = Object.freeze({
   ADMIN: 'admin',
   OPERATIONS: 'operations',
   FINANCE: 'finance',
+  SUPPORT: 'support',
 });
 
 export const PERMISSIONS = Object.freeze({
@@ -19,6 +20,7 @@ export const PERMISSIONS = Object.freeze({
   OPERATIONS_BOOKINGS_MANAGE: 'operations:bookings:manage',
   FINANCE_PAYMENTS_MANAGE: 'finance:payments:manage',
   SUPPORT_FEEDBACK_MANAGE: 'support:feedback:manage',
+  CONTENT_MANAGE: 'content:manage',
   REPORTS_READ: 'reports:read',
 });
 
@@ -38,12 +40,14 @@ const rolePermissions = {
     PERMISSIONS.OPERATIONS_PASSENGERS_READ,
     PERMISSIONS.OPERATIONS_TRIPS_MANAGE,
     PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE,
+    PERMISSIONS.CONTENT_MANAGE,
   ],
   [ROLES.FINANCE]: [
     PERMISSIONS.ADMIN_DASHBOARD_READ,
     PERMISSIONS.FINANCE_PAYMENTS_MANAGE,
     PERMISSIONS.REPORTS_READ,
   ],
+  [ROLES.SUPPORT]: [PERMISSIONS.SUPPORT_FEEDBACK_MANAGE],
 };
 
 export function hasRole(user, role) {

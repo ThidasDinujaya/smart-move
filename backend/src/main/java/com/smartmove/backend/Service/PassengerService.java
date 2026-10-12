@@ -32,13 +32,6 @@ public class PassengerService {
         return passengerRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public Passenger getPassengerById(Long id, String userId) {
-        requireStaffRole(userId);
-        return passengerRepository.findById(id)
-                .orElseThrow(() -> new PassengerNotFoundException("Passenger not found."));
-    }
-
     @Transactional
     public Passenger createPassenger(PassengerRequest request, String userId) {
         requireStaffRole(userId);
@@ -81,13 +74,13 @@ public class PassengerService {
 
     @Transactional(readOnly = true)
     public Passenger getMyProfile(String userId) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.requireAnyRole(userId, "CUSTOMER");
         return findPassenger(currentCustomer.id());
     }
 
     @Transactional
     public Passenger updateMyProfile(ProfileUpdateRequest request, String userId) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.requireAnyRole(userId, "CUSTOMER");
         Passenger passenger = findPassenger(currentCustomer.id());
 
         if (request == null) {

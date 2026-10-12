@@ -1,8 +1,8 @@
 
-package com.smartmove.backend.Service;
+package com.smartmove.backend.service;
 
-import com.smartmove.backend.Data.Route;
-import com.smartmove.backend.Data.RouteRepository;
+import com.smartmove.backend.data.Route;
+import com.smartmove.backend.data.RouteRepository;
 
 import org.springframework.stereotype.Service;
 

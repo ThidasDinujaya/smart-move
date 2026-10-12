@@ -4,12 +4,15 @@ import com.smartmove.backend.data.Booking;
 import com.smartmove.backend.data.BookingRepository;
 import com.smartmove.backend.data.Passenger;
 import com.smartmove.backend.data.PassengerRepository;
+import com.smartmove.backend.data.Payment;
+import com.smartmove.backend.data.PaymentRepository;
 import com.smartmove.backend.data.Ticket;
 import com.smartmove.backend.data.TicketRepository;
 import com.smartmove.backend.data.Trip;
 import com.smartmove.backend.data.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataAccessException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,6 +40,9 @@ public class BookingService {
     private final TripRepository tripRepository;
     private final PassengerRepository passengerRepository;
     private final CustomerAuthService customerAuthService;
+    private final OracleProcedureService oracleProcedureService;
+    private final TripCompletionService tripCompletionService;
+    private final PaymentRepository paymentRepository;
     private final SecureRandom secureRandom = new SecureRandom();
 
     public BookingService(
@@ -44,12 +50,18 @@ public class BookingService {
             TicketRepository ticketRepository,
             TripRepository tripRepository,
             PassengerRepository passengerRepository,
-            CustomerAuthService customerAuthService) {
+            CustomerAuthService customerAuthService,
+            OracleProcedureService oracleProcedureService,
+            TripCompletionService tripCompletionService,
+            PaymentRepository paymentRepository) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.tripRepository = tripRepository;
         this.passengerRepository = passengerRepository;
         this.customerAuthService = customerAuthService;
+        this.oracleProcedureService = oracleProcedureService;
+        this.tripCompletionService = tripCompletionService;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
@@ -127,19 +139,19 @@ public class BookingService {
     @Transactional
     public void cancelBookingForStaff(Long bookingId, String userId) {
         requireStaffRole(userId);
-        Booking booking = bookingRepository.findById(bookingId)
+        bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found."));
-        if (CANCELLED.equalsIgnoreCase(booking.getBookingStatus())) return;
-        booking.setBookingStatus(CANCELLED);
-        bookingRepository.save(booking);
-        List<Ticket> tickets = ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId());
-        tickets.forEach(ticket -> ticket.setTicketStatus(CANCELLED));
-        ticketRepository.saveAll(tickets);
+        try {
+            oracleProcedureService.cancelBooking(bookingId);
+        } catch (DataAccessException exception) {
+            throw new BookingConflictException(exception.getMostSpecificCause().getMessage());
+        }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<BookingView> getMyBookings(String userId) {
         Passenger passenger = requireCustomer(userId);
+        tripCompletionService.completeArrivedTripsBeforeReadingBookings();
         return bookingRepository.findByPassenger_IdOrderByBookingDateDesc(passenger.getId())
                 .stream()
                 .map(booking -> toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId())))
@@ -167,7 +179,7 @@ public class BookingService {
         return new SeatAvailabilityView(
                 trip.getId(),
                 capacity,
-                Math.max(0, capacity - reservedSeats.size()),
+                oracleProcedureService.availableSeats(tripId),
                 reservedSeats,
                 isTripBookable(trip)
         );
@@ -191,11 +203,11 @@ public class BookingService {
             throw new BookingConflictException("A booking cannot be cancelled after the trip has departed.");
         }
 
-        booking.setBookingStatus(CANCELLED);
-        bookingRepository.save(booking);
-        List<Ticket> tickets = ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId());
-        tickets.forEach(ticket -> ticket.setTicketStatus(CANCELLED));
-        ticketRepository.saveAll(tickets);
+        try {
+            oracleProcedureService.cancelBooking(bookingId);
+        } catch (DataAccessException exception) {
+            throw new BookingConflictException(exception.getMostSpecificCause().getMessage());
+        }
     }
 
     private Passenger requireCustomer(String userId) {
@@ -324,6 +336,7 @@ public class BookingService {
                 booking.getSeatCount(),
                 booking.getTotalAmount(),
                 booking.getBookingStatus(),
+                paymentRepository.findByBookingId(booking.getId()).map(Payment::getPaymentStatus).orElse(null),
                 tickets.stream().map(this::toTicketView).toList()
         );
     }
@@ -358,6 +371,7 @@ public class BookingService {
             Integer seatCount,
             BigDecimal totalAmount,
             String status,
+            String paymentStatus,
             List<TicketView> tickets) {
     }
 

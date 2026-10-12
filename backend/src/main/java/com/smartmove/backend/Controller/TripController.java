@@ -44,11 +44,6 @@ public class TripController {
         return tripService.searchTrips(from, to, date);
     }
 
-    @GetMapping("/{id}")
-    public TripService.TripView getTripById(@PathVariable Long id) {
-        return tripService.getTripById(id);
-    }
-
     @GetMapping("/{id}/seats")
     public BookingService.SeatAvailabilityView getSeatAvailability(@PathVariable Long id) {
         return bookingService.getSeatAvailability(id);

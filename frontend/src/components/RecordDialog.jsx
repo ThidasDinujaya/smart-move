@@ -31,12 +31,13 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
   const { type, mode, item } = data;
   const [form, setForm] = useState({ ...item });
   const fields = fieldsByType[type] || [];
+  const isTripCancellation = type === 'trip' && mode === 'delete';
   const title = mode === 'add'
     ? 'Add ' + type
     : mode === 'edit'
       ? 'Edit ' + type
       : mode === 'delete'
-        ? 'Delete ' + type
+        ? isTripCancellation ? 'Cancel trip' : 'Delete ' + type
         : type + ' details';
 
   function updateField(key, value, inputType) {
@@ -60,7 +61,9 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
         <header>
           <div>
             <h2 id="dialog-title">{title}</h2>
-            <p>{mode === 'delete' ? 'This action cannot be undone.' : 'Review or update this record.'}</p>
+            <p>{mode === 'delete'
+              ? isTripCancellation ? 'This cancels the trip, its bookings and tickets, and refunds successful payments.' : 'This action cannot be undone.'
+              : 'Review or update this record.'}</p>
           </div>
           <button className="close" type="button" onClick={onClose} aria-label="Close">
             <Icon name="close" />
@@ -81,7 +84,7 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
         )}
 
         {mode === 'delete' && (
-          <p className="delete-message">Delete this {type} record?</p>
+          <p className="delete-message">{isTripCancellation ? 'Cancel this trip?' : `Delete this ${type} record?`}</p>
         )}
 
         {(mode === 'add' || mode === 'edit') && (
@@ -131,7 +134,7 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
         {mode === 'delete' && (
           <div className="dialog-actions">
             <button className="secondary" type="button" onClick={onClose}>Cancel</button>
-            <button className="danger" type="button" onClick={() => onDelete(item)}>Delete</button>
+            <button className="danger" type="button" onClick={() => onDelete(item)}>{isTripCancellation ? 'Cancel trip' : 'Delete'}</button>
           </div>
         )}
 
