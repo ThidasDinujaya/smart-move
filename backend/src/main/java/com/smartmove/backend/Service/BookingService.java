@@ -28,8 +28,9 @@ public class BookingService {
     private static final String PENDING_PAYMENT = "Pending Payment";
     private static final String RESERVED = "Reserved";
     private static final String CONFIRMED = "Confirmed";
+    private static final String ISSUED = "Issued";
     private static final String CANCELLED = "Cancelled";
-    private static final List<String> ACTIVE_TICKET_STATUSES = List.of(RESERVED, CONFIRMED);
+    private static final List<String> ACTIVE_TICKET_STATUSES = List.of(RESERVED, CONFIRMED, ISSUED);
 
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;

@@ -1,7 +1,6 @@
 [
   {
-    "_id": { "$oid": "66f000000000000000000301" },
-    "recipientOracleId": 2,
+    "recipientOracleId": 3,
     "recipientRole": "CUSTOMER",
     "notificationType": "BOOKING_CONFIRMED",
     "title": "Your trip is confirmed",
@@ -11,6 +10,7 @@
     "createdAt": { "$date": "2026-10-12T00:00:00Z" },
     "readAt": null,
     "status": "UNREAD",
+    "bookingReference": "SMB-DEMO-0002",
     "details": { "bookingReference": "SMB-DEMO-0002" }
   }
 ]

@@ -1,6 +1,5 @@
 [
   {
-    "_id": { "$oid": "66f000000000000000000201" },
     "title": "Colombo to Kandy service update",
     "message": "Please arrive at the departure point 15 minutes before your trip.",
     "severity": "INFO",
