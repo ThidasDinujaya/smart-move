@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Bus, Mail, MapPin, Phone, ShieldCheck, Ticket } from 'lucide-react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import '../../styles/CustomerHome.css';
 import '../../styles/CustomerFooter.css';
+import { api } from '../../api/client.js';
 
 const features = [
   { icon: MapPin, title: 'Popular routes', subtitle: 'Travel between cities across Sri Lanka' },
@@ -30,7 +31,29 @@ const highlights = [
   },
 ];
 
-const CustomerHome = () => (
+const CustomerHome = () => {
+  const [announcements, setAnnouncements] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/content/announcements')
+      .then((items) => {
+        if (!active) return;
+        const now = Date.now();
+        setAnnouncements((Array.isArray(items) ? items : []).filter((item) => {
+          const audience = (item.audience || []).map((role) => String(role).toUpperCase());
+          const audienceMatches = !audience.length || audience.includes('ALL') || audience.includes('CUSTOMER');
+          const isActive = item.active !== false;
+          const hasStarted = !item.startsAt || new Date(item.startsAt).getTime() <= now;
+          const hasNotEnded = !item.endsAt || new Date(item.endsAt).getTime() >= now;
+          return audienceMatches && isActive && hasStarted && hasNotEnded;
+        }));
+      })
+      .catch(() => { if (active) setAnnouncements([]); });
+    return () => { active = false; };
+  }, []);
+
+  return (
   <div className="customer-home">
     <CustomerNavbar />
 
@@ -45,6 +68,28 @@ const CustomerHome = () => (
           </Link>
         </div>
       </section>
+
+      {announcements.length > 0 && (
+        <section style={{ maxWidth: '1100px', margin: '24px auto', padding: '0 20px' }} aria-label="Travel announcements">
+          {announcements.map((announcement) => (
+            <article key={announcement.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: `4px solid ${String(announcement.severity).toUpperCase() === 'WARNING' ? '#f59e0b' : '#0284c7'}`, borderRadius: '10px', padding: '16px 20px', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                <h2 style={{ margin: 0, fontSize: '16px', color: '#0f172a' }}>{announcement.title}</h2>
+                <span style={{ fontSize: '11px', color: '#475569' }}>{announcement.severity} · {announcement.active ? 'Active' : 'Inactive'}</span>
+              </div>
+              <p style={{ color: '#475569', fontSize: '13px', margin: '8px 0' }}>{announcement.message}</p>
+              <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>
+                Audience: {(announcement.audience || []).join(', ') || 'All'}
+                {announcement.routeOracleIds?.length ? ` · Route IDs: ${announcement.routeOracleIds.join(', ')}` : ''}
+                {announcement.publishedAt ? ` · Published: ${new Date(announcement.publishedAt).toLocaleDateString()}` : ''}
+                {announcement.startsAt ? ` · Starts: ${new Date(announcement.startsAt).toLocaleDateString()}` : ''}
+                {announcement.endsAt ? ` · Ends: ${new Date(announcement.endsAt).toLocaleDateString()}` : ''}
+              </p>
+              {announcement.details && <details style={{ marginTop: '8px', fontSize: '12px', color: '#64748b' }}><summary>More details</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(announcement.details, null, 2)}</pre></details>}
+            </article>
+          ))}
+        </section>
+      )}
 
       <section className="home-features" aria-label="SmartMove benefits">
         {features.map(({ icon: Icon, title, subtitle }) => (
@@ -107,6 +152,7 @@ const CustomerHome = () => (
       </div>
     </footer>
   </div>
-);
+  );
+};
 
 export default CustomerHome;

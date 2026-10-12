@@ -52,14 +52,14 @@ public class BookingService {
     }
 
     @Transactional
-    public BookingView createBooking(BookingRequest request, String token) {
-        Passenger passenger = requireCustomer(token);
+    public BookingView createBooking(BookingRequest request, String userId) {
+        Passenger passenger = requireCustomer(userId);
         return createBookingForPassenger(request, passenger);
     }
 
     @Transactional
-    public BookingView createBookingForStaff(StaffBookingRequest request, String token) {
-        requireStaffRole(token);
+    public BookingView createBookingForStaff(StaffBookingRequest request, String userId) {
+        requireStaffRole(userId);
         if (request == null || request.passengerId() == null) {
             throw new IllegalArgumentException("A passenger must be selected.");
         }
@@ -115,8 +115,8 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingView> getAllBookingsForStaff(String token) {
-        requireStaffReadRole(token);
+    public List<BookingView> getAllBookingsForStaff(String userId) {
+        requireStaffReadRole(userId);
         return bookingRepository.findAllByOrderByBookingDateDesc()
                 .stream()
                 .map(booking -> toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId())))
@@ -124,8 +124,8 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelBookingForStaff(Long bookingId, String token) {
-        requireStaffRole(token);
+    public void cancelBookingForStaff(Long bookingId, String userId) {
+        requireStaffRole(userId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found."));
         if (CANCELLED.equalsIgnoreCase(booking.getBookingStatus())) return;
@@ -137,8 +137,8 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookingView> getMyBookings(String token) {
-        Passenger passenger = requireCustomer(token);
+    public List<BookingView> getMyBookings(String userId) {
+        Passenger passenger = requireCustomer(userId);
         return bookingRepository.findByPassenger_IdOrderByBookingDateDesc(passenger.getId())
                 .stream()
                 .map(booking -> toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId())))
@@ -146,8 +146,8 @@ public class BookingService {
     }
 
     @Transactional(readOnly = true)
-    public BookingView getMyBooking(Long bookingId, String token) {
-        Passenger passenger = requireCustomer(token);
+    public BookingView getMyBooking(Long bookingId, String userId) {
+        Passenger passenger = requireCustomer(userId);
         Booking booking = findOwnedBooking(bookingId, passenger.getId());
         return toView(booking, ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId()));
     }
@@ -173,8 +173,8 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelMyBooking(Long bookingId, String token) {
-        Passenger passenger = requireCustomer(token);
+    public void cancelMyBooking(Long bookingId, String userId) {
+        Passenger passenger = requireCustomer(userId);
         Booking booking = findOwnedBooking(bookingId, passenger.getId());
         Trip trip = tripRepository.findByIdForUpdate(booking.getTrip().getId())
                 .orElseThrow(() -> new TripNotFoundException("Trip not found."));
@@ -197,8 +197,8 @@ public class BookingService {
         ticketRepository.saveAll(tickets);
     }
 
-    private Passenger requireCustomer(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private Passenger requireCustomer(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean isCustomer = currentUser.roles().stream().anyMatch(role -> "CUSTOMER".equalsIgnoreCase(role));
         if (!isCustomer) {
             throw new ForbiddenBookingOperationException("A customer account is required to manage bookings.");
@@ -212,8 +212,8 @@ public class BookingService {
         return passenger;
     }
 
-    private void requireStaffRole(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private void requireStaffRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean isStaff = currentUser.roles().stream().anyMatch(role ->
                 "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role));
         if (!isStaff) {
@@ -221,8 +221,8 @@ public class BookingService {
         }
     }
 
-    private void requireStaffReadRole(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private void requireStaffReadRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean canRead = currentUser.roles().stream().anyMatch(role ->
                 "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role)
                         || "FINANCE".equalsIgnoreCase(role));

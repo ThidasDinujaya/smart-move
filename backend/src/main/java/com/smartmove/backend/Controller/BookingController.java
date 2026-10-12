@@ -32,51 +32,51 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingService.BookingView> createBooking(
             @RequestBody BookingService.BookingRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        BookingService.BookingView booking = bookingService.createBooking(request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        BookingService.BookingView booking = bookingService.createBooking(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(booking);
     }
 
     @PostMapping("/admin")
     public ResponseEntity<BookingService.BookingView> createBookingForStaff(
             @RequestBody BookingService.StaffBookingRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        BookingService.BookingView booking = bookingService.createBookingForStaff(request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        BookingService.BookingView booking = bookingService.createBookingForStaff(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(booking);
     }
 
     @GetMapping("/admin")
     public List<BookingService.BookingView> getAllBookingsForStaff(
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return bookingService.getAllBookingsForStaff(readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return bookingService.getAllBookingsForStaff(userId);
     }
 
     @DeleteMapping("/admin/{bookingId}")
     public ResponseEntity<Void> cancelBookingForStaff(
             @PathVariable Long bookingId,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        bookingService.cancelBookingForStaff(bookingId, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        bookingService.cancelBookingForStaff(bookingId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public List<BookingService.BookingView> getMyBookings(
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return bookingService.getMyBookings(readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return bookingService.getMyBookings(userId);
     }
 
     @GetMapping("/{bookingId}")
     public BookingService.BookingView getMyBooking(
             @PathVariable Long bookingId,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return bookingService.getMyBooking(bookingId, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return bookingService.getMyBooking(bookingId, userId);
     }
 
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<Void> cancelMyBooking(
             @PathVariable Long bookingId,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        bookingService.cancelMyBooking(bookingId, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        bookingService.cancelMyBooking(bookingId, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -115,11 +115,4 @@ public class BookingController {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
-    private String readBearerToken(String authorization) {
-        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
-        String token = authorization.substring(7).trim();
-        return token.isEmpty() ? null : token;
-    }
 }

@@ -1,20 +1,30 @@
 const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
 const API_BASE_URL = configuredApiBaseUrl.replace(/\/api$/i, '');
 
-const TOKEN_KEY = 'smartmove_access_token';
+const CURRENT_USER_KEY = 'smartmove_authenticated_user';
 
-export function getAccessToken() {
-  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY) || '';
+function getCurrentUserId() {
+  const savedUser = localStorage.getItem(CURRENT_USER_KEY)
+    || sessionStorage.getItem(CURRENT_USER_KEY);
+  if (!savedUser) return '';
+
+  try {
+    const user = JSON.parse(savedUser);
+    return user?.userId == null ? '' : String(user.userId);
+  } catch {
+    return '';
+  }
 }
 
 export async function apiRequest(path, options = {}) {
-  const { body, headers = {}, token = getAccessToken(), ...requestOptions } = options;
+  const { body, headers = {}, ...requestOptions } = options;
   const requestHeaders = new Headers(headers);
 
   if (body !== undefined && !(body instanceof FormData)) {
     requestHeaders.set('Content-Type', 'application/json');
   }
-  if (token) requestHeaders.set('Authorization', `Bearer ${token}`);
+  const userId = getCurrentUserId();
+  if (userId) requestHeaders.set('X-User-Id', userId);
 
   let response;
   try {
@@ -56,4 +66,4 @@ export const api = {
   delete: (path, options) => apiRequest(path, { ...options, method: 'DELETE' }),
 };
 
-export { API_BASE_URL, TOKEN_KEY };
+export { API_BASE_URL };

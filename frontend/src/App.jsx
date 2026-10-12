@@ -625,6 +625,7 @@ function AdminApp() {
         return (
           <FeedbackReviews
             reviews={feedback}
+            onStatusChange={(id, status) => data.updateFeedbackStatus(id, status).catch((error) => window.alert(error.message || "Unable to update feedback status."))}
           />
         );
 

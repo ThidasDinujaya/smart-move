@@ -27,21 +27,21 @@ public class PassengerService {
     }
 
     @Transactional(readOnly = true)
-    public List<Passenger> getAllPassengers(String token) {
-        requireStaffRole(token);
+    public List<Passenger> getAllPassengers(String userId) {
+        requireStaffRole(userId);
         return passengerRepository.findAll();
     }
 
     @Transactional(readOnly = true)
-    public Passenger getPassengerById(Long id, String token) {
-        requireStaffRole(token);
+    public Passenger getPassengerById(Long id, String userId) {
+        requireStaffRole(userId);
         return passengerRepository.findById(id)
                 .orElseThrow(() -> new PassengerNotFoundException("Passenger not found."));
     }
 
     @Transactional
-    public Passenger createPassenger(PassengerRequest request, String token) {
-        requireStaffRole(token);
+    public Passenger createPassenger(PassengerRequest request, String userId) {
+        requireStaffRole(userId);
         Passenger passenger = new Passenger();
         applyFields(passenger, request, true);
         assertEmailAvailable(passenger.getEmail(), null);
@@ -51,8 +51,8 @@ public class PassengerService {
     }
 
     @Transactional
-    public Passenger updatePassenger(Long id, PassengerRequest request, String token) {
-        requireStaffRole(token);
+    public Passenger updatePassenger(Long id, PassengerRequest request, String userId) {
+        requireStaffRole(userId);
         Passenger passenger = findPassenger(id);
         applyFields(passenger, request, false);
         assertEmailAvailable(passenger.getEmail(), id);
@@ -68,8 +68,8 @@ public class PassengerService {
     }
 
     @Transactional
-    public void deactivatePassenger(Long id, String token) {
-        requireStaffRole(token);
+    public void deactivatePassenger(Long id, String userId) {
+        requireStaffRole(userId);
         Passenger passenger = findPassenger(id);
         passenger.setStatus("Inactive");
         passengerRepository.save(passenger);
@@ -80,14 +80,14 @@ public class PassengerService {
     }
 
     @Transactional(readOnly = true)
-    public Passenger getMyProfile(String token) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(token);
+    public Passenger getMyProfile(String userId) {
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
         return findPassenger(currentCustomer.id());
     }
 
     @Transactional
-    public Passenger updateMyProfile(ProfileUpdateRequest request, String token) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(token);
+    public Passenger updateMyProfile(ProfileUpdateRequest request, String userId) {
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
         Passenger passenger = findPassenger(currentCustomer.id());
 
         if (request == null) {
@@ -98,6 +98,7 @@ public class PassengerService {
         passenger.setEmail(normalizeEmail(request.email()));
         passenger.setPhone(requireText(request.phone(), "Phone number is required."));
         passenger.setNic(normalizeOptional(request.nic()));
+        passenger.setGender(normalizeOptional(request.gender()));
 
         validateLengths(passenger);
         assertEmailAvailable(passenger.getEmail(), passenger.getId());
@@ -111,8 +112,8 @@ public class PassengerService {
         return savedPassenger;
     }
 
-    private void requireStaffRole(String token) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+    private void requireStaffRole(String userId) {
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         boolean isStaff = currentUser.roles().stream().anyMatch(role ->
                 "ADMIN".equalsIgnoreCase(role) || "OPERATIONS".equalsIgnoreCase(role));
         if (!isStaff) {
@@ -226,7 +227,7 @@ public class PassengerService {
                                    String gender, String status) {
     }
 
-    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic) {
+    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender) {
     }
 
     public static class PassengerNotFoundException extends RuntimeException {

@@ -213,7 +213,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
   const maintenanceOptions = useMemo(() => ({
     vehicles: records.vehicles.map((vehicle) => vehicle.vehicleNo),
     types: [...new Set(records.maintenance.map((item) => item.type).filter(Boolean))],
-    statuses: ['Scheduled', 'Pending', 'Completed', 'Overdue'],
+    statuses: ['Scheduled', 'Pending', 'Due', 'Completed', 'Overdue'],
   }), [records.vehicles, records.maintenance]);
 
   const saveVehicle = useCallback(async (value) => {
@@ -366,24 +366,36 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     return saved;
   }, [records.vehicles, refresh]);
 
-  const ratings = records.feedback.map((item) => Number(item.rating)).filter(Number.isFinite);
-  const averageRating = ratings.length ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length : null;
-  const reports = useMemo(() => ({
-    totalVehicles: records.vehicles.length,
-    vehiclesDueForMaintenance: records.maintenance.filter((item) => ['pending', 'overdue'].includes(String(item.status || '').toLowerCase())).length,
-    driverAverageRating: averageRating === null ? '—' : averageRating.toFixed(1),
-    vehicleAverageRating: averageRating === null ? '—' : averageRating.toFixed(1),
-    feedbackTotal: records.feedback.length,
-    maintenanceStatus: records.maintenance.reduce((summary, item) => {
-      const status = String(item.status || '').toLowerCase();
-      if (Object.hasOwn(summary, status)) summary[status] += 1;
-      return summary;
-    }, { completed: 0, scheduled: 0, pending: 0, overdue: 0 }),
-    ratingDistribution: [1, 2, 3, 4, 5].map((rating) => ({
-      rating,
-      count: ratings.filter((value) => value === rating).length,
-    })),
-  }), [records, averageRating]);
+  const updateFeedbackStatus = useCallback(async (id, reviewStatus) => {
+    const updated = await api.put(`/api/feedback/${id}/status`, { reviewStatus });
+    await refresh();
+    return updated;
+  }, [refresh]);
+
+  const reports = useMemo(() => {
+    const reportFeedback = records.feedback.filter((item) => String(item.reviewStatus || '').toUpperCase() !== 'HIDDEN');
+    const overallRatings = reportFeedback.map((item) => Number(item.rating)).filter(Number.isFinite);
+    const driverRatings = reportFeedback.map((item) => Number(item.driverRating ?? item.rating)).filter(Number.isFinite);
+    const vehicleRatings = reportFeedback.map((item) => Number(item.vehicleRating ?? item.rating)).filter(Number.isFinite);
+    const average = (values) => values.length ? (values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1) : '—';
+
+    return {
+      totalVehicles: records.vehicles.length,
+      vehiclesDueForMaintenance: records.maintenance.filter((item) => ['due', 'pending', 'overdue'].includes(String(item.status || '').toLowerCase())).length,
+      driverAverageRating: average(driverRatings),
+      vehicleAverageRating: average(vehicleRatings),
+      feedbackTotal: reportFeedback.length,
+      maintenanceStatus: records.maintenance.reduce((summary, item) => {
+        const status = String(item.status || '').toLowerCase();
+        if (Object.hasOwn(summary, status)) summary[status] += 1;
+        return summary;
+      }, { completed: 0, scheduled: 0, due: 0, pending: 0, overdue: 0 }),
+      ratingDistribution: [1, 2, 3, 4, 5].map((rating) => ({
+        rating,
+        count: overallRatings.filter((value) => value === rating).length,
+      })),
+    };
+  }, [records]);
 
   return {
     ...records,
@@ -398,6 +410,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     saveVehicle, updateVehicle, deleteVehicle,
     saveDriver, updateDriver, deleteDriver,
     saveRoute, updateRoute, deleteRoute,
-    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance,
+    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, updateFeedbackStatus,
   };
 }

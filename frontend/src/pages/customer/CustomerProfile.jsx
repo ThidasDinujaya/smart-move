@@ -7,7 +7,7 @@ import { logoutCustomer, updateCurrentCustomer, fetchCurrentProfile } from '../.
 const CustomerProfile = () => {
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState({ fullName: '', email: '', phone: '', nic: '' });
+  const [profile, setProfile] = useState({ fullName: '', email: '', phone: '', nic: '', gender: '' });
   const [profileError, setProfileError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,7 +16,7 @@ const CustomerProfile = () => {
     let active = true;
     fetchCurrentProfile()
       .then((customer) => {
-        if (active) setProfile({ fullName: customer.fullName || '', email: customer.email || '', phone: customer.phone || '', nic: customer.nic || '' });
+        if (active) setProfile({ fullName: customer.fullName || '', email: customer.email || '', phone: customer.phone || '', nic: customer.nic || '', gender: customer.gender || '' });
       })
       .catch((error) => { if (active) setProfileError(error.message || 'Unable to load your profile.'); })
       .finally(() => { if (active) setLoading(false); });
@@ -37,7 +37,7 @@ const CustomerProfile = () => {
     setSaving(true);
     try {
       const updated = await updateCurrentCustomer(profile);
-      setProfile({ ...updated, nic: profile.nic });
+      setProfile({ ...updated, nic: profile.nic, gender: profile.gender });
       alert('Profile Updated Successfully!');
     } catch (error) {
       setProfileError(error.message || 'Unable to update your profile.');
@@ -136,6 +136,19 @@ const CustomerProfile = () => {
                   onChange={(e) => setProfile({ ...profile, nic: e.target.value })}
                   style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none' }} 
                 />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>Gender</label>
+                <select
+                  value={profile.gender}
+                  onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', fontSize: '14px', color: '#1e334d', backgroundColor: 'white' }}
+                >
+                  <option value="">Prefer not to say</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               {profileError && <p role="alert" style={{ margin: 0, color: '#b91c1c', fontSize: '13px' }}>{profileError}</p>}

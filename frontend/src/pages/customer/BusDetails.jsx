@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bus } from 'lucide-react';
+import { api } from '../../api/client.js';
 
 const BusDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const trip = location.state?.bus;
   const queryParams = location.state?.queryParams || {};
+  const [media, setMedia] = useState([]);
+
+  useEffect(() => {
+    if (!trip?.id) return undefined;
+    let active = true;
+    api.get(`/api/content/trips/${trip.id}/media`)
+      .then((items) => { if (active) setMedia(Array.isArray(items) ? items : []); })
+      .catch(() => { if (active) setMedia([]); });
+    return () => { active = false; };
+  }, [trip?.id]);
 
   if (!trip?.id) {
     return (
@@ -50,6 +61,32 @@ const BusDetails = () => {
             <button onClick={() => navigate('/seat-selection', { state: location.state })} style={{ width: '100%', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '700', fontSize: '14px', cursor: 'pointer', marginTop: '20px' }}>Select Seats</button>
           </div>
         </div>
+        {media.length > 0 && (
+          <section style={{ marginTop: '20px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px' }}>
+            <h2 style={{ fontSize: '17px', color: '#0f172a' }}>Trip media</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              {media.map((item) => {
+                const mediaUrl = item.mediaData || item.storageUrl;
+                const isImage = String(item.contentType || '').startsWith('image/');
+                return (
+                  <article key={item.id} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
+                    {mediaUrl && isImage ? <img src={mediaUrl} alt={item.title || 'Trip media'} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} /> : null}
+                    {mediaUrl && !isImage ? <a href={mediaUrl} target="_blank" rel="noreferrer">Open {item.mediaType || 'trip file'}</a> : null}
+                    <h3 style={{ fontSize: '14px', margin: '10px 0 4px' }}>{item.title || item.mediaType}</h3>
+                    {item.description && <p style={{ fontSize: '12px', color: '#475569' }}>{item.description}</p>}
+                    <p style={{ fontSize: '11px', color: '#64748b' }}>
+                      {item.mediaType} {item.contentType ? `· ${item.contentType}` : ''}
+                      {item.location ? ` · ${item.location}` : ''}
+                      {item.uploadedAt ? ` · Uploaded ${new Date(item.uploadedAt).toLocaleString()}` : ''}
+                      {item.uploadedByOracleId != null ? ` · User ${item.uploadedByOracleId}` : ''}
+                    </p>
+                    {item.metadata && <details style={{ fontSize: '11px', color: '#64748b' }}><summary>Metadata</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

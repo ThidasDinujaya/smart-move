@@ -26,8 +26,8 @@ public class PaymentController {
 
     @PostMapping("/process")
     public Payment processPayment(@RequestBody Payment payment,
-                                  @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return paymentService.processPayment(payment, readBearerToken(authorization));
+                                  @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return paymentService.processPayment(payment, userId);
     }
 
     @ExceptionHandler(CustomerAuthService.AuthenticationFailedException.class)
@@ -40,9 +40,4 @@ public class PaymentController {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
-    private String readBearerToken(String authorization) {
-        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) return null;
-        String token = authorization.substring(7).trim();
-        return token.isEmpty() ? null : token;
-    }
 }

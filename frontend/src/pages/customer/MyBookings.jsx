@@ -17,6 +17,10 @@ const MyBookings = () => {
   const [filter, setFilter] = useState('All');
   const [bookings, setBookings] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
+  const [reviewOpenId, setReviewOpenId] = useState(null);
+  const [reviewsByTrip, setReviewsByTrip] = useState({});
+  const [reviewForms, setReviewForms] = useState({});
+  const [reviewMessages, setReviewMessages] = useState({});
 
   const loadBookings = async () => {
     setLoading(true);
@@ -31,7 +35,41 @@ const MyBookings = () => {
     }
   };
 
-  useEffect(() => { loadBookings(); }, []);
+  useEffect(() => {
+    loadBookings();
+    api.get('/api/feedback/mine')
+      .then((items) => {
+        const reviews = {};
+        (Array.isArray(items) ? items : []).forEach((item) => { reviews[String(item.tripId)] = item; });
+        setReviewsByTrip(reviews);
+      })
+      .catch(() => {});
+  }, []);
+
+  const updateReview = (bookingId, field, value) => {
+    setReviewForms((current) => ({
+      ...current,
+      [bookingId]: { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', isComplaint: false, ...current[bookingId], [field]: value },
+    }));
+  };
+
+  const submitReview = async (booking) => {
+    const form = { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', isComplaint: false, ...reviewForms[booking.id] };
+    try {
+      const saved = await api.post('/api/feedback', {
+        tripId: booking.tripId,
+        rating: Number(form.rating),
+        driverRating: Number(form.driverRating),
+        vehicleRating: Number(form.vehicleRating),
+        comment: form.comment.trim(),
+        isComplaint: form.isComplaint,
+      });
+      setReviewsByTrip((current) => ({ ...current, [String(booking.tripId)]: saved }));
+      setReviewMessages((current) => ({ ...current, [booking.id]: 'Thank you. Your feedback has been saved.' }));
+    } catch (requestError) {
+      setReviewMessages((current) => ({ ...current, [booking.id]: requestError.message || 'Unable to save feedback.' }));
+    }
+  };
 
   const filteredBookings = useMemo(() => bookings.filter((booking) => (
     filter === 'All' || bookingDisplayStatus(booking) === filter
@@ -83,7 +121,52 @@ const MyBookings = () => {
                       {status === 'Upcoming' && ['Confirmed', 'Pending Payment'].includes(booking.status) && <button onClick={() => cancelBooking(booking.id)} style={{ border: '1px solid #fecaca', backgroundColor: 'white', color: '#dc2626', padding: '8px 14px', borderRadius: '8px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>}
                     </div>
                   </div>
-                  {expandedId === booking.id && <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', fontSize: '13px', color: '#475569', display: 'grid', gap: '6px' }}><span>Booking reference: <strong>{booking.bookingReference}</strong></span><span>Vehicle: {booking.vehicle}</span><span>Booking status: {booking.status}</span></div>}
+                  {expandedId === booking.id && <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', fontSize: '13px', color: '#475569', display: 'grid', gap: '6px' }}>
+                    <span>Booking reference: <strong>{booking.bookingReference}</strong></span>
+                    <span>Vehicle: {booking.vehicle}</span>
+                    <span>Booking status: {booking.status}</span>
+                    <span>Booking date: {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : '—'}</span>
+                    {(booking.tickets || []).map((ticket) => <span key={ticket.ticketNumber}>Ticket {ticket.ticketNumber}: seat {ticket.seatNumber}, {ticket.status}{ticket.issuedAt ? ` · issued ${new Date(ticket.issuedAt).toLocaleString()}` : ''}</span>)}
+                  </div>}
+                  {status === 'Completed' && booking.status === 'Completed' && (
+                    <section style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                      {reviewsByTrip[String(booking.tripId)] ? (
+                        <div style={{ color: '#475569', fontSize: '13px' }}>
+                          Feedback submitted · Overall {reviewsByTrip[String(booking.tripId)].rating}/5 · Driver {reviewsByTrip[String(booking.tripId)].driverRating}/5 · Vehicle {reviewsByTrip[String(booking.tripId)].vehicleRating}/5 · {reviewsByTrip[String(booking.tripId)].reviewStatus}
+                        </div>
+                      ) : (
+                        <>
+                          <button type="button" onClick={() => setReviewOpenId(reviewOpenId === booking.id ? null : booking.id)} style={{ border: '1px solid #0066ff', background: 'white', color: '#0066ff', padding: '8px 14px', borderRadius: '8px', cursor: 'pointer' }}>
+                            {reviewOpenId === booking.id ? 'Close feedback' : 'Leave feedback'}
+                          </button>
+                          {reviewOpenId === booking.id && <div style={{ display: 'grid', gap: '10px', marginTop: '12px' }}>
+                            {[
+                              ['rating', 'Overall rating'],
+                              ['driverRating', 'Driver rating'],
+                              ['vehicleRating', 'Vehicle rating'],
+                            ].map(([field, label]) => (
+                              <label key={field} style={{ display: 'grid', gap: '4px', maxWidth: '240px', fontSize: '13px', color: '#334155' }}>
+                                {label}
+                                <select value={reviewForms[booking.id]?.[field] ?? '5'} onChange={(event) => updateReview(booking.id, field, event.target.value)}>
+                                  <option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Average</option><option value="2">2 - Poor</option><option value="1">1 - Very poor</option>
+                                </select>
+                              </label>
+                            ))}
+                            <label style={{ display: 'grid', gap: '4px', fontSize: '13px', color: '#334155' }}>
+                              Comment
+                              <textarea rows="3" maxLength="2000" value={reviewForms[booking.id]?.comment || ''} onChange={(event) => updateReview(booking.id, 'comment', event.target.value)} />
+                            </label>
+                            <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: '#334155' }}>
+                              <input type="checkbox" checked={Boolean(reviewForms[booking.id]?.isComplaint)} onChange={(event) => updateReview(booking.id, 'isComplaint', event.target.checked)} />
+                              This feedback is a complaint
+                            </label>
+                            {reviewMessages[booking.id] && <p role="status" style={{ margin: 0, color: '#475569', fontSize: '13px' }}>{reviewMessages[booking.id]}</p>}
+                            <button type="button" onClick={() => submitReview(booking)} style={{ justifySelf: 'start', background: '#0066ff', color: 'white', border: 0, borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Submit feedback</button>
+                          </div>}
+                        </>
+                      )}
+                    </section>
+                  )}
                 </article>
               );
             })}

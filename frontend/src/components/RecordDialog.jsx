@@ -3,10 +3,11 @@ import Icon from './Icon.jsx';
 
 const fieldsByType = {
   passenger: [
-    { key: 'name', label: 'Name' },
+    { key: 'fullName', label: 'Name' },
     { key: 'email', label: 'Email', type: 'email' },
     { key: 'phone', label: 'Contact' },
-    { key: 'gender', label: 'Gender' },
+    { key: 'nic', label: 'NIC', required: false },
+    { key: 'gender', label: 'Gender', type: 'gender', required: false },
     { key: 'status', label: 'Status' },
   ],
   booking: [
@@ -88,10 +89,12 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
             {fields.map((field) => (
               <label key={field.key}>
                 {field.label}
-                {field.type === 'passenger' || field.type === 'trip' || field.type === 'booking' || field.type === 'method' ? (
-                  <select required value={form[field.key] ?? ''} onChange={(event) => updateField(field.key, event.target.value, field.type === 'method' ? 'text' : 'number')}>
+                {field.type === 'passenger' || field.type === 'trip' || field.type === 'booking' || field.type === 'method' || field.type === 'gender' ? (
+                  <select required={field.required !== false} value={form[field.key] ?? ''} onChange={(event) => updateField(field.key, event.target.value, field.type === 'method' || field.type === 'gender' ? 'text' : 'number')}>
                     <option value="">Select {field.label.toLowerCase()}</option>
-                    {(field.type === 'passenger' ? passengers : field.type === 'trip' ? trips : field.type === 'booking' ? bookings : [
+                    {(field.type === 'passenger' ? passengers : field.type === 'trip' ? trips : field.type === 'booking' ? bookings : field.type === 'gender' ? [
+                      { id: 'Female', label: 'Female' }, { id: 'Male', label: 'Male' }, { id: 'Other', label: 'Other' },
+                    ] : [
                       { id: 'Card', label: 'Card' }, { id: 'Bank Transfer', label: 'Bank Transfer' },
                       { id: 'eWallet', label: 'eWallet' }, { id: 'Cash', label: 'Cash' },
                     ]).map((option) => {
@@ -108,7 +111,7 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
                   </select>
                 ) : (
                   <input
-                    required
+                    required={field.required !== false}
                     type={field.type || 'text'}
                     value={form[field.key] ?? ''}
                     onChange={(event) => updateField(field.key, event.target.value, field.type)}

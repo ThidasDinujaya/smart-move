@@ -34,11 +34,11 @@ public class PaymentService {
     }
 
     @Transactional
-    public Payment processPayment(Payment payment, String token) {
+    public Payment processPayment(Payment payment, String userId) {
         if (payment == null || payment.getBookingId() == null) {
             throw new IllegalArgumentException("A booking must be selected for payment.");
         }
-        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(token);
+        CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
         Booking booking = bookingRepository.findById(payment.getBookingId())
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found."));
         boolean isCustomer = currentUser.roles().stream().anyMatch(role -> "CUSTOMER".equalsIgnoreCase(role));
@@ -64,7 +64,7 @@ public class PaymentService {
         payment.setId(null);
         payment.setPassengerId(booking.getPassenger().getId());
         payment.setAmount(expectedAmount);
-        payment.setPaymentStatus("COMPLETED");
+        payment.setPaymentStatus("Successful");
         payment.setPaymentDate(LocalDateTime.now());
         Payment savedPayment = paymentRepository.save(payment);
 

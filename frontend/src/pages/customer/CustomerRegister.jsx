@@ -9,7 +9,7 @@ import { getCustomerReturnLocation } from '../../utils/roleAccess.js';
 export default function CustomerRegister() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [form, setForm] = useState({ fullName: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ fullName: '', email: '', phone: '', nic: '', gender: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,11 +24,6 @@ export default function CustomerRegister() {
       setError('Your password must be at least 8 characters long.');
       return;
     }
-    if (form.password !== form.confirmPassword) {
-      setError('The passwords do not match.');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       await registerCustomer(form);
@@ -104,6 +99,33 @@ export default function CustomerRegister() {
             </div>
 
             <div className="form-group">
+              <label htmlFor="customer-register-nic">NIC</label>
+              <input
+                id="customer-register-nic"
+                type="text"
+                autoComplete="off"
+                placeholder="Enter your NIC number (optional)"
+                maxLength={20}
+                value={form.nic}
+                onChange={(event) => update('nic', event.target.value)}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="customer-register-gender">Gender</label>
+              <select
+                id="customer-register-gender"
+                value={form.gender}
+                onChange={(event) => update('gender', event.target.value)}
+              >
+                <option value="">Prefer not to say</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="customer-register-password">Password</label>
               <div className="password-field">
                 <input
@@ -125,19 +147,6 @@ export default function CustomerRegister() {
                   {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
                 </button>
               </div>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="customer-register-confirm-password">Confirm password</label>
-              <input
-                id="customer-register-confirm-password"
-                type="password"
-                autoComplete="new-password"
-                placeholder="Re-enter your password"
-                value={form.confirmPassword}
-                onChange={(event) => update('confirmPassword', event.target.value)}
-                required
-              />
             </div>
 
             {error && <p className="login-error" role="alert">{error}</p>}

@@ -2,7 +2,6 @@ import { api } from '../api/client.js';
 import { ROLES } from './roleAccess.js';
 
 const CURRENT_USER_KEY = 'smartmove_authenticated_user';
-const TOKEN_KEY = 'smartmove_access_token';
 const AUTH_CHANGED_EVENT = 'smartmove-auth-changed';
 
 function userStorage() {
@@ -23,16 +22,20 @@ function saveAuth(result, rememberMe = true) {
   const storage = rememberMe ? localStorage : sessionStorage;
   const otherStorage = rememberMe ? sessionStorage : localStorage;
   otherStorage.removeItem(CURRENT_USER_KEY);
-  otherStorage.removeItem(TOKEN_KEY);
-  storage.setItem(TOKEN_KEY, result.accessToken);
-  storage.setItem(CURRENT_USER_KEY, JSON.stringify(normalizeUser(result.customer)));
+  const user = normalizeUser(result);
+  storage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
-  return normalizeUser(result.customer);
+  return user;
 }
 
 export function getCurrentUser() {
   try {
-    return normalizeUser(JSON.parse(userStorage().getItem(CURRENT_USER_KEY) || 'null'));
+    const user = normalizeUser(JSON.parse(userStorage().getItem(CURRENT_USER_KEY) || 'null'));
+    if (user && user.userId == null) {
+      clearAuth();
+      return null;
+    }
+    return user;
   } catch {
     return null;
   }
@@ -59,41 +62,40 @@ export function subscribeToAuthChanges(callback) {
   };
 }
 
-export async function registerCustomer({ fullName, email, phone, password, confirmPassword }) {
+export async function registerCustomer({ fullName, email, phone, nic, gender, password }) {
   const result = await api.post('/api/auth/register', {
     fullName: fullName.trim(),
     email: email.trim().toLowerCase(),
     phone: phone.trim(),
+    nic: nic?.trim() || null,
+    gender: gender || null,
     password,
-    confirmPassword,
-  }, { token: '' });
+  });
   return saveAuth(result);
 }
 
-async function login({ email, password }, rememberMe = true) {
+async function login({ email, password }) {
   const result = await api.post('/api/auth/login', {
     email: email.trim().toLowerCase(),
     password,
-  }, { token: '' });
-  return { result, user: normalizeUser(result.customer), rememberMe };
+  });
+  return normalizeUser(result);
 }
 
 export async function loginCustomer(credentials, rememberMe = true) {
-  const { result, user } = await login(credentials, rememberMe);
+  const user = await login(credentials);
   if (!user?.roles.includes(ROLES.CUSTOMER)) {
-    await api.post('/api/auth/logout', undefined, { token: result.accessToken }).catch(() => {});
     throw new Error('This account is not a customer account. Use the staff sign-in page.');
   }
-  return saveAuth(result, rememberMe);
+  return saveAuth(user, rememberMe);
 }
 
 export async function loginStaff(credentials, rememberMe = true) {
-  const { result, user } = await login(credentials, rememberMe);
+  const user = await login(credentials);
   if (!user?.roles.some((role) => [ROLES.ADMIN, ROLES.OPERATIONS, ROLES.FINANCE].includes(role))) {
-    await api.post('/api/auth/logout', undefined, { token: result.accessToken }).catch(() => {});
     throw new Error('This account does not have a staff role.');
   }
-  return saveAuth(result, rememberMe);
+  return saveAuth(user, rememberMe);
 }
 
 export async function fetchCurrentProfile() {
@@ -106,10 +108,11 @@ export async function updateCurrentCustomer(updates) {
     email: updates.email.trim().toLowerCase(),
     phone: updates.phone.trim(),
     nic: updates.nic?.trim() || null,
+    gender: updates.gender || null,
   });
   const current = getCurrentUser();
   if (current) {
-    const normalized = normalizeUser({ ...current, fullName: updated.fullName, email: updated.email, phone: updated.phone });
+    const normalized = normalizeUser({ ...current, fullName: updated.fullName, email: updated.email, phone: updated.phone, nic: updated.nic, gender: updated.gender });
     userStorage().setItem(CURRENT_USER_KEY, JSON.stringify(normalized));
     window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
   }
@@ -117,17 +120,11 @@ export async function updateCurrentCustomer(updates) {
 }
 
 export async function logoutCustomer() {
-  try {
-    await api.post('/api/auth/logout', undefined);
-  } finally {
-    clearAuth();
-  }
+  clearAuth();
 }
 
 export function clearAuth() {
   localStorage.removeItem(CURRENT_USER_KEY);
-  localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(CURRENT_USER_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }

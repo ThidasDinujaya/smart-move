@@ -56,15 +56,15 @@ public class TripController {
 
     @GetMapping
     public List<TripService.TripView> getAllTrips(
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return tripService.getAllTrips(readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return tripService.getAllTrips(userId);
     }
 
     @PostMapping
     public ResponseEntity<TripService.TripView> createTrip(
             @RequestBody TripService.TripRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        TripService.TripView trip = tripService.createTrip(request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        TripService.TripView trip = tripService.createTrip(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(trip);
     }
 
@@ -72,15 +72,15 @@ public class TripController {
     public TripService.TripView updateTrip(
             @PathVariable Long id,
             @RequestBody TripService.TripRequest request,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        return tripService.updateTrip(id, request, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return tripService.updateTrip(id, request, userId);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelTrip(
             @PathVariable Long id,
-            @RequestHeader(name = "Authorization", required = false) String authorization) {
-        tripService.cancelTrip(id, readBearerToken(authorization));
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        tripService.cancelTrip(id, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -125,11 +125,4 @@ public class TripController {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
-    private String readBearerToken(String authorization) {
-        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
-        String token = authorization.substring(7).trim();
-        return token.isEmpty() ? null : token;
-    }
 }

@@ -16,9 +16,9 @@ import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "app_users", uniqueConstraints = {
-        @UniqueConstraint(name = "uq_app_users_email", columnNames = "email"),
-        @UniqueConstraint(name = "uq_app_users_passenger", columnNames = "passenger_id")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(name = "uq_users_email", columnNames = "email"),
+        @UniqueConstraint(name = "uq_users_passenger", columnNames = "passenger_id")
 })
 public class AppUser {
 
@@ -34,8 +34,8 @@ public class AppUser {
     @Column(nullable = false, length = 254)
     private String email;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+    @Column(name = "password", nullable = false, length = 128)
+    private String password;
 
     @Column(name = "role_code", nullable = false, length = 20)
     private String roleCode = "CUSTOMER";
@@ -93,12 +93,12 @@ public class AppUser {
         this.email = email;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getRoleCode() {

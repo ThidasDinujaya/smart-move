@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
-import { UploadCloud } from 'lucide-react';
+import { ImagePlus, UploadCloud } from 'lucide-react';
+import fileToDataUrl from '../../utils/fileToDataUrl.js';
 
 function EditVehicle({ vehicle, onSave, onCancel }) {
   const [vehicleNo, setVehicleNo] = useState('');
@@ -9,8 +10,11 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
   const [capacity, setCapacity] = useState('');
+  const [fuelType, setFuelType] = useState('');
   const [status, setStatus] = useState('Active');
   const [serviceDate, setServiceDate] = useState('');
+  const [vehicleImage, setVehicleImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -22,11 +26,21 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
     setModel(vehicle.model || '');
     setYear(String(vehicle.year || ''));
     setCapacity(String(vehicle.capacity ?? ''));
+    setFuelType(vehicle.fuelType || '');
     setStatus(vehicle.status || 'Active');
     setServiceDate(
       vehicle.lastService || vehicle.serviceDate || ''
     );
+    setVehicleImage(null);
+    setImagePreview(vehicle.imageData || '');
   }, [vehicle]);
+
+  useEffect(() => {
+    if (!vehicleImage) return undefined;
+    const previewUrl = URL.createObjectURL(vehicleImage);
+    setImagePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [vehicleImage]);
 
   if (!vehicle) {
     return (
@@ -62,9 +76,11 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
       model: model.trim(),
       year,
       capacity: Number(capacity),
+      fuelType,
       status,
       lastService: serviceDate,
       serviceDate,
+      imageData: vehicleImage ? await fileToDataUrl(vehicleImage) : null,
     };
 
     if (!updatedVehicle.vehicleNo) {
@@ -173,6 +189,7 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
                 >
                   <option value="">Select Type</option>
                   <option value="Bus">Bus</option>
+                  <option value="Coach">Coach</option>
                   <option value="Van">Van</option>
                   <option value="Car">Car</option>
                 </select>
@@ -194,6 +211,17 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
                   }
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="edit-fuel-type">Fuel Type</label>
+                <select id="edit-fuel-type" value={fuelType} onChange={(e) => setFuelType(e.target.value)}>
+                  <option value="">Select Fuel Type</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Electric">Electric</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
               </div>
 
               <div className="form-group">
@@ -267,18 +295,34 @@ function EditVehicle({ vehicle, onSave, onCancel }) {
           </div>
 
           <div className="vehicle-image-section">
-            <label className="image-title">
-              Vehicle Image
+            <label className="image-title" htmlFor="edit-vehicle-image">Vehicle Image</label>
+            <input
+              id="edit-vehicle-image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="vehicle-image-input"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                  window.alert('Please select a JPG, PNG or WebP image.');
+                  event.target.value = '';
+                  return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                  window.alert('Image size must be 5 MB or less.');
+                  event.target.value = '';
+                  return;
+                }
+                setVehicleImage(file);
+              }}
+            />
+            <label className="image-upload-box" htmlFor="edit-vehicle-image">
+              {imagePreview ? <img src={imagePreview} alt="Vehicle preview" className="vehicle-image-preview" /> : (
+                <><UploadCloud size={42} /><strong>Choose Image</strong><span>JPG, PNG or WebP (Max 5 MB)</span></>
+              )}
             </label>
-
-            <div
-              className="image-upload-box"
-              style={{ cursor: 'default' }}
-            >
-              <UploadCloud size={45} />
-              <strong>Change image</strong>
-              <span>Image upload coming soon</span>
-            </div>
+            {vehicleImage && <p className="selected-image-name"><ImagePlus size={15} /> {vehicleImage.name}</p>}
           </div>
         </div>
 

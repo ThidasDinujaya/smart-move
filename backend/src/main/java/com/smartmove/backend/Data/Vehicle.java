@@ -22,7 +22,7 @@ public class Vehicle {
     private Integer seatingCapacity;
     private String fuelType;
     private LocalDate lastServiceDate;
-    @Lob
+    @Transient
     private String imageData;
     private String status;
 

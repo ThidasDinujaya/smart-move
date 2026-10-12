@@ -5,10 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,33 +24,21 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<CustomerAuthService.AuthResult> register(@RequestBody RegisterRequest request) {
-        CustomerAuthService.AuthResult result = customerAuthService.register(
+    public ResponseEntity<CustomerAuthService.CustomerView> register(@RequestBody RegisterRequest request) {
+        CustomerAuthService.CustomerView result = customerAuthService.register(
                 request.fullName(),
                 request.email(),
                 request.phone(),
-                request.password(),
-                request.confirmPassword()
+                request.nic(),
+                request.gender(),
+                request.password()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @PostMapping("/login")
-    public CustomerAuthService.AuthResult login(@RequestBody LoginRequest request) {
+    public CustomerAuthService.CustomerView login(@RequestBody LoginRequest request) {
         return customerAuthService.login(request.email(), request.password());
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(
-            @RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
-        customerAuthService.logout(readBearerToken(authorizationHeader));
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/me")
-    public CustomerAuthService.CustomerView currentCustomer(
-            @RequestHeader(name = "Authorization", required = false) String authorizationHeader) {
-        return customerAuthService.currentCustomer(readBearerToken(authorizationHeader));
     }
 
     @ExceptionHandler(CustomerAuthService.EmailAlreadyInUseException.class)
@@ -74,16 +60,8 @@ public class AuthController {
                 .body(Map.of("message", exception.getMessage()));
     }
 
-    private String readBearerToken(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            return null;
-        }
-        String token = authorizationHeader.substring(7).trim();
-        return token.isEmpty() ? null : token;
-    }
-
-    public record RegisterRequest(String fullName, String email, String phone, String password,
-                                  String confirmPassword) {
+    public record RegisterRequest(String fullName, String email, String phone, String nic, String gender,
+                                  String password) {
     }
 
     public record LoginRequest(String email, String password) {
