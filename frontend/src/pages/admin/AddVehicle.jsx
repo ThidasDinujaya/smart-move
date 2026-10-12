@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { UploadCloud, ImagePlus } from 'lucide-react';
+import fileToDataUrl from '../../utils/fileToDataUrl.js';
 
 export default function AddVehicle({
   vehicles = [],
@@ -139,6 +140,7 @@ export default function AddVehicle({
       capacity: seats,
       status,
       lastService: serviceDate,
+      imageData: await fileToDataUrl(vehicleImage),
     };
 
     try {

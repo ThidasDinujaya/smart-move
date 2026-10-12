@@ -106,8 +106,7 @@ public class CustomerAuthService {
         AppUser appUser = appUserRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new AuthenticationFailedException("Email or password is incorrect."));
 
-        if (!CUSTOMER_ROLE.equalsIgnoreCase(appUser.getRoleCode())
-                || !ACTIVE_STATUS.equalsIgnoreCase(appUser.getAccountStatus())
+        if (!ACTIVE_STATUS.equalsIgnoreCase(appUser.getAccountStatus())
                 || !verifyPassword(password, appUser.getPasswordHash())) {
             throw new AuthenticationFailedException("Email or password is incorrect.");
         }

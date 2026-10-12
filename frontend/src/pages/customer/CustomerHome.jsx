@@ -16,7 +16,7 @@ const highlights = [
   {
     icon: MapPin,
     title: 'Choose your route',
-    text: 'Search journeys between cities such as Colombo, Kandy, Galle, Matara, Jaffna, and Negombo.',
+    text: 'Choose your departure and destination from currently scheduled services.',
   },
   {
     icon: Bus,

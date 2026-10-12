@@ -10,19 +10,13 @@ const fieldsByType = {
     { key: 'status', label: 'Status' },
   ],
   booking: [
-    { key: 'passenger', label: 'Passenger' },
-    { key: 'route', label: 'Route' },
-    { key: 'date', label: 'Trip Date', type: 'date' },
-    { key: 'seats', label: 'Seats' },
-    { key: 'amount', label: 'Total Amount', type: 'number' },
-    { key: 'status', label: 'Status' },
+    { key: 'passengerId', label: 'Passenger', type: 'passenger' },
+    { key: 'tripId', label: 'Scheduled trip', type: 'trip' },
+    { key: 'seats', label: 'Seat numbers (comma separated)' },
   ],
   payment: [
-    { key: 'booking', label: 'Booking ID' },
-    { key: 'passenger', label: 'Passenger' },
-    { key: 'amount', label: 'Amount', type: 'number' },
-    { key: 'method', label: 'Method' },
-    { key: 'status', label: 'Status' },
+    { key: 'booking', label: 'Booking', type: 'booking' },
+    { key: 'method', label: 'Payment method', type: 'method' },
   ],
 };
 
@@ -32,7 +26,7 @@ function toTitleCase(value) {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export default function RecordDialog({ data, onClose, onSave, onDelete }) {
+export default function RecordDialog({ data, onClose, onSave, onDelete, passengers = [], trips = [], bookings = [] }) {
   const { type, mode, item } = data;
   const [form, setForm] = useState({ ...item });
   const fields = fieldsByType[type] || [];
@@ -94,12 +88,32 @@ export default function RecordDialog({ data, onClose, onSave, onDelete }) {
             {fields.map((field) => (
               <label key={field.key}>
                 {field.label}
-                <input
-                  required
-                  type={field.type || 'text'}
-                  value={form[field.key] ?? ''}
-                  onChange={(event) => updateField(field.key, event.target.value, field.type)}
-                />
+                {field.type === 'passenger' || field.type === 'trip' || field.type === 'booking' || field.type === 'method' ? (
+                  <select required value={form[field.key] ?? ''} onChange={(event) => updateField(field.key, event.target.value, field.type === 'method' ? 'text' : 'number')}>
+                    <option value="">Select {field.label.toLowerCase()}</option>
+                    {(field.type === 'passenger' ? passengers : field.type === 'trip' ? trips : field.type === 'booking' ? bookings : [
+                      { id: 'Card', label: 'Card' }, { id: 'Bank Transfer', label: 'Bank Transfer' },
+                      { id: 'eWallet', label: 'eWallet' }, { id: 'Cash', label: 'Cash' },
+                    ]).map((option) => {
+                      const value = field.type === 'method' ? option.id : option.id;
+                      const label = field.type === 'passenger'
+                        ? option.fullName
+                        : field.type === 'trip'
+                          ? `${option.route} · ${option.date} · ${option.departure}`
+                          : field.type === 'booking'
+                            ? `${option.bookingReference} · ${option.passenger} · Rs. ${option.totalAmount}`
+                            : option.label;
+                      return <option key={value} value={value}>{label}</option>;
+                    })}
+                  </select>
+                ) : (
+                  <input
+                    required
+                    type={field.type || 'text'}
+                    value={form[field.key] ?? ''}
+                    onChange={(event) => updateField(field.key, event.target.value, field.type)}
+                  />
+                )}
               </label>
             ))}
             <div className="dialog-actions">

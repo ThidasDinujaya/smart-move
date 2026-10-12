@@ -6,7 +6,7 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatMoney } from '../../utils/formatters.js';
 
-export default function PaymentsPage({ payments, onAdd, onOpen, onOpenReceipt }) {
+export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
   const list = useRecordList(payments);
   const statuses = [...new Set(payments.map((record) => record.status).filter(Boolean))];
   const columns = [
@@ -23,8 +23,6 @@ export default function PaymentsPage({ payments, onAdd, onOpen, onOpenReceipt })
       render: (record) => (
         <ActionButtons
           onView={() => onOpenReceipt(record)}
-          onEdit={() => onOpen('payment', 'edit', record)}
-          onDelete={() => onOpen('payment', 'delete', record)}
         />
       ),
     },

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bus, User } from 'lucide-react';
-import { getCurrentCustomer } from '../utils/customerAuth.js';
+import { getCurrentCustomer, subscribeToAuthChanges } from '../utils/customerAuth.js';
 import { hasRole, ROLES } from '../utils/roleAccess.js';
 
 const CustomerNavbar = () => {
@@ -9,8 +9,7 @@ const CustomerNavbar = () => {
 
   useEffect(() => {
     const syncCustomer = () => setCustomer(getCurrentCustomer());
-    window.addEventListener('storage', syncCustomer);
-    return () => window.removeEventListener('storage', syncCustomer);
+    return subscribeToAuthChanges(syncCustomer);
   }, []);
 
   return (

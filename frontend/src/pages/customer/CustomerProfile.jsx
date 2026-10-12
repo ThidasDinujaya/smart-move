@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { useNavigate } from 'react-router-dom';
 import { User, Ticket, KeyRound, LogOut } from 'lucide-react';
-import { getCurrentCustomer, logoutCustomer, updateCurrentCustomer } from '../../utils/customerAuth.js';
+import { logoutCustomer, updateCurrentCustomer, fetchCurrentProfile } from '../../utils/customerAuth.js';
 
 const CustomerProfile = () => {
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState(() => {
-    const customer = getCurrentCustomer() || {};
-    return {
-      fullName: customer.fullName || '',
-      email: customer.email || '',
-      phone: customer.phone || '',
-      nic: '',
-    };
-  });
+  const [profile, setProfile] = useState({ fullName: '', email: '', phone: '', nic: '' });
   const [profileError, setProfileError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetchCurrentProfile()
+      .then((customer) => {
+        if (active) setProfile({ fullName: customer.fullName || '', email: customer.email || '', phone: customer.phone || '', nic: customer.nic || '' });
+      })
+      .catch((error) => { if (active) setProfileError(error.message || 'Unable to load your profile.'); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   // Dynamic sidebar navigation list ready for routing handlers
   const navItems = [
@@ -26,15 +31,18 @@ const CustomerProfile = () => {
     { label: 'Logout', icon: <LogOut size={16} />, path: '/logout', danger: true, active: false }
   ];
 
-  const handleUpdate = (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     setProfileError('');
+    setSaving(true);
     try {
-      const updated = updateCurrentCustomer(profile);
+      const updated = await updateCurrentCustomer(profile);
       setProfile({ ...updated, nic: profile.nic });
       alert('Profile Updated Successfully!');
     } catch (error) {
       setProfileError(error.message || 'Unable to update your profile.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -51,8 +59,7 @@ const CustomerProfile = () => {
                 onClick={() => {
                   if (!item.danger && item.path !== '/profile') navigate(item.path);
                   if (item.path === '/logout') {
-                    logoutCustomer();
-                    navigate('/');
+                    logoutCustomer().catch(() => {}).finally(() => navigate('/'));
                   }
                 }}
                 style={{ 
@@ -79,7 +86,7 @@ const CustomerProfile = () => {
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '28px', border: '1px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px' }}>My Profile</h2>
 
-          <form onSubmit={handleUpdate} style={{ display: 'flex', gap: '28px' }}>
+          {loading ? <p style={{ color: '#64748b' }}>Loading your profile…</p> : <form onSubmit={handleUpdate} style={{ display: 'flex', gap: '28px' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
                 <User size={40} color="#64748b" />
@@ -133,11 +140,11 @@ const CustomerProfile = () => {
 
               {profileError && <p role="alert" style={{ margin: 0, color: '#b91c1c', fontSize: '13px' }}>{profileError}</p>}
 
-              <button type="submit" style={{ backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
-                Update Profile
+              <button type="submit" disabled={saving} style={{ backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
+                {saving ? 'Saving…' : 'Update Profile'}
               </button>
             </div>
-          </form>
+          </form>}
         </div>
       </div>
     </div>

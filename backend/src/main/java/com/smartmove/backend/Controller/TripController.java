@@ -25,7 +25,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trips")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class TripController {
 
     private final TripService tripService;

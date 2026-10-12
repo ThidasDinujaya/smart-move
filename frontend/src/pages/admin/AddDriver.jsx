@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
+import fileToDataUrl from '../../utils/fileToDataUrl.js';
 
 function AddDriver({
   vehicles = [],
@@ -17,6 +18,7 @@ function AddDriver({
   const [assignedVehicle, setAssignedVehicle] = useState('');
   const [status, setStatus] = useState('Active');
   const [photoPreview, setPhotoPreview] = useState('');
+  const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   function handlePhotoChange(event) {
@@ -41,6 +43,7 @@ function AddDriver({
     }
 
     setPhotoPreview(URL.createObjectURL(file));
+    setPhotoFile(file);
   }
 
   async function handleSubmit(event) {
@@ -78,6 +81,7 @@ function AddDriver({
       address: address.trim(),
       assignedVehicle,
       status,
+      imageData: await fileToDataUrl(photoFile),
     };
 
     if (!newDriver.name || !newDriver.nic ||

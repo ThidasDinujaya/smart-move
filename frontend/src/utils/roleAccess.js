@@ -62,7 +62,7 @@ export function hasPermission(user, permission) {
 }
 
 export function getCustomerReturnLocation(from) {
-  const customerPages = new Set(['/profile', '/my-bookings', '/payment', '/booking-success']);
+  const customerPages = new Set(['/profile', '/my-bookings', '/payment', '/booking-success', '/seat-selection']);
   if (!from || !customerPages.has(from.pathname)) {
     return { to: '/profile', state: undefined };
   }
@@ -73,15 +73,3 @@ export function getCustomerReturnLocation(from) {
   };
 }
 
-// The current project has demo-only browser authentication. Replace this adapter
-// with the server's /auth/me response when a real authentication API is available.
-export function getCurrentAdminDemoUser() {
-  const authenticated = (
-    sessionStorage.getItem('smartmove_admin_demo') === 'true' ||
-    localStorage.getItem('smartmove_admin_demo') === 'true'
-  );
-
-  return authenticated
-    ? { id: 'demo-admin', fullName: 'Admin', roles: [ROLES.ADMIN] }
-    : null;
-}

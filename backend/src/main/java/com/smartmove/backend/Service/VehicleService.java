@@ -83,11 +83,15 @@ public class VehicleService {
 
         existingVehicle.setVehicleNo(vehicleNo);
         existingVehicle.setVehicleType(updatedVehicle.getVehicleType());
+        existingVehicle.setBrand(updatedVehicle.getBrand());
         existingVehicle.setModel(updatedVehicle.getModel());
+        existingVehicle.setManufactureYear(updatedVehicle.getManufactureYear());
         existingVehicle.setSeatingCapacity(
                 updatedVehicle.getSeatingCapacity()
         );
         existingVehicle.setFuelType(updatedVehicle.getFuelType());
+        existingVehicle.setLastServiceDate(updatedVehicle.getLastServiceDate());
+        existingVehicle.setImageData(updatedVehicle.getImageData());
         existingVehicle.setStatus(updatedVehicle.getStatus());
 
         return vehicleRepository.save(existingVehicle);

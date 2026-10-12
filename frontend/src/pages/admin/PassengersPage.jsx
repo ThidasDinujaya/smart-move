@@ -5,7 +5,7 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 
-export default function PassengersPage({ passengers, onAdd, onOpen }) {
+export default function PassengersPage({ passengers = [], onAdd, onOpen }) {
   const list = useRecordList(passengers);
   const statuses = [...new Set(passengers.map((record) => record.status).filter(Boolean))];
   const columns = [

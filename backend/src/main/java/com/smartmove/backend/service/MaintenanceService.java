@@ -16,6 +16,7 @@ public class MaintenanceService {
     }
 
     public Maintenance saveMaintenance(Maintenance maintenance) {
+        maintenance.setId(null);
         return maintenanceRepository.save(maintenance);
     }
 }

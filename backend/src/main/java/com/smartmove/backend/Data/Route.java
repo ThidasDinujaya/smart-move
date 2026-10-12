@@ -27,6 +27,11 @@ public class Route {
 
     private Double fare;
 
+    private String estimatedTime;
+
+    @Column(length = 1000)
+    private String description;
+
     private String status;
 
     public Route() {
@@ -87,6 +92,11 @@ public class Route {
     public void setFare(Double fare) {
         this.fare = fare;
     }
+
+    public String getEstimatedTime() { return estimatedTime; }
+    public void setEstimatedTime(String estimatedTime) { this.estimatedTime = estimatedTime; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public String getStatus() {
         return status;

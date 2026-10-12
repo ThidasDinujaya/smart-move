@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class BookingController {
 
     private final BookingService bookingService;
@@ -35,6 +35,28 @@ public class BookingController {
             @RequestHeader(name = "Authorization", required = false) String authorization) {
         BookingService.BookingView booking = bookingService.createBooking(request, readBearerToken(authorization));
         return ResponseEntity.status(HttpStatus.CREATED).body(booking);
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<BookingService.BookingView> createBookingForStaff(
+            @RequestBody BookingService.StaffBookingRequest request,
+            @RequestHeader(name = "Authorization", required = false) String authorization) {
+        BookingService.BookingView booking = bookingService.createBookingForStaff(request, readBearerToken(authorization));
+        return ResponseEntity.status(HttpStatus.CREATED).body(booking);
+    }
+
+    @GetMapping("/admin")
+    public List<BookingService.BookingView> getAllBookingsForStaff(
+            @RequestHeader(name = "Authorization", required = false) String authorization) {
+        return bookingService.getAllBookingsForStaff(readBearerToken(authorization));
+    }
+
+    @DeleteMapping("/admin/{bookingId}")
+    public ResponseEntity<Void> cancelBookingForStaff(
+            @PathVariable Long bookingId,
+            @RequestHeader(name = "Authorization", required = false) String authorization) {
+        bookingService.cancelBookingForStaff(bookingId, readBearerToken(authorization));
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

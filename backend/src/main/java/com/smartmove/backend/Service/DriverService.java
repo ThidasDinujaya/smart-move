@@ -96,6 +96,9 @@ public class DriverService {
         existingDriver.setNic(nic);
         existingDriver.setLicenseNo(licenseNo);
         existingDriver.setContact(updatedDriver.getContact());
+        existingDriver.setEmail(updatedDriver.getEmail());
+        existingDriver.setAssignedVehicle(updatedDriver.getAssignedVehicle());
+        existingDriver.setImageData(updatedDriver.getImageData());
         existingDriver.setAddress(updatedDriver.getAddress());
         existingDriver.setStatus(updatedDriver.getStatus());
 

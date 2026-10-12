@@ -12,6 +12,7 @@ public class Feedback {
     private Long passengerId;
     private Long tripId;
     private Integer rating;
+    @Column(name = "feedback_comment")
     private String comment;
     private LocalDateTime createdAt = LocalDateTime.now();
 

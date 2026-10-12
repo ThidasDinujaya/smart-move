@@ -1,0 +1,14 @@
+[
+  {
+    "_id": { "$oid": "66f000000000000000000401" },
+    "tripOracleId": 1,
+    "mediaType": "PHOTO",
+    "title": "Colombo to Kandy coach",
+    "description": "Sample trip photo record.",
+    "contentType": "image/jpeg",
+    "storageUrl": "https://example.com/smartmove/trips/1/coach.jpg",
+    "uploadedAt": { "$date": "2026-10-09T00:00:00Z" },
+    "uploadedByOracleId": 1,
+    "metadata": { "location": "Colombo", "note": "Replace with the real storage link." }
+  }
+]

@@ -86,6 +86,8 @@ public class RouteService {
         );
         existingRoute.setDistance(updatedRoute.getDistance());
         existingRoute.setFare(updatedRoute.getFare());
+        existingRoute.setEstimatedTime(updatedRoute.getEstimatedTime());
+        existingRoute.setDescription(updatedRoute.getDescription());
         existingRoute.setStatus(updatedRoute.getStatus());
 
         return routeRepository.save(existingRoute);
