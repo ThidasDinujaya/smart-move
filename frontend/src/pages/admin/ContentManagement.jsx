@@ -172,19 +172,19 @@ export default function ContentManagement() {
   return (
     <section className="page">
       <PageHeader title="Announcements & media" subtitle="Create and update MongoDB records used by the customer portal" />
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+      <div className="content-tabs">
         {Object.entries(sections).map(([key, item]) => (
           <button key={key} type="button" onClick={() => selectSection(key)} aria-pressed={sectionId === key}>
             {item.title}
           </button>
         ))}
       </div>
-      {error && <p role="alert" style={{ color: '#991b1b' }}>{error}</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(280px, 1fr)', gap: '24px', alignItems: 'start' }}>
-        <form onSubmit={save} style={{ display: 'grid', gap: '12px', background: 'white', padding: '20px', borderRadius: '12px' }}>
-          <h2 style={{ margin: 0 }}>{editingId ? `Edit ${section.title}` : `Add ${section.title}`}</h2>
+      {error && <p className="content-error" role="alert">{error}</p>}
+      <div className="content-management-grid">
+        <form className="content-form" onSubmit={save}>
+          <h2>{editingId ? `Edit ${section.title}` : `Add ${section.title}`}</h2>
           {section.fields.map(([name, label, type = 'text']) => (
-            <label key={name} style={{ display: 'grid', gap: '5px', color: '#334155', fontSize: '13px' }}>
+            <label key={name}>
               {type === 'checkbox' ? (
                 <span><input type="checkbox" checked={Boolean(form[name])} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.checked }))} /> {label}</span>
               ) : (
@@ -204,16 +204,16 @@ export default function ContentManagement() {
             {editingId && <button type="button" onClick={resetForm}>Cancel edit</button>}
           </div>
         </form>
-        <section style={{ display: 'grid', gap: '10px' }} aria-label={`${section.title} records`}>
-          <h2 style={{ margin: 0 }}>{section.title} in MongoDB</h2>
+        <section className="content-records" aria-label={`${section.title} records`}>
+          <h2>{section.title} in MongoDB</h2>
           {(records[sectionId] || []).map((record) => (
-            <article key={record.id} style={{ background: 'white', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+            <article className="content-record" key={record.id}>
               <strong>{record.title || record.fileName || record.mediaType || 'Record'}</strong>
-              <p style={{ margin: '5px 0', color: '#64748b', fontSize: '12px' }}>ID: {record.id}</p>
+              <p>ID: {record.id}</p>
               <button type="button" onClick={() => beginEdit(record)}>Edit</button>
             </article>
           ))}
-          {!records[sectionId]?.length && <p style={{ color: '#64748b' }}>No records in this collection yet.</p>}
+          {!records[sectionId]?.length && <p className="content-empty">No records in this collection yet.</p>}
         </section>
       </div>
     </section>

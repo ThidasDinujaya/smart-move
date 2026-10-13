@@ -235,7 +235,7 @@ export default function AppLayout({
         </header>
 
         {/* PAGE CONTENT */}
-        <main>{children}</main>
+        <main className="admin-content">{children}</main>
 
       </div>
 

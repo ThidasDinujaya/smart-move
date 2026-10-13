@@ -19,7 +19,7 @@ export default function ReportsDashboard({ report }) {
             <section className="report-panel" aria-labelledby={`${key}-title`} key={key}>
               <h2 id={`${key}-title`}>{title}</h2>
               {lines.length ? (
-                <ul style={{ paddingLeft: '20px', margin: 0, color: '#475569', lineHeight: 1.8 }}>
+                <ul className="report-lines">
                   {lines.map((line, index) => <li key={`${key}-${index}`}>{line}</li>)}
                 </ul>
               ) : (

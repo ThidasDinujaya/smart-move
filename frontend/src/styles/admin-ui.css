@@ -1,0 +1,460 @@
+/* Admin pages use the vehicle management screen as their sizing reference. */
+.admin-content > .page {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+}
+
+.admin-content .page-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-content .page-heading h1,
+.admin-content .dashboard-heading h1 {
+  margin: 0 0 6px;
+  color: #1d2939;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.admin-content .page-heading p,
+.admin-content .dashboard-heading p {
+  margin: 0;
+  color: #7b8794;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.admin-content .dashboard-page {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.admin-content .dashboard-table th,
+.admin-content .dashboard-table td {
+  padding: 15px 16px;
+}
+
+.admin-content .dashboard-table td {
+  font-size: 14px;
+}
+
+.admin-content .primary,
+.admin-content .secondary,
+.admin-content .danger {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.admin-content .filters {
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.admin-content .filters > select,
+.admin-content .filters > input {
+  min-width: 150px;
+  max-width: none;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #dce3eb;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.admin-content .filters .date-filter {
+  min-width: 150px;
+}
+
+.admin-content .search-box {
+  width: 280px;
+  height: 42px;
+  padding: 0 12px;
+  border-color: #dce3eb;
+  border-radius: 7px;
+}
+
+.admin-content .search-box input {
+  font-size: 14px;
+}
+
+.admin-content .page .filters {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+  background: #fff;
+}
+
+.admin-content .page .filters .search-box {
+  flex: 1;
+  width: auto;
+  min-width: 200px;
+}
+
+.admin-content .page .filters + .table-card {
+  border-top: 0;
+  border-radius: 0 0 9px 9px;
+}
+
+.admin-content .page .table-card {
+  min-width: 0;
+  border-color: #e7ebef;
+  border-radius: 9px;
+}
+
+.admin-content table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-content th {
+  height: auto;
+  padding: 15px 16px;
+  background: #f2f5f9;
+  font-size: 13px;
+}
+
+.admin-content td {
+  height: auto;
+  padding: 15px 16px;
+  color: #566474;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.admin-content table.wide {
+  min-width: 1050px;
+}
+
+.admin-content .badge {
+  min-width: 0;
+  padding: 6px 11px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.admin-content .actions {
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-content .action-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.admin-content .pager {
+  min-height: 52px;
+  gap: 12px;
+  padding: 10px 20px;
+  color: #7b8794;
+  font-size: 13px;
+}
+
+.admin-content .pager > div {
+  gap: 6px;
+}
+
+.admin-content .pager button {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
+.admin-content .empty {
+  height: 92px;
+  font-size: 14px;
+}
+
+.admin-content .text-button {
+  font-size: 14px;
+}
+
+.admin-content .stats-grid,
+.admin-content .report-cards {
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.admin-content .stat-card {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 9px;
+}
+
+.admin-content .stat-title {
+  font-size: 14px;
+}
+
+.admin-content .stat-value {
+  font-size: 24px;
+}
+
+.admin-content .stat-note {
+  font-size: 12px;
+}
+
+.admin-content .report-grid {
+  gap: 16px;
+}
+
+.admin-content .report-panel {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 9px;
+}
+
+.admin-content .report-panel h2,
+.admin-content .content-form h2,
+.admin-content .content-records h2 {
+  font-size: 18px;
+}
+
+.admin-content .report-lines {
+  margin: 0;
+  padding-left: 20px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.admin-content .maintenance-total span,
+.admin-content .rating-bar,
+.admin-content .rating-bar b {
+  font-size: 12px;
+}
+
+.admin-content .maintenance-summary ul {
+  font-size: 14px;
+}
+
+.admin-content .report-empty {
+  font-size: 14px;
+}
+
+.admin-content .app-notice {
+  max-width: none;
+  font-size: 14px;
+}
+
+.admin-content .page.form-page {
+  max-width: none;
+}
+
+.admin-content .page.form-page .form-card {
+  width: 100%;
+  padding: 20px;
+}
+
+.admin-content .page.form-page .form-grid label {
+  gap: 8px;
+  font-size: 14px;
+}
+
+.admin-content .page.form-page .form-grid input,
+.admin-content .page.form-page .form-grid select,
+.admin-content .page.form-page .form-grid textarea {
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 14px;
+}
+
+.admin-content .page.form-page .form-grid textarea {
+  min-height: 90px;
+}
+
+.admin-content .page .receipt {
+  width: min(620px, 100%);
+  padding: 28px;
+}
+
+.admin-content .page .receipt dl > div {
+  padding: 10px 0;
+  font-size: 14px;
+}
+
+.admin-content .page .receipt-actions button {
+  font-size: 14px;
+}
+
+.admin-content .page .report-grid,
+.admin-content .page .content-management-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-content .page .content-management-grid {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-content .page .content-management-grid > * {
+  min-width: 0;
+}
+
+.admin-content .page .content-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.admin-content .page .content-form,
+.admin-content .page .content-record {
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.04);
+}
+
+.admin-content .page .content-form {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.admin-content .page .content-form label {
+  display: grid;
+  gap: 8px;
+  color: #344253;
+  font-size: 14px;
+}
+
+.admin-content .page .content-form input,
+.admin-content .page .content-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #dce3eb;
+  border-radius: 7px;
+  color: #344253;
+  background: white;
+  font: inherit;
+}
+
+.admin-content .page .content-form input[type="checkbox"] {
+  width: auto;
+  min-height: 0;
+  margin-right: 8px;
+  padding: 0;
+}
+
+.admin-content .page .content-form textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.admin-content .page .content-tabs button,
+.admin-content .page .content-form button,
+.admin-content .page .content-record button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #dce3eb;
+  border-radius: 7px;
+  color: #344253;
+  background: white;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-content .page .content-tabs button[aria-pressed="true"],
+.admin-content .page .content-form button[type="submit"] {
+  border-color: #147ee5;
+  color: white;
+  background: #147ee5;
+}
+
+.admin-content .page .content-record {
+  padding: 16px 20px;
+}
+
+.admin-content .page .content-records {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-content .page .content-record p {
+  margin: 5px 0;
+}
+
+.admin-content .page .content-record p,
+.admin-content .page .content-empty {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.admin-content .page .content-error {
+  margin: 0 0 16px;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+.admin-content .page .table-card input,
+.admin-content .page .table-card select,
+.admin-content .page .table-card textarea {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #dce3eb;
+  border-radius: 7px;
+  color: #344253;
+  background: #fff;
+  font: inherit;
+}
+
+.admin-content .page .table-card textarea {
+  resize: vertical;
+}
+
+.admin-content .page .table-card form button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #147ee5;
+  border-radius: 7px;
+  color: #fff;
+  background: #147ee5;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .admin-content .page-heading h1,
+  .admin-content .dashboard-heading h1 {
+    font-size: 24px;
+  }
+
+  .admin-content .page .content-management-grid,
+  .admin-content .page .report-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-content .page .filters {
+    padding: 15px;
+  }
+
+  .admin-content .filters > select,
+  .admin-content .filters > input {
+    flex: 1;
+  }
+
+  .admin-content .page .pager {
+    flex-wrap: wrap;
+    padding: 12px 15px;
+  }
+
+  .admin-content .page-heading .primary {
+    min-height: 42px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+}
