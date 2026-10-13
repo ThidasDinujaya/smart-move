@@ -11,6 +11,8 @@ import {
 import AppLayout from "./components/AppLayout.jsx";
 import Login from "./pages/Login.jsx";
 import RecordDialog from "./components/RecordDialog.jsx";
+import AdminRecordForm from "./components/AdminRecordForm.jsx";
+import AdminBookingForm from "./components/AdminBookingForm.jsx";
 import TripForm from "./components/TripForm.jsx";
 
 // Admin dashboard
@@ -39,7 +41,7 @@ import PassengersPage from "./pages/admin/PassengersPage.jsx";
 import TripsPage from "./pages/admin/TripsPage.jsx";
 import BookingsPage from "./pages/admin/BookingsPage.jsx";
 import PaymentsPage from "./pages/admin/PaymentsPage.jsx";
-import PaymentReceiptPage from "./pages/admin/PaymentReceiptPage.jsx";
+import AdminRecordDetailsPage from "./pages/admin/AdminRecordDetailsPage.jsx";
 import MaintenanceManagement from "./pages/admin/MaintenanceManagement.jsx";
 import AddMaintenance from "./pages/admin/AddMaintenance.jsx";
 import FeedbackReviews from "./pages/admin/FeedbackReviews.jsx";
@@ -144,10 +146,10 @@ function AdminApp() {
     if (nextPage.includes("driver")) return PERMISSIONS.FLEET_DRIVERS_MANAGE;
     if (nextPage.includes("route")) return PERMISSIONS.FLEET_ROUTES_MANAGE;
     if (nextPage.includes("maintenance")) return PERMISSIONS.FLEET_MAINTENANCE_MANAGE;
-    if (nextPage === "passengers") return PERMISSIONS.OPERATIONS_PASSENGERS_READ;
+    if (nextPage === "passengers" || nextPage.includes("passenger")) return PERMISSIONS.OPERATIONS_PASSENGERS_READ;
     if (nextPage.includes("trip")) return PERMISSIONS.OPERATIONS_TRIPS_MANAGE;
-    if (nextPage === "bookings") return PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE;
-    if (nextPage === "payments" || nextPage === "payment-receipt") return PERMISSIONS.FINANCE_PAYMENTS_MANAGE;
+    if (nextPage === "bookings" || nextPage.includes("booking")) return PERMISSIONS.OPERATIONS_BOOKINGS_MANAGE;
+    if (nextPage === "payments" || nextPage.includes("payment")) return PERMISSIONS.FINANCE_PAYMENTS_MANAGE;
     if (nextPage === "feedback") return PERMISSIONS.SUPPORT_FEEDBACK_MANAGE;
     if (nextPage === "content") return PERMISSIONS.CONTENT_MANAGE;
     if (nextPage === "reports") return PERMISSIONS.REPORTS_READ;
@@ -339,6 +341,23 @@ function AdminApp() {
     return result;
   }
 
+  async function handleSaveAdminRecord(type, mode, value) {
+    const result = await data.saveRecord({ type, mode, item: selectedRecord }, value);
+    navigate(type === "passenger" ? "passengers" : type === "booking" ? "bookings" : "payments");
+    return result;
+  }
+
+  async function handleRefundPayment(payment) {
+    if (!window.confirm(`Refund payment ${payment.id}?`)) return false;
+    try {
+      await data.refundPayment(payment.id);
+      return true;
+    } catch (error) {
+      window.alert(error.message || "Unable to refund payment.");
+      return false;
+    }
+  }
+
   // 
   // PAGE RENDERING
   // 
@@ -519,8 +538,35 @@ function AdminApp() {
         return (
           <PassengersPage
             passengers={passengers}
-            onAdd={() => showDialog("passenger", "add")}
-            onOpen={(type, mode, item) => showDialog(type, mode, item)}
+            onAdd={() => navigate("add-passenger")}
+            onOpen={(type, mode, item) => mode === "edit"
+              ? openRecord("edit-passenger", item)
+              : mode === "view"
+                ? openRecord("view-passenger", item)
+                : showDialog(type, mode, item)}
+          />
+        );
+
+      case "view-passenger":
+        return (
+          <AdminRecordDetailsPage
+            type="passenger"
+            record={selectedRecord}
+            onBack={() => navigate("passengers")}
+            onEdit={() => openRecord("edit-passenger", selectedRecord)}
+          />
+        );
+
+      case "add-passenger":
+      case "edit-passenger":
+        return (
+          <AdminRecordForm
+            key={`${page}-${selectedRecord?.id ?? "new"}`}
+            type="passenger"
+            mode={page === "edit-passenger" ? "edit" : "add"}
+            item={selectedRecord}
+            onSave={(value) => handleSaveAdminRecord("passenger", page === "edit-passenger" ? "edit" : "add", value)}
+            onCancel={() => navigate("passengers")}
           />
         );
 
@@ -536,7 +582,7 @@ function AdminApp() {
             statuses={tripOptions.statuses}
             onAdd={() => navigate("add-trip")}
             onOpen={(type, mode, item) => showDialog(type, mode, item)}
-            onEdit={(trip) => { setSelectedRecord(trip); navigate("edit-trip"); }}
+            onEdit={(trip) => openRecord("edit-trip", trip)}
           />
         );
 
@@ -567,8 +613,29 @@ function AdminApp() {
           <BookingsPage
             bookings={bookings}
             routes={routes}
-            onAdd={() => showDialog("booking", "add")}
-            onOpen={(type, mode, item) => showDialog(type, mode, item)}
+            onAdd={() => navigate("add-booking")}
+            onOpen={(type, mode, item) => mode === "view"
+              ? openRecord("view-booking", item)
+              : showDialog(type, mode, item)}
+          />
+        );
+
+      case "view-booking":
+        return (
+          <AdminRecordDetailsPage
+            type="booking"
+            record={selectedRecord}
+            onBack={() => navigate("bookings")}
+          />
+        );
+
+      case "add-booking":
+        return (
+          <AdminBookingForm
+            passengers={passengers}
+            trips={trips}
+            onSave={(value) => handleSaveAdminRecord("booking", "add", value)}
+            onCancel={() => navigate("bookings")}
           />
         );
 
@@ -580,20 +647,34 @@ function AdminApp() {
         return (
           <PaymentsPage
             payments={payments}
-            onAdd={() => showDialog("payment", "add")}
-            onViewReceipt={(payment) =>
-              openRecord("payment-receipt", payment)
-            }
+            onAdd={() => navigate("add-payment")}
+            onView={(payment) => openRecord("view-payment", payment)}
+            onRefund={handleRefundPayment}
           />
         );
 
-      case "payment-receipt":
+      case "view-payment":
+      case "payment-receipt": {
+        const relatedBooking = bookings.find((booking) => String(booking.id) === String(selectedRecord?.bookingId));
         return (
-          <PaymentReceiptPage
-            receipt={selectedRecord}
-            booking={bookings.find((booking) => String(booking.id) === String(selectedRecord?.bookingId))}
-            onDownload={() => import("./utils/downloadReceipt.js").then(({ default: download }) => download(selectedRecord, bookings.find((booking) => String(booking.id) === String(selectedRecord?.bookingId))))}
+          <AdminRecordDetailsPage
+            type="payment"
+            record={selectedRecord}
+            booking={relatedBooking}
             onBack={() => navigate("payments")}
+            onDownload={() => import("./utils/downloadReceipt.js").then(({ default: download }) => download(selectedRecord, relatedBooking))}
+          />
+        );
+      }
+
+      case "add-payment":
+        return (
+          <AdminRecordForm
+            key="add-payment"
+            type="payment"
+            options={{ bookings: bookings.filter((booking) => booking.status === "Pending Payment") }}
+            onSave={(value) => handleSaveAdminRecord("payment", "add", value)}
+            onCancel={() => navigate("payments")}
           />
         );
 
@@ -607,12 +688,27 @@ function AdminApp() {
             records={maintenance}
             statuses={maintenanceOptions.statuses}
             onAdd={() => navigate("add-maintenance")}
+            onView={(record) => showDialog("maintenance", "view", record)}
+            onEdit={(record) => openRecord("edit-maintenance", record)}
+            onDelete={(record) => showDialog("maintenance", "delete", record)}
           />
         );
 
       case "add-maintenance":
         return (
           <AddMaintenance
+            key="add-maintenance"
+            options={maintenanceOptions}
+            onSave={handleSaveMaintenance}
+            onCancel={() => navigate("maintenance")}
+          />
+        );
+
+      case "edit-maintenance":
+        return (
+          <AddMaintenance
+            key={`edit-maintenance-${selectedRecord?.id ?? "missing"}`}
+            record={selectedRecord}
             options={maintenanceOptions}
             onSave={handleSaveMaintenance}
             onCancel={() => navigate("maintenance")}
@@ -689,7 +785,11 @@ function AdminApp() {
           ? "maintenance"
         : page.includes("trip")
           ? "trips"
-          : page === "payment-receipt"
+          : page.includes("passenger")
+            ? "passengers"
+          : page.includes("booking")
+            ? "bookings"
+          : page.includes("payment")
             ? "payments"
             : page;
 

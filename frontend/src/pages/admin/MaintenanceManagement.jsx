@@ -3,9 +3,10 @@ import Icon from '../../components/Icon.jsx';
 import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
+import ActionButtons from '../../components/ActionButtons.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 
-export default function MaintenanceManagement({ records = [], statuses: availableStatuses = [], onAdd }) {
+export default function MaintenanceManagement({ records = [], statuses: availableStatuses = [], onAdd, onView, onEdit, onDelete }) {
   const list = useRecordList(records);
   const statuses = [...new Set([
     ...availableStatuses,
@@ -18,6 +19,17 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
     { key: 'date', label: 'Date' },
     { key: 'nextService', label: 'Next Service' },
     { key: 'status', label: 'Status', render: (record) => <StatusBadge>{record.status}</StatusBadge> },
+    {
+      key: 'actions',
+      label: 'Actions',
+      render: (record) => (
+        <ActionButtons
+          onView={() => onView?.(record)}
+          onEdit={() => onEdit?.(record)}
+          onDelete={() => onDelete?.(record)}
+        />
+      ),
+    },
   ];
   const countByStatus = (status) => records.filter((record) => record.status === status).length;
   const dueCount = records.filter((record) => ['pending', 'overdue'].includes(
@@ -25,7 +37,7 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
   )).length;
 
   return (
-    <section className="page">
+    <section className="page maintenance-page">
       <PageHeader
         title="Maintenance Management"
         subtitle="Manage vehicle maintenance records"
@@ -57,7 +69,7 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
         statuses={statuses}
         showDate={false}
       />
-      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} emptyMessage="No maintenance records found." />
+      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} wide emptyMessage="No maintenance records found." />
     </section>
   );
 }

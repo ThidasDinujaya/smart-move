@@ -30,4 +30,21 @@ public class MaintenanceController {
         customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
         return maintenanceService.saveMaintenance(maintenance);
     }
+
+    @PutMapping("/{id}")
+    public Maintenance updateMaintenance(
+            @PathVariable Long id,
+            @RequestBody Maintenance maintenance,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
+        return maintenanceService.updateMaintenance(id, maintenance);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteMaintenance(
+            @PathVariable Long id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
+        maintenanceService.deleteMaintenance(id);
+    }
 }

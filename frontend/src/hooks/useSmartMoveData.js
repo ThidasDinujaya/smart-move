@@ -332,8 +332,12 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       || item.fullName === (value.passenger || value.fullName));
     const trip = records.trips.find((item) => String(item.id) === String(value.tripId)
       || (item.route === value.route && item.date === value.date));
-    const seatNumbers = String(value.seats || '').split(',').map((seat) => Number(seat.trim())).filter(Number.isInteger);
-    if (!passenger || !trip || !seatNumbers.length) throw new Error('Select a passenger, a scheduled trip, and seat numbers (for example: 1, 2).');
+    const seatNumbers = Array.isArray(value.seatNumbers)
+      ? value.seatNumbers.map(Number)
+      : String(value.seats || '').split(',').map((seat) => Number(seat.trim())).filter(Number.isInteger);
+    if (!passenger || !trip || seatNumbers.length !== 1 || !Number.isInteger(seatNumbers[0]) || seatNumbers[0] < 1) {
+      throw new Error('Select a passenger, a scheduled trip, and exactly one available seat.');
+    }
     const saved = await api.post('/api/bookings/admin', { passengerId: passenger.id, tripId: trip.id, seatNumbers });
     await refresh();
     return saved;
@@ -355,17 +359,24 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     throw new Error(`Saving ${config.type} records is not supported by the backend yet.`);
   }, [savePassenger, createAdminBooking, records.bookings, refresh]);
 
+  const deleteMaintenance = useCallback(async (id) => {
+    await api.delete(`/api/maintenance/${id}`);
+    await refresh();
+    return true;
+  }, [refresh]);
+
   const deleteRecord = useCallback(async (type, item) => {
     if (type === 'passenger') return deletePassenger(item.id);
     if (type === 'booking') return deleteBooking(item.id);
     if (type === 'trip') return deleteTrip(item.id);
+    if (type === 'maintenance') return deleteMaintenance(item.id);
     throw new Error(`Deleting ${type} records is not supported by the backend.`);
-  }, [deletePassenger, deleteBooking, deleteTrip]);
+  }, [deletePassenger, deleteBooking, deleteTrip, deleteMaintenance]);
 
   const saveMaintenance = useCallback(async (value) => {
     const vehicle = records.vehicles.find((item) => item.vehicleNo === value.vehicleNo);
     if (!vehicle) throw new Error('Select a saved vehicle.');
-    const saved = await api.post('/api/maintenance', {
+    const payload = {
       vehicleId: vehicle.id,
       serviceType: value.type,
       description: value.description || null,
@@ -374,10 +385,19 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       nextServiceDate: value.nextService,
       provider: value.provider || null,
       status: value.status,
-    });
+    };
+    const saved = value.id
+      ? await api.put(`/api/maintenance/${value.id}`, payload)
+      : await api.post('/api/maintenance', payload);
     await refresh();
     return saved;
   }, [records.vehicles, refresh]);
+
+  const refundPayment = useCallback(async (id) => {
+    const refunded = await api.post(`/api/payments/${id}/refund`);
+    await refresh();
+    return refunded;
+  }, [refresh]);
 
   const updateFeedbackStatus = useCallback(async (id, reviewStatus) => {
     const updated = await api.put(`/api/feedback/${id}/status`, { reviewStatus });
@@ -404,6 +424,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     saveVehicle, updateVehicle, deleteVehicle,
     saveDriver, updateDriver, deleteDriver,
     saveRoute, updateRoute, deleteRoute,
-    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, updateFeedbackStatus, updateFeedbackResponse,
+    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, deleteMaintenance, refundPayment, updateFeedbackStatus, updateFeedbackResponse,
   };
 }

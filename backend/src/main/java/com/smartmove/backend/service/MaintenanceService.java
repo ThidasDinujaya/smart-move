@@ -19,4 +19,18 @@ public class MaintenanceService {
         maintenance.setId(null);
         return maintenanceRepository.save(maintenance);
     }
+
+    public Maintenance updateMaintenance(Long id, Maintenance maintenance) {
+        maintenanceRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Maintenance record was not found."));
+        maintenance.setId(id);
+        return maintenanceRepository.save(maintenance);
+    }
+
+    public void deleteMaintenance(Long id) {
+        if (!maintenanceRepository.existsById(id)) {
+            throw new IllegalArgumentException("Maintenance record was not found.");
+        }
+        maintenanceRepository.deleteById(id);
+    }
 }

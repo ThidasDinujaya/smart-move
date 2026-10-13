@@ -52,6 +52,7 @@ export default function PassengersPage({ passengers = [], onAdd, onOpen }) {
         columns={columns}
         rows={list.visibleRecords}
         list={list}
+        wide
         emptyMessage="No passenger records."
       />
     </section>

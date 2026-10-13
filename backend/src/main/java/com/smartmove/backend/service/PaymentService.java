@@ -76,4 +76,19 @@ public class PaymentService {
         return paymentRepository.findByBookingId(booking.getId())
                 .orElseThrow(() -> new IllegalStateException("The payment procedure did not create a payment."));
     }
+
+    @Transactional
+    public Payment refundPayment(Long paymentId, String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "FINANCE");
+        if (!paymentRepository.existsById(paymentId)) {
+            throw new IllegalArgumentException("Payment was not found.");
+        }
+        try {
+            oracleProcedureService.refundPayment(paymentId);
+        } catch (DataAccessException exception) {
+            throw new IllegalArgumentException(exception.getMostSpecificCause().getMessage());
+        }
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment was not found."));
+    }
 }

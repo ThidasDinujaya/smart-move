@@ -264,6 +264,9 @@ public class BookingService {
         if (requestedSeats == null || requestedSeats.isEmpty()) {
             throw new IllegalArgumentException("Select at least one seat.");
         }
+        if (requestedSeats.size() != 1) {
+            throw new IllegalArgumentException("Only one seat can be booked per booking.");
+        }
         if (capacity == null || capacity < 1) {
             throw new BookingConflictException("This trip has no seats available.");
         }

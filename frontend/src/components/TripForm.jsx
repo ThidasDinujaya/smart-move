@@ -35,7 +35,7 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
   }
 
   return (
-    <>
+    <section className="page form-page trip-form-page">
       <PageHeader
         title={value ? 'Edit Trip' : 'Add New Trip'}
         subtitle="Enter trip details"
@@ -161,6 +161,6 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           </button>
         </div>
       </form>
-    </>
+    </section>
   );
 }
