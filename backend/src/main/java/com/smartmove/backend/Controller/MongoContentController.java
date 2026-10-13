@@ -15,6 +15,7 @@ import com.smartmove.backend.data.VehicleRepository;
 import com.smartmove.backend.service.CustomerAuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -149,6 +151,16 @@ public class MongoContentController {
         return announcementRepository.save(request);
     }
 
+    @DeleteMapping("/admin/announcements/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAnnouncement(
+            @PathVariable String id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        requireContentStaff(userId);
+        if (!announcementRepository.existsById(id)) throw notFound("Announcement was not found.");
+        announcementRepository.deleteById(id);
+    }
+
     @GetMapping("/admin/notifications")
     public List<NotificationDocument> getAllNotifications(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
@@ -190,6 +202,16 @@ public class MongoContentController {
         return notificationRepository.save(request);
     }
 
+    @DeleteMapping("/admin/notifications/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteNotification(
+            @PathVariable String id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        requireContentStaff(userId);
+        if (!notificationRepository.existsById(id)) throw notFound("Notification was not found.");
+        notificationRepository.deleteById(id);
+    }
+
     @GetMapping("/admin/trip-media")
     public List<TripMediaDocument> getAllTripMedia(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
@@ -225,6 +247,16 @@ public class MongoContentController {
         return tripMediaRepository.save(request);
     }
 
+    @DeleteMapping("/admin/trip-media/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTripMedia(
+            @PathVariable String id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        requireContentStaff(userId);
+        if (!tripMediaRepository.existsById(id)) throw notFound("Trip media was not found.");
+        tripMediaRepository.deleteById(id);
+    }
+
     @GetMapping("/admin/vehicle-media")
     public List<VehicleMediaDocument> getAllVehicleMedia(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
@@ -258,6 +290,16 @@ public class MongoContentController {
         request.setUploadedAt(saved.getUploadedAt());
         if (request.getImageData() == null) request.setImageData(saved.getImageData());
         return vehicleMediaRepository.save(request);
+    }
+
+    @DeleteMapping("/admin/vehicle-media/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteVehicleMedia(
+            @PathVariable String id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        requireContentStaff(userId);
+        if (!vehicleMediaRepository.existsById(id)) throw notFound("Vehicle media was not found.");
+        vehicleMediaRepository.deleteById(id);
     }
 
     private CustomerAuthService.CustomerView requireContentStaff(String userId) {

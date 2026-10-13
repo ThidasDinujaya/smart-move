@@ -77,7 +77,13 @@ const CustomerHome = () => {
                 {announcement.startsAt ? ` · Starts: ${new Date(announcement.startsAt).toLocaleDateString()}` : ''}
                 {announcement.endsAt ? ` · Ends: ${new Date(announcement.endsAt).toLocaleDateString()}` : ''}
               </p>
-              {announcement.details && <details style={{ marginTop: '8px', fontSize: '12px', color: '#64748b' }}><summary>More details</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(announcement.details, null, 2)}</pre></details>}
+              {(announcement.details?.source || announcement.details?.language) && (
+                <p style={{ color: '#64748b', fontSize: '11px', margin: '6px 0 0' }}>
+                  {announcement.details?.source ? `Source: ${announcement.details.source}` : ''}
+                  {announcement.details?.source && announcement.details?.language ? ' · ' : ''}
+                  {announcement.details?.language ? `Language: ${announcement.details.language}` : ''}
+                </p>
+              )}
             </article>
           ))}
         </section>

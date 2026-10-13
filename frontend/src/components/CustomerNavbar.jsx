@@ -80,11 +80,10 @@ const CustomerNavbar = () => {
                     <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
                       {notification.recipientRole} · {notification.notificationType} · {notification.channel} · {notification.status}
                     </p>
-                    {notification.bookingReference && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Booking: {notification.bookingReference}</p>}
+                    {(notification.bookingReference || notification.details?.bookingReference) && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Booking: {notification.bookingReference || notification.details.bookingReference}</p>}
                     {notification.relatedTripOracleId != null && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Trip ID: {notification.relatedTripOracleId}</p>}
                     {notification.createdAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Created: {new Date(notification.createdAt).toLocaleString()}</p>}
                     {notification.readAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Read: {new Date(notification.readAt).toLocaleString()}</p>}
-                    {notification.details && <details style={{ fontSize: '11px', color: '#64748b', marginTop: '5px' }}><summary>Details</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(notification.details, null, 2)}</pre></details>}
                     {String(notification.status).toUpperCase() !== 'READ' && <button type="button" onClick={async () => {
                       try {
                         const updated = await api.put(`/api/content/notifications/${notification.id}/read`, {});

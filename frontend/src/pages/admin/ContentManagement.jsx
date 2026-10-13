@@ -147,12 +147,58 @@ function recordDescription(sectionId, record) {
   return record.description || record.metadata?.note || record.fileName || record.documentNumber || record.storageUrl || '';
 }
 
+function detailLabel(key) {
+  return key
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
+function detailValue(value) {
+  if (value == null || value === '') return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (Array.isArray(value)) return value.length ? value.map(detailValue).join(', ') : '—';
+  if (typeof value === 'object') {
+    return Object.entries(value).map(([key, item]) => `${detailLabel(key)}: ${detailValue(item)}`).join('; ') || '—';
+  }
+  return String(value);
+}
+
+function detailEntries(record) {
+  const entries = [];
+  const addEntry = (key, value) => {
+    if (['mediaData', 'imageData'].includes(key) || value == null || value === '') return;
+    if (Array.isArray(value)) {
+      entries.push([key, detailValue(value)]);
+      return;
+    }
+    if (typeof value === 'object') {
+      Object.entries(value).forEach(([childKey, childValue]) => addEntry(childKey, childValue));
+      return;
+    }
+    entries.push([key, detailValue(value)]);
+  };
+
+  Object.entries(record).forEach(([key, value]) => addEntry(key, value));
+  return entries;
+}
+
+function mediaPreview(record) {
+  const imageData = record.mediaData || record.imageData;
+  if (imageData) {
+    if (imageData.startsWith('data:')) return imageData;
+    if (record.contentType?.startsWith('image/')) return `data:${record.contentType};base64,${imageData}`;
+  }
+  if (record.contentType?.startsWith('image/') && record.storageUrl) return record.storageUrl;
+  return '';
+}
+
 export default function ContentManagement() {
   const [sectionId, setSectionId] = useState('announcements');
   const [records, setRecords] = useState({});
   const [form, setForm] = useState(emptyForm(sections.announcements));
   const [editingId, setEditingId] = useState(null);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [viewingRecord, setViewingRecord] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
@@ -197,16 +243,33 @@ export default function ContentManagement() {
     setSectionId(nextSection);
     setEditingId(null);
     setEditingRecord(null);
+    setViewingRecord(null);
     setForm(emptyForm(sections[nextSection]));
     setSearch('');
     setError('');
   };
 
   const beginEdit = (record) => {
+    setViewingRecord(null);
     setEditingId(record.id);
     setEditingRecord(record);
     setForm(formFromRecord(section, record));
     setError('');
+  };
+
+  const deleteRecord = async (record) => {
+    const label = record.title || record.fileName || record.mediaType || 'this record';
+    if (!window.confirm(`Delete “${label}” from ${section.title}? This cannot be undone.`)) return;
+
+    setError('');
+    try {
+      await api.delete(`${section.path}/${record.id}`);
+      if (editingId === record.id) resetForm();
+      setViewingRecord(null);
+      await refresh();
+    } catch (requestError) {
+      setError(requestError.message || `Unable to delete this ${section.title.toLowerCase()} record.`);
+    }
   };
 
   const changeAudience = (audience) => {
@@ -237,7 +300,6 @@ export default function ContentManagement() {
         {Object.entries(sections).map(([key, item]) => (
           <button key={key} type="button" role="tab" onClick={() => selectSection(key)} aria-selected={sectionId === key} aria-pressed={sectionId === key}>
             {item.title}
-            <span>{records[key]?.length || 0}</span>
           </button>
         ))}
       </div>
@@ -313,13 +375,47 @@ export default function ContentManagement() {
                 <div className="content-record-meta">{recordMeta(sectionId, record).map((value, index) => <span key={`${index}-${value}`}>{value}</span>)}</div>
                 <small className="content-record-id">ID {record.id}</small>
               </div>
-              <ActionButtons onEdit={() => beginEdit(record)} />
+              <ActionButtons
+                onView={() => setViewingRecord(record)}
+                onEdit={() => beginEdit(record)}
+                onDelete={() => deleteRecord(record)}
+              />
             </article>
           ))}
           {!visibleRecords.length && <p className="content-empty">{search ? 'No matching records found.' : 'No records in this collection yet.'}</p>}
           </div>
         </section>
       </div>
+      {viewingRecord && (
+        <div className="content-view-backdrop" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setViewingRecord(null);
+        }}>
+          <section className="content-view-dialog" role="dialog" aria-modal="true" aria-labelledby="content-view-title">
+            <div className="content-view-heading">
+              <div>
+                <span className="content-eyebrow">{section.title.toUpperCase()} RECORD</span>
+                <h2 id="content-view-title">{viewingRecord.title || viewingRecord.fileName || viewingRecord.mediaType || 'Record details'}</h2>
+              </div>
+              <button className="content-view-close" type="button" aria-label="Close details" onClick={() => setViewingRecord(null)}>×</button>
+            </div>
+            {mediaPreview(viewingRecord) && (
+              <img className="content-view-media" src={mediaPreview(viewingRecord)} alt={viewingRecord.title || viewingRecord.fileName || 'Media preview'} />
+            )}
+            <div className="content-view-details">
+              {detailEntries(viewingRecord).map(([key, value], index) => (
+                <div className="content-view-detail" key={`${index}-${key}`}>
+                  <strong>{detailLabel(key)}</strong>
+                  <span>{value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="content-view-actions">
+              <button type="button" className="secondary" onClick={() => setViewingRecord(null)}>Close</button>
+              <button type="button" className="primary" onClick={() => beginEdit(viewingRecord)}>Edit record</button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

@@ -1409,6 +1409,124 @@
   background: #fff7f7;
 }
 
+.admin-content .page .content-view-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(16 24 40 / 52%);
+}
+
+.admin-content .page .content-view-dialog {
+  display: grid;
+  gap: 18px;
+  width: min(680px, 100%);
+  max-height: min(82vh, 820px);
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid #e5eaf0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(16 24 40 / 24%);
+}
+
+.admin-content .page .content-view-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-content .page .content-view-heading h2 {
+  margin: 5px 0 0;
+  color: #1d2939;
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.admin-content .page .content-view-close {
+  display: grid;
+  flex: 0 0 auto;
+  width: 34px;
+  min-height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+  color: #566474;
+  background: #fff;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.admin-content .page .content-view-media {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  margin: 0 auto;
+  border-radius: 9px;
+  object-fit: contain;
+}
+
+.admin-content .page .content-view-details {
+  display: grid;
+  gap: 0;
+  border: 1px solid #e7ebef;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.admin-content .page .content-view-detail {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.38fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 11px 13px;
+  border-bottom: 1px solid #edf0f3;
+  font-size: 13px;
+}
+
+.admin-content .page .content-view-detail:last-child {
+  border-bottom: 0;
+}
+
+.admin-content .page .content-view-detail strong {
+  color: #566474;
+  font-weight: 600;
+}
+
+.admin-content .page .content-view-detail span {
+  min-width: 0;
+  color: #273444;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.admin-content .page .content-view-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.admin-content .page .content-view-actions button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #dce3eb;
+  border-radius: 7px;
+  color: #344253;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-content .page .content-view-actions button.primary {
+  border-color: #1463d5;
+  color: #fff;
+  background: #1463d5;
+}
+
 @media (max-width: 768px) {
   .admin-content .page-heading h1,
   .admin-content .dashboard-heading h1 {
@@ -1498,6 +1616,19 @@
   .admin-content .page .content-record-title-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .admin-content .page .content-view-backdrop {
+    padding: 12px;
+  }
+
+  .admin-content .page .content-view-dialog {
+    padding: 18px;
+  }
+
+  .admin-content .page .content-view-detail {
+    grid-template-columns: 1fr;
+    gap: 5px;
   }
 
   .admin-content .booking-search-fields,
