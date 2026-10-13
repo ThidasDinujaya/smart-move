@@ -6,7 +6,7 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDate, formatMoney } from '../../utils/formatters.js';
 
-export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen }) {
+export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen, onEdit }) {
   const list = useRecordList(bookings, { filterRoute: true });
   const statuses = [...new Set(bookings.map((record) => record.status).filter(Boolean))];
   const columns = [
@@ -24,6 +24,8 @@ export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen
       render: (record) => (
         <ActionButtons
           onView={() => onOpen('booking', 'view', record)}
+          onEdit={() => onEdit(record)}
+          editDisabled={record.status !== 'Pending Payment'}
           onDelete={() => onOpen('booking', 'delete', record)}
         />
       ),

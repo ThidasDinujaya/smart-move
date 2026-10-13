@@ -22,16 +22,19 @@ function displayTime(value) {
   return String(value || '').slice(0, 5);
 }
 
-export default function AdminBookingForm({ passengers = [], trips = [], onSave, onCancel }) {
-  const [passengerId, setPassengerId] = useState('');
-  const [travelDate, setTravelDate] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [departureTime, setDepartureTime] = useState('');
-  const [tripId, setTripId] = useState('');
+export default function AdminBookingForm({ booking, passengers = [], trips = [], onSave, onCancel }) {
+  const isEditing = Boolean(booking?.id);
+  const originalSeat = Number(booking?.tickets?.[0]?.seatNumber ?? String(booking?.seats || '').split(',')[0]);
+  const originalSeatNumber = Number.isInteger(originalSeat) && originalSeat > 0 ? originalSeat : null;
+  const [passengerId, setPassengerId] = useState(() => booking?.passengerId == null ? '' : String(booking.passengerId));
+  const [travelDate, setTravelDate] = useState(() => booking?.date || '');
+  const [from, setFrom] = useState(() => booking?.from || '');
+  const [to, setTo] = useState(() => booking?.to || '');
+  const [departureTime, setDepartureTime] = useState(() => displayTime(booking?.departure));
+  const [tripId, setTripId] = useState(() => booking?.tripId == null ? '' : String(booking.tripId));
   const [availability, setAvailability] = useState(null);
   const [vehicleSeatAvailability, setVehicleSeatAvailability] = useState({});
-  const [selectedSeat, setSelectedSeat] = useState(null);
+  const [selectedSeat, setSelectedSeat] = useState(() => originalSeatNumber);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [seatError, setSeatError] = useState('');
   const [saveError, setSaveError] = useState('');
@@ -74,13 +77,19 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
   const selectedTrip = vehicleOptions.find((trip) => String(trip.id) === tripId);
   const selectedPassenger = passengers.find((passenger) => String(passenger.id) === passengerId);
   const reservedSeats = new Set(availability?.reservedSeats || []);
+  function isReservedSeat(seatNumber) {
+    const isCurrentBookingSeat = isEditing
+      && String(booking.tripId) === String(selectedTrip?.id)
+      && originalSeatNumber === seatNumber;
+    return reservedSeats.has(seatNumber) && !isCurrentBookingSeat;
+  }
   const fare = Number(selectedTrip?.fare || 0);
   const canSubmit = Boolean(
     selectedPassenger
     && selectedTrip
     && selectedSeat
     && availability?.bookable
-    && !reservedSeats.has(selectedSeat)
+    && !isReservedSeat(selectedSeat)
     && !loadingSeats
     && !saving,
   );
@@ -120,7 +129,6 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
 
     let active = true;
     setAvailability(null);
-    setSelectedSeat(null);
     setSeatError('');
     setLoadingSeats(true);
 
@@ -174,7 +182,7 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
   }
 
   function selectSeat(seatNumber) {
-    if (reservedSeats.has(seatNumber)) return;
+    if (isReservedSeat(seatNumber)) return;
     setSelectedSeat((current) => current === seatNumber ? null : seatNumber);
   }
 
@@ -199,7 +207,10 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
 
   return (
     <section className="page form-page admin-booking-page">
-      <PageHeader title="Add Booking" subtitle="Choose a travel date, route, departure and one seat." />
+      <PageHeader
+        title={isEditing ? 'Edit Booking' : 'Add Booking'}
+        subtitle={isEditing ? 'Update this pending booking and its reserved seat.' : 'Choose a travel date, route, departure and one seat.'}
+      />
       <form className="admin-booking-form" onSubmit={submit}>
         <section className="form-card booking-step-card">
           <div className="booking-section-heading">
@@ -253,7 +264,9 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
                   const selected = String(trip.id) === tripId;
                   const seatInfo = vehicleSeatAvailability[String(trip.id)];
                   const seatCounts = seatInfo?.availability;
-                  const soldOut = seatCounts && (!seatCounts.bookable || seatCounts.availableSeats < 1);
+                  const soldOut = seatCounts
+                    && (!seatCounts.bookable || seatCounts.availableSeats < 1)
+                    && !(isEditing && String(booking.tripId) === String(trip.id));
                   return (
                     <button
                       className={`booking-vehicle-card${selected ? ' selected' : ''}${soldOut ? ' sold-out' : ''}`}
@@ -313,7 +326,7 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
                     <div className="booking-seat-grid" aria-label="Select one seat">
                       {Array.from({ length: Number(availability.capacity) || 0 }, (_value, index) => {
                         const seatNumber = index + 1;
-                        const isReserved = reservedSeats.has(seatNumber);
+                            const isReserved = isReservedSeat(seatNumber);
                         const isSelected = selectedSeat === seatNumber;
                         return (
                           <button
@@ -371,7 +384,7 @@ export default function AdminBookingForm({ passengers = [], trips = [], onSave, 
         {saveError && <p className="booking-error" role="alert">{saveError}</p>}
         <div className="form-actions booking-form-actions">
           <button className="primary" type="submit" disabled={!canSubmit}>
-            {saving ? 'Saving booking…' : 'Confirm booking'}
+            {saving ? (isEditing ? 'Updating booking…' : 'Saving booking…') : (isEditing ? 'Save changes' : 'Confirm booking')}
           </button>
           <button className="secondary" type="button" onClick={onCancel} disabled={saving}>Cancel</button>
         </div>

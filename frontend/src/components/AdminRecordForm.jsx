@@ -8,7 +8,7 @@ const fieldsByType = {
     { key: 'phone', label: 'Contact Number', type: 'tel' },
     { key: 'nic', label: 'NIC', required: false },
     { key: 'gender', label: 'Gender', type: 'gender', required: false },
-    { key: 'status', label: 'Status' },
+    { key: 'status', label: 'Status', type: 'passengerStatus' },
   ],
   payment: [
     { key: 'booking', label: 'Booking', type: 'booking' },
@@ -18,17 +18,19 @@ const fieldsByType = {
 
 const paymentMethods = ['Card', 'Bank Transfer', 'eWallet', 'Cash'];
 const genders = ['Female', 'Male', 'Other'];
+const passengerStatuses = ['Active', 'Inactive'];
 
 function optionsForField(field, options) {
   if (field.type === 'passenger') return options.passengers || [];
   if (field.type === 'booking') return options.bookings || [];
   if (field.type === 'gender') return genders;
   if (field.type === 'method') return paymentMethods;
+  if (field.type === 'passengerStatus') return passengerStatuses;
   return [];
 }
 
 function optionValue(field, option) {
-  if (field.type === 'gender' || field.type === 'method') return option;
+  if (['gender', 'method', 'passengerStatus'].includes(field.type)) return option;
   return option.id;
 }
 
@@ -69,7 +71,7 @@ export default function AdminRecordForm({ type, mode = 'add', item, options = {}
       <form className="form-card form-grid" onSubmit={submit}>
         {fields.map((field) => {
           const fieldOptions = optionsForField(field, options);
-          const isSelect = fieldOptions.length > 0 || ['passenger', 'booking', 'gender', 'method'].includes(field.type);
+          const isSelect = fieldOptions.length > 0 || ['passenger', 'booking', 'gender', 'method', 'passengerStatus'].includes(field.type);
           const emptyLabel = fieldOptions.length
             ? `Select ${field.label.toLowerCase()}`
             : field.type === 'booking'

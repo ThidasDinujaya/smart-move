@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import PageHeader from '../../components/PageHeader.jsx';
+import Icon from '../../components/Icon.jsx';
+import ActionButtons from '../../components/ActionButtons.jsx';
 import { api } from '../../api/client.js';
+import { formatDateTime } from '../../utils/formatters.js';
 
 const sections = {
   announcements: {
@@ -9,8 +12,9 @@ const sections = {
     fields: [
       ['title', 'Title'], ['message', 'Message', 'textarea'], ['severity', 'Severity'],
       ['routeOracleIds', 'Route IDs (comma separated)'], ['audience', 'Audience (CUSTOMER, DRIVER, or ALL)'],
+      ['source', 'Source'], ['language', 'Language'],
       ['publishedAt', 'Publish time', 'datetime-local'], ['startsAt', 'Start time', 'datetime-local'],
-      ['endsAt', 'End time', 'datetime-local'], ['active', 'Active', 'checkbox'], ['details', 'Details (JSON)', 'textarea'],
+      ['endsAt', 'End time', 'datetime-local'], ['active', 'Active', 'checkbox'],
     ],
   },
   notifications: {
@@ -20,7 +24,7 @@ const sections = {
       ['recipientOracleId', 'Passenger ID', 'number'], ['recipientRole', 'Recipient role'],
       ['notificationType', 'Notification type'], ['title', 'Title'], ['message', 'Message', 'textarea'],
       ['relatedTripOracleId', 'Related trip ID', 'number'], ['channel', 'Channel'],
-      ['bookingReference', 'Booking reference'], ['details', 'Details (JSON)', 'textarea'],
+      ['bookingReference', 'Booking reference'],
     ],
   },
   tripMedia: {
@@ -29,7 +33,7 @@ const sections = {
     fields: [
       ['tripOracleId', 'Trip ID', 'number'], ['mediaType', 'Media type'], ['title', 'Title'],
       ['description', 'Description', 'textarea'], ['contentType', 'Content type'],
-      ['storageUrl', 'Storage URL'], ['location', 'Location'], ['metadata', 'Metadata (JSON)', 'textarea'],
+      ['storageUrl', 'Storage URL'], ['location', 'Location'], ['note', 'Notes', 'textarea'],
     ],
   },
   vehicleMedia: {
@@ -38,7 +42,7 @@ const sections = {
     fields: [
       ['vehicleOracleId', 'Vehicle ID', 'number'], ['mediaType', 'Media type'], ['fileName', 'File name'],
       ['documentNumber', 'Document number'], ['contentType', 'Content type'], ['storageUrl', 'Storage URL'],
-      ['expiresAt', 'Expiry time', 'datetime-local'], ['metadata', 'Metadata (JSON)', 'textarea'],
+      ['expiresAt', 'Expiry time', 'datetime-local'], ['note', 'Notes', 'textarea'], ['view', 'Photo view'],
     ],
   },
 };
@@ -61,33 +65,37 @@ function formFromRecord(section, record) {
     if (type === 'checkbox') values[name] = value !== false;
     else if (['publishedAt', 'startsAt', 'endsAt', 'expiresAt'].includes(name)) values[name] = localDateTime(value);
     else if (name === 'routeOracleIds' || name === 'audience') values[name] = Array.isArray(value) ? value.join(', ') : '';
-    else if (name === 'details' || name === 'metadata') values[name] = value ? JSON.stringify(value, null, 2) : '';
+    else if (name === 'source' || name === 'language') values[name] = record.details?.[name] ?? value ?? '';
+    else if (name === 'note' || name === 'view') values[name] = record.metadata?.[name] ?? value ?? '';
+    else if (name === 'bookingReference') values[name] = value ?? record.details?.bookingReference ?? '';
     else values[name] = value ?? '';
   }
   return values;
 }
 
-function buildPayload(sectionId, form) {
-  const parseObject = (value, label) => {
-    if (!value.trim()) return null;
-    try {
-      return JSON.parse(value);
-    } catch {
-      throw new Error(`${label} must be valid JSON.`);
-    }
-  };
+function mapFromFields(values, existing, managedKeys) {
+  const preservedValues = Object.fromEntries(Object.entries(existing || {}).filter(([key]) => !managedKeys.includes(key)));
+  const enteredValues = Object.fromEntries(Object.entries(values)
+    .filter(([, value]) => value != null && String(value).trim() !== '')
+    .map(([key, value]) => [key, String(value).trim()]));
+  const result = { ...preservedValues, ...enteredValues };
+  return Object.keys(result).length ? result : null;
+}
+
+function buildPayload(sectionId, form, existingRecord) {
   const numberOrNull = (value) => value === '' ? null : Number(value);
   const dateOrNull = (value) => value ? new Date(value).toISOString() : null;
 
   if (sectionId === 'announcements') {
+    const { source, language, ...announcement } = form;
     return {
-      ...form,
+      ...announcement,
       routeOracleIds: form.routeOracleIds.split(',').map((value) => value.trim()).filter(Boolean).map(Number),
       audience: form.audience.split(',').map((value) => value.trim().toUpperCase()).filter(Boolean),
       publishedAt: dateOrNull(form.publishedAt),
       startsAt: dateOrNull(form.startsAt),
       endsAt: dateOrNull(form.endsAt),
-      details: parseObject(form.details, 'Details'),
+      details: mapFromFields({ source, language }, existingRecord?.details, ['source', 'language']),
     };
   }
   if (sectionId === 'notifications') {
@@ -95,22 +103,48 @@ function buildPayload(sectionId, form) {
       ...form,
       recipientOracleId: numberOrNull(form.recipientOracleId),
       relatedTripOracleId: numberOrNull(form.relatedTripOracleId),
-      details: parseObject(form.details, 'Details'),
+      details: mapFromFields({ bookingReference: form.bookingReference }, existingRecord?.details, ['bookingReference']),
     };
   }
   if (sectionId === 'tripMedia') {
+    const { note, ...tripMedia } = form;
     return {
-      ...form,
+      ...tripMedia,
       tripOracleId: numberOrNull(form.tripOracleId),
-      metadata: parseObject(form.metadata, 'Metadata'),
+      metadata: mapFromFields({ note }, existingRecord?.metadata, ['note']),
     };
   }
+  const { note, view, ...vehicleMedia } = form;
   return {
-    ...form,
+    ...vehicleMedia,
     vehicleOracleId: numberOrNull(form.vehicleOracleId),
     expiresAt: dateOrNull(form.expiresAt),
-    metadata: parseObject(form.metadata, 'Metadata'),
+    metadata: mapFromFields({ note, view }, existingRecord?.metadata, ['note', 'view']),
   };
+}
+
+function recordMeta(sectionId, record) {
+  if (sectionId === 'announcements') {
+    return [
+      record.severity || 'General',
+      (record.audience || []).join(', ') || 'All audiences',
+      record.details?.source,
+      record.details?.language,
+      record.publishedAt ? `Published ${formatDateTime(record.publishedAt)}` : 'Publish time not set',
+    ].filter(Boolean);
+  }
+  if (sectionId === 'notifications') {
+    return [record.recipientRole || 'CUSTOMER', record.notificationType || 'Notification', record.status || 'UNREAD'];
+  }
+  if (sectionId === 'tripMedia') {
+    return [record.mediaType || 'Trip media', record.contentType, record.location, record.metadata?.view].filter(Boolean);
+  }
+  return [record.mediaType || 'Vehicle media', record.registrationNo, record.metadata?.view, record.expiresAt ? `Expires ${formatDateTime(record.expiresAt)}` : null].filter(Boolean);
+}
+
+function recordDescription(sectionId, record) {
+  if (sectionId === 'announcements' || sectionId === 'notifications') return record.message || '';
+  return record.description || record.metadata?.note || record.fileName || record.documentNumber || record.storageUrl || '';
 }
 
 export default function ContentManagement() {
@@ -118,8 +152,10 @@ export default function ContentManagement() {
   const [records, setRecords] = useState({});
   const [form, setForm] = useState(emptyForm(sections.announcements));
   const [editingId, setEditingId] = useState(null);
+  const [editingRecord, setEditingRecord] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
   const section = sections[sectionId];
 
   const refresh = useCallback(async () => {
@@ -136,6 +172,7 @@ export default function ContentManagement() {
 
   const resetForm = () => {
     setEditingId(null);
+    setEditingRecord(null);
     setForm(emptyForm(section));
   };
 
@@ -144,7 +181,7 @@ export default function ContentManagement() {
     setSaving(true);
     setError('');
     try {
-      const payload = buildPayload(sectionId, form);
+      const payload = buildPayload(sectionId, form, editingRecord);
       if (editingId) await api.put(`${section.path}/${editingId}`, payload);
       else await api.post(section.path, payload);
       await refresh();
@@ -159,61 +196,128 @@ export default function ContentManagement() {
   const selectSection = (nextSection) => {
     setSectionId(nextSection);
     setEditingId(null);
+    setEditingRecord(null);
     setForm(emptyForm(sections[nextSection]));
+    setSearch('');
     setError('');
   };
 
   const beginEdit = (record) => {
     setEditingId(record.id);
+    setEditingRecord(record);
     setForm(formFromRecord(section, record));
     setError('');
   };
 
+  const changeAudience = (audience) => {
+    const selected = (form.audience || '').split(',').map((value) => value.trim()).filter(Boolean);
+    const next = selected.includes(audience)
+      ? selected.filter((value) => value !== audience)
+      : audience === 'ALL'
+        ? ['ALL']
+        : [...selected.filter((value) => value !== 'ALL'), audience];
+    setForm((current) => ({ ...current, audience: next.join(', ') }));
+  };
+
+  const visibleRecords = (records[sectionId] || []).filter((record) => (
+    !search || JSON.stringify(record).toLowerCase().includes(search.toLowerCase())
+  ));
+  const selectedAudience = (form.audience || '').split(',').map((value) => value.trim().toUpperCase()).filter(Boolean);
+
   return (
     <section className="page">
       <PageHeader title="Announcements & media" subtitle="Create and update MongoDB records used by the customer portal" />
-      <div className="content-tabs">
+      <div className="stats-grid content-overview-grid">
+        <article className="stat-card blue"><Icon name="message" size={22} /><div><div className="stat-title">Announcements</div><div className="stat-value">{records.announcements?.length || 0}</div></div></article>
+        <article className="stat-card orange"><Icon name="bell" size={22} /><div><div className="stat-title">Notifications</div><div className="stat-value">{records.notifications?.length || 0}</div></div></article>
+        <article className="stat-card green"><Icon name="image" size={22} /><div><div className="stat-title">Trip media</div><div className="stat-value">{records.tripMedia?.length || 0}</div></div></article>
+        <article className="stat-card pink"><Icon name="bus" size={22} /><div><div className="stat-title">Vehicle media</div><div className="stat-value">{records.vehicleMedia?.length || 0}</div></div></article>
+      </div>
+      <div className="content-tabs" role="tablist" aria-label="Content sections">
         {Object.entries(sections).map(([key, item]) => (
-          <button key={key} type="button" onClick={() => selectSection(key)} aria-pressed={sectionId === key}>
+          <button key={key} type="button" role="tab" onClick={() => selectSection(key)} aria-selected={sectionId === key} aria-pressed={sectionId === key}>
             {item.title}
+            <span>{records[key]?.length || 0}</span>
           </button>
         ))}
       </div>
       {error && <p className="content-error" role="alert">{error}</p>}
       <div className="content-management-grid">
-        <form className="content-form" onSubmit={save}>
-          <h2>{editingId ? `Edit ${section.title}` : `Add ${section.title}`}</h2>
-          {section.fields.map(([name, label, type = 'text']) => (
-            <label key={name}>
-              {type === 'checkbox' ? (
-                <span><input type="checkbox" checked={Boolean(form[name])} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.checked }))} /> {label}</span>
-              ) : (
-                <>
-                  {label}
-                  {type === 'textarea' ? (
-                    <textarea rows="3" value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
-                  ) : (
-                    <input type={type} value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
-                  )}
-                </>
-              )}
-            </label>
-          ))}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Save changes' : 'Create'}</button>
-            {editingId && <button type="button" onClick={resetForm}>Cancel edit</button>}
+        <form className="content-form content-panel" onSubmit={save}>
+          <div className="content-panel-heading">
+            <div>
+              <span className="content-eyebrow">{editingId ? 'EDIT RECORD' : 'NEW RECORD'}</span>
+              <h2>{editingId ? `Edit ${section.title}` : `Create ${section.title}`}</h2>
+              <p>{editingId ? 'Update the details below and save your changes.' : `Add a new ${section.title.toLowerCase()} record to MongoDB.`}</p>
+            </div>
+            <span className="content-panel-icon"><Icon name={sectionId === 'announcements' ? 'message' : sectionId === 'notifications' ? 'bell' : 'image'} size={20} /></span>
+          </div>
+          <div className="content-fields">
+            {section.fields.map(([name, label, type = 'text']) => name === 'audience' ? (
+              <div className="content-field-wide" key={name}>
+                <span className="content-field-label">{label}</span>
+                <div className="content-choice-group">
+                  {['CUSTOMER', 'DRIVER', 'ALL'].map((audience) => (
+                    <label key={audience} className={selectedAudience.includes(audience) ? 'selected' : ''}>
+                      <input type="checkbox" checked={selectedAudience.includes(audience)} onChange={() => changeAudience(audience)} />
+                      {audience === 'ALL' ? 'Everyone' : audience === 'CUSTOMER' ? 'Customers' : 'Drivers'}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <label className={type === 'textarea' ? 'content-field-wide' : ''} key={name}>
+                {type === 'checkbox' ? (
+                  <span className="content-switch-row">
+                    <input type="checkbox" checked={Boolean(form[name])} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.checked }))} />
+                    <span><strong>{label}</strong><small>Show this announcement to its selected audience.</small></span>
+                  </span>
+                ) : (
+                  <>
+                    <span>{label}</span>
+                    {type === 'textarea' ? (
+                      <textarea rows="3" value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
+                    ) : (
+                      <input type={type} value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
+                    )}
+                  </>
+                )}
+              </label>
+            ))}
+          </div>
+          <div className="content-form-actions">
+            <button className="primary" type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Save changes' : `Create ${section.title}`}</button>
+            {editingId && <button className="secondary" type="button" onClick={resetForm} disabled={saving}>Cancel edit</button>}
           </div>
         </form>
-        <section className="content-records" aria-label={`${section.title} records`}>
-          <h2>{section.title} in MongoDB</h2>
-          {(records[sectionId] || []).map((record) => (
+        <section className="content-records content-panel" aria-label={`${section.title} records`}>
+          <div className="content-panel-heading content-records-heading">
+            <div><span className="content-eyebrow">MONGODB COLLECTION</span><h2>{section.title}</h2><p>{visibleRecords.length} {visibleRecords.length === 1 ? 'record' : 'records'} in this collection</p></div>
+            <span className="content-record-count">{visibleRecords.length}</span>
+          </div>
+          <label className="content-search">
+            <Icon name="search" size={16} />
+            <input type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={`Search ${section.title.toLowerCase()}…`} />
+          </label>
+          <div className="content-record-list">
+          {visibleRecords.map((record) => (
             <article className="content-record" key={record.id}>
-              <strong>{record.title || record.fileName || record.mediaType || 'Record'}</strong>
-              <p>ID: {record.id}</p>
-              <button type="button" onClick={() => beginEdit(record)}>Edit</button>
+              <div className="content-record-main">
+                <div className="content-record-title-row">
+                  <strong>{record.title || record.fileName || record.mediaType || 'Untitled record'}</strong>
+                  <span className={`content-status ${record.active === false || record.status === 'READ' ? 'muted' : 'active'}`}>
+                    {sectionId === 'announcements' ? (record.active === false ? 'Inactive' : 'Active') : sectionId === 'notifications' ? (record.status || 'UNREAD') : (record.mediaType || 'Media')}
+                  </span>
+                </div>
+                {recordDescription(sectionId, record) && <p className="content-record-description">{recordDescription(sectionId, record)}</p>}
+                <div className="content-record-meta">{recordMeta(sectionId, record).map((value, index) => <span key={`${index}-${value}`}>{value}</span>)}</div>
+                <small className="content-record-id">ID {record.id}</small>
+              </div>
+              <ActionButtons onEdit={() => beginEdit(record)} />
             </article>
           ))}
-          {!records[sectionId]?.length && <p className="content-empty">No records in this collection yet.</p>}
+          {!visibleRecords.length && <p className="content-empty">{search ? 'No matching records found.' : 'No records in this collection yet.'}</p>}
+          </div>
         </section>
       </div>
     </section>

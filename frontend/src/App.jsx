@@ -614,6 +614,7 @@ function AdminApp() {
             bookings={bookings}
             routes={routes}
             onAdd={() => navigate("add-booking")}
+            onEdit={(booking) => openRecord("edit-booking", booking)}
             onOpen={(type, mode, item) => mode === "view"
               ? openRecord("view-booking", item)
               : showDialog(type, mode, item)}
@@ -626,6 +627,9 @@ function AdminApp() {
             type="booking"
             record={selectedRecord}
             onBack={() => navigate("bookings")}
+            onEdit={selectedRecord?.status === "Pending Payment"
+              ? () => openRecord("edit-booking", selectedRecord)
+              : undefined}
           />
         );
 
@@ -635,6 +639,18 @@ function AdminApp() {
             passengers={passengers}
             trips={trips}
             onSave={(value) => handleSaveAdminRecord("booking", "add", value)}
+            onCancel={() => navigate("bookings")}
+          />
+        );
+
+      case "edit-booking":
+        return (
+          <AdminBookingForm
+            key={`edit-booking-${selectedRecord?.id ?? "missing"}`}
+            booking={selectedRecord}
+            passengers={passengers}
+            trips={trips}
+            onSave={(value) => handleSaveAdminRecord("booking", "edit", value)}
             onCancel={() => navigate("bookings")}
           />
         );

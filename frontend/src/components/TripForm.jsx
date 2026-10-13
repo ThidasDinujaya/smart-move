@@ -18,10 +18,9 @@ const emptyTrip = {
 export default function TripForm({ value, onCancel, onSave, options = {} }) {
   const [form, setForm] = useState({ ...emptyTrip, ...(value || {}) });
   const { routes = [], vehicles = [], drivers = [], statuses = [] } = options;
+  const allStatuses = [...new Set([...(statuses.length ? statuses : ['Scheduled', 'Cancelled', 'Completed']), value?.status].filter(Boolean))];
   const statusOptions = value?.status
-    ? value.status === 'Scheduled'
-      ? statuses.filter((status) => status === 'Scheduled' || status === 'Cancelled')
-      : [value.status]
+    ? allStatuses
     : ['Scheduled'];
   const statusLocked = Boolean(value?.status && value.status !== 'Scheduled');
 
@@ -117,23 +116,18 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           </label>
           <label>
             <span>Status <b>*</b></span>
-            {statuses.length ? (
-              <select
-                required
-                value={form.status}
-                disabled={statusLocked}
-                onChange={(event) => update('status', event.target.value)}
-              >
-                {statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
-              </select>
-            ) : (
-              <input
-                required
-                placeholder="Enter status"
-                value={form.status}
-                onChange={(event) => update('status', event.target.value)}
-              />
-            )}
+            <select
+              required
+              value={form.status}
+              disabled={statusLocked}
+              onChange={(event) => update('status', event.target.value)}
+            >
+              {statusOptions.map((status) => (
+                <option key={status} value={status} disabled={status === 'Completed'}>
+                  {status === 'Completed' ? 'Completed (set automatically)' : status}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             <span>Departure Time <b>*</b></span>

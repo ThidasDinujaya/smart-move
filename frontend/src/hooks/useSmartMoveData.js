@@ -327,7 +327,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
 
   const deletePassenger = useCallback(async (id) => { await api.delete(`/api/passengers/${id}`); await refresh(); return true; }, [refresh]);
   const deleteBooking = useCallback(async (id) => { await api.delete(`/api/bookings/admin/${id}`); await refresh(); return true; }, [refresh]);
-  const createAdminBooking = useCallback(async (value) => {
+  const saveAdminBooking = useCallback(async (value, bookingId = null) => {
     const passenger = records.passengers.find((item) => String(item.id) === String(value.passengerId)
       || item.fullName === (value.passenger || value.fullName));
     const trip = records.trips.find((item) => String(item.id) === String(value.tripId)
@@ -338,14 +338,21 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     if (!passenger || !trip || seatNumbers.length !== 1 || !Number.isInteger(seatNumbers[0]) || seatNumbers[0] < 1) {
       throw new Error('Select a passenger, a scheduled trip, and exactly one available seat.');
     }
-    const saved = await api.post('/api/bookings/admin', { passengerId: passenger.id, tripId: trip.id, seatNumbers });
+    const payload = { passengerId: passenger.id, tripId: trip.id, seatNumbers };
+    const saved = bookingId
+      ? await api.put(`/api/bookings/admin/${bookingId}`, payload)
+      : await api.post('/api/bookings/admin', payload);
     await refresh();
     return saved;
   }, [records.passengers, records.trips, refresh]);
 
   const saveRecord = useCallback(async (config, value) => {
     if (config.type === 'passenger') return savePassenger(value, config.item);
-    if (config.type === 'booking' && config.mode === 'add') return createAdminBooking(value);
+    if (config.type === 'booking' && config.mode === 'add') return saveAdminBooking(value);
+    if (config.type === 'booking' && config.mode === 'edit') {
+      if (!config.item?.id) throw new Error('Select a booking to edit.');
+      return saveAdminBooking(value, config.item.id);
+    }
     if (config.type === 'payment' && config.mode === 'add') {
       const booking = records.bookings.find((item) => String(item.id) === String(value.booking));
       if (!booking) throw new Error('Select an existing booking.');
@@ -357,7 +364,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       return result;
     }
     throw new Error(`Saving ${config.type} records is not supported by the backend yet.`);
-  }, [savePassenger, createAdminBooking, records.bookings, refresh]);
+  }, [savePassenger, saveAdminBooking, records.bookings, refresh]);
 
   const deleteMaintenance = useCallback(async (id) => {
     await api.delete(`/api/maintenance/${id}`);

@@ -36,6 +36,13 @@ const iconPaths = {
       <path d="M8 11h.01M12 11h.01M16 11h.01" />
     </>
   ),
+  image: (
+    <>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <circle cx="8.5" cy="9" r="1.5" />
+      <path d="m21 15-5-5L5 20" />
+    </>
+  ),
   chart: (
     <>
       <path d="M4 19V5m0 14h17" />

@@ -84,6 +84,73 @@ public class BookingService {
         return createBookingForPassenger(new BookingRequest(request.tripId(), request.seatNumbers()), passenger);
     }
 
+    @Transactional
+    public BookingView updateBookingForStaff(Long bookingId, StaffBookingRequest request, String userId) {
+        requireStaffRole(userId);
+        if (request == null || request.passengerId() == null || request.tripId() == null) {
+            throw new IllegalArgumentException("Select a passenger and trip.");
+        }
+
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking not found."));
+        if (!PENDING_PAYMENT.equalsIgnoreCase(booking.getBookingStatus())) {
+            throw new BookingConflictException("Only pending payment bookings can be edited.");
+        }
+        if (paymentRepository.existsByBookingId(bookingId)) {
+            throw new BookingConflictException("A booking with a payment record cannot be edited.");
+        }
+
+        Passenger passenger = passengerRepository.findById(request.passengerId())
+                .orElseThrow(() -> new BookingNotFoundException("Passenger not found."));
+        if (!"Active".equalsIgnoreCase(passenger.getStatus())) {
+            throw new BookingConflictException("This passenger account is not active.");
+        }
+
+        Trip trip = tripRepository.findByIdForUpdate(request.tripId())
+                .orElseThrow(() -> new TripNotFoundException("Trip not found."));
+        ensureTripCanBeBooked(trip);
+        List<Integer> seatNumbers = normalizeSeatNumbers(request.seatNumbers(), trip.getSeatCapacity());
+        List<Ticket> bookingTickets = ticketRepository.findByBooking_IdOrderBySeatNumberAsc(bookingId);
+        if (bookingTickets.isEmpty()) {
+            throw new BookingConflictException("This booking has no ticket to update.");
+        }
+        Ticket ticket = bookingTickets.stream()
+                .filter(existing -> ACTIVE_TICKET_STATUSES.contains(existing.getTicketStatus()))
+                .findFirst()
+                .orElseThrow(() -> new BookingConflictException("This booking has no active ticket to update."));
+
+        Integer seatNumber = seatNumbers.get(0);
+        boolean seatTakenByAnotherBooking = ticketRepository
+                .findByTrip_IdAndTicketStatusIn(trip.getId(), ACTIVE_TICKET_STATUSES)
+                .stream()
+                .anyMatch(activeTicket -> seatNumber.toString().equalsIgnoreCase(activeTicket.getSeatNumber())
+                        && !bookingId.equals(activeTicket.getBooking().getId()));
+        if (seatTakenByAnotherBooking) {
+            throw new BookingConflictException("Seat " + seatNumber + " is no longer available.");
+        }
+
+        List<Ticket> additionalTickets = bookingTickets.stream()
+                .filter(existing -> !existing.getId().equals(ticket.getId()))
+                .toList();
+        if (!additionalTickets.isEmpty()) {
+            ticketRepository.deleteAll(additionalTickets);
+            ticketRepository.flush();
+        }
+
+        booking.setPassenger(passenger);
+        booking.setTrip(trip);
+        booking.setSeatCount(1);
+        booking.setTotalAmount(trip.getFare().setScale(2, RoundingMode.HALF_UP));
+        Booking savedBooking = bookingRepository.save(booking);
+
+        ticket.setTrip(trip);
+        ticket.setSeatNumber(seatNumber.toString());
+        ticket.setTicketStatus(RESERVED);
+        ticketRepository.save(ticket);
+
+        return toView(savedBooking, List.of(ticket));
+    }
+
     private BookingView createBookingForPassenger(BookingRequest request, Passenger passenger) {
         if (request == null || request.tripId() == null) {
             throw new IllegalArgumentException("A trip must be selected.");
