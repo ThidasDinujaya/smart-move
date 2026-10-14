@@ -17,6 +17,7 @@ public class VehicleMediaDocument {
     private String documentNumber;
     private String contentType;
     private String storageUrl;
+    private String mediaData;
     private String imageData;
     private Instant uploadedAt;
     private Instant expiresAt;
@@ -38,6 +39,8 @@ public class VehicleMediaDocument {
     public void setContentType(String contentType) { this.contentType = contentType; }
     public String getStorageUrl() { return storageUrl; }
     public void setStorageUrl(String storageUrl) { this.storageUrl = storageUrl; }
+    public String getMediaData() { return mediaData; }
+    public void setMediaData(String mediaData) { this.mediaData = mediaData; }
     public String getImageData() { return imageData; }
     public void setImageData(String imageData) { this.imageData = imageData; }
     public Instant getUploadedAt() { return uploadedAt; }

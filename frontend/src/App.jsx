@@ -756,7 +756,7 @@ function AdminApp() {
         );
 
       case "content":
-        return <ContentManagement />;
+        return <ContentManagement passengers={passengers} trips={trips} vehicles={vehicles} />;
 
       default:
         return (

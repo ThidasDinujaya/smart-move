@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import PageHeader from '../../components/PageHeader.jsx';
 import Icon from '../../components/Icon.jsx';
 import ActionButtons from '../../components/ActionButtons.jsx';
@@ -10,116 +10,99 @@ const sections = {
     title: 'Announcements',
     path: '/api/content/admin/announcements',
     fields: [
-      ['title', 'Title'], ['message', 'Message', 'textarea'], ['severity', 'Severity'],
-      ['routeOracleIds', 'Route IDs (comma separated)'], ['audience', 'Audience (CUSTOMER, DRIVER, or ALL)'],
-      ['source', 'Source'], ['language', 'Language'],
-      ['publishedAt', 'Publish time', 'datetime-local'], ['startsAt', 'Start time', 'datetime-local'],
-      ['endsAt', 'End time', 'datetime-local'], ['active', 'Active', 'checkbox'],
+      ['title', 'Title'], ['message', 'Message', 'textarea'], ['audience', 'Who can see this?', 'audience'],
+      ['active', 'Active', 'checkbox'],
     ],
   },
   notifications: {
     title: 'Notifications',
     path: '/api/content/admin/notifications',
     fields: [
-      ['recipientOracleId', 'Passenger ID', 'number'], ['recipientRole', 'Recipient role'],
-      ['notificationType', 'Notification type'], ['title', 'Title'], ['message', 'Message', 'textarea'],
-      ['relatedTripOracleId', 'Related trip ID', 'number'], ['channel', 'Channel'],
-      ['bookingReference', 'Booking reference'],
+      ['recipientOracleId', 'Passenger', 'passenger'], ['title', 'Title'], ['message', 'Message', 'textarea'],
     ],
   },
   tripMedia: {
     title: 'Trip media',
     path: '/api/content/admin/trip-media',
     fields: [
-      ['tripOracleId', 'Trip ID', 'number'], ['mediaType', 'Media type'], ['title', 'Title'],
-      ['description', 'Description', 'textarea'], ['contentType', 'Content type'],
-      ['storageUrl', 'Storage URL'], ['location', 'Location'], ['note', 'Notes', 'textarea'],
+      ['tripOracleId', 'Trip', 'trip'], ['mediaFile', 'Image or PDF', 'file'],
     ],
   },
   vehicleMedia: {
     title: 'Vehicle media',
     path: '/api/content/admin/vehicle-media',
     fields: [
-      ['vehicleOracleId', 'Vehicle ID', 'number'], ['mediaType', 'Media type'], ['fileName', 'File name'],
-      ['documentNumber', 'Document number'], ['contentType', 'Content type'], ['storageUrl', 'Storage URL'],
-      ['expiresAt', 'Expiry time', 'datetime-local'], ['note', 'Notes', 'textarea'], ['view', 'Photo view'],
+      ['vehicleOracleId', 'Vehicle', 'vehicle'], ['mediaFile', 'Image or PDF', 'file'],
     ],
   },
 };
 
 function emptyForm(section) {
-  return Object.fromEntries(section.fields.map(([name, , type]) => [name, type === 'checkbox' ? true : '']));
-}
-
-function localDateTime(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+  return Object.fromEntries(section.fields.map(([name, , type]) => [
+    name,
+    type === 'checkbox' ? true : type === 'audience' ? 'ALL' : '',
+  ]));
 }
 
 function formFromRecord(section, record) {
   const values = emptyForm(section);
   for (const [name, , type] of section.fields) {
     const value = record[name];
-    if (type === 'checkbox') values[name] = value !== false;
-    else if (['publishedAt', 'startsAt', 'endsAt', 'expiresAt'].includes(name)) values[name] = localDateTime(value);
-    else if (name === 'routeOracleIds' || name === 'audience') values[name] = Array.isArray(value) ? value.join(', ') : '';
-    else if (name === 'source' || name === 'language') values[name] = record.details?.[name] ?? value ?? '';
-    else if (name === 'note' || name === 'view') values[name] = record.metadata?.[name] ?? value ?? '';
-    else if (name === 'bookingReference') values[name] = value ?? record.details?.bookingReference ?? '';
+    if (type === 'file') values[name] = '';
+    else if (type === 'checkbox') values[name] = value !== false;
+    else if (name === 'audience') values[name] = Array.isArray(value)
+      ? value.length === 1 ? String(value[0]).toUpperCase() : value.length ? '__KEEP__' : 'ALL'
+      : String(value || 'ALL').toUpperCase();
+    else if (['recipientOracleId', 'tripOracleId', 'vehicleOracleId'].includes(name)) values[name] = value == null ? '' : String(value);
     else values[name] = value ?? '';
   }
   return values;
 }
 
-function mapFromFields(values, existing, managedKeys) {
-  const preservedValues = Object.fromEntries(Object.entries(existing || {}).filter(([key]) => !managedKeys.includes(key)));
-  const enteredValues = Object.fromEntries(Object.entries(values)
-    .filter(([, value]) => value != null && String(value).trim() !== '')
-    .map(([key, value]) => [key, String(value).trim()]));
-  const result = { ...preservedValues, ...enteredValues };
-  return Object.keys(result).length ? result : null;
-}
-
 function buildPayload(sectionId, form, existingRecord) {
   const numberOrNull = (value) => value === '' ? null : Number(value);
-  const dateOrNull = (value) => value ? new Date(value).toISOString() : null;
+  const existing = existingRecord ? { ...existingRecord } : {};
 
   if (sectionId === 'announcements') {
-    const { source, language, ...announcement } = form;
     return {
-      ...announcement,
-      routeOracleIds: form.routeOracleIds.split(',').map((value) => value.trim()).filter(Boolean).map(Number),
-      audience: form.audience.split(',').map((value) => value.trim().toUpperCase()).filter(Boolean),
-      publishedAt: dateOrNull(form.publishedAt),
-      startsAt: dateOrNull(form.startsAt),
-      endsAt: dateOrNull(form.endsAt),
-      details: mapFromFields({ source, language }, existingRecord?.details, ['source', 'language']),
+      ...existing,
+      title: form.title.trim(),
+      message: form.message.trim(),
+      audience: form.audience === '__KEEP__' ? existingRecord?.audience || [] : [form.audience || 'ALL'],
+      active: Boolean(form.active),
     };
   }
   if (sectionId === 'notifications') {
     return {
-      ...form,
+      ...existing,
       recipientOracleId: numberOrNull(form.recipientOracleId),
-      relatedTripOracleId: numberOrNull(form.relatedTripOracleId),
-      details: mapFromFields({ bookingReference: form.bookingReference }, existingRecord?.details, ['bookingReference']),
+      recipientRole: existingRecord?.recipientRole || 'CUSTOMER',
+      title: form.title.trim(),
+      message: form.message.trim(),
+      channel: existingRecord?.channel || 'IN_APP',
     };
   }
   if (sectionId === 'tripMedia') {
-    const { note, ...tripMedia } = form;
+    const fileName = form.fileName || existingRecord?.fileName || null;
+    const generatedTitle = fileName ? fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() : '';
     return {
-      ...tripMedia,
+      ...existing,
       tripOracleId: numberOrNull(form.tripOracleId),
-      metadata: mapFromFields({ note }, existingRecord?.metadata, ['note']),
+      title: form.mediaFile ? generatedTitle || fileName : existingRecord?.title || generatedTitle || 'Trip media',
+      mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'IMAGE'),
+      fileName,
+      contentType: form.contentType || existingRecord?.contentType || null,
+      mediaData: form.mediaData || existingRecord?.mediaData || null,
     };
   }
-  const { note, view, ...vehicleMedia } = form;
   return {
-    ...vehicleMedia,
+    ...existing,
     vehicleOracleId: numberOrNull(form.vehicleOracleId),
-    expiresAt: dateOrNull(form.expiresAt),
-    metadata: mapFromFields({ note, view }, existingRecord?.metadata, ['note', 'view']),
+    mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'IMAGE'),
+    fileName: form.fileName || existingRecord?.fileName || null,
+    contentType: form.contentType || existingRecord?.contentType || null,
+    mediaData: form.mediaData || existingRecord?.mediaData || null,
+    imageData: form.mediaFile ? null : existingRecord?.imageData || null,
   };
 }
 
@@ -182,17 +165,50 @@ function detailEntries(record) {
   return entries;
 }
 
-function mediaPreview(record) {
-  const imageData = record.mediaData || record.imageData;
-  if (imageData) {
-    if (imageData.startsWith('data:')) return imageData;
-    if (record.contentType?.startsWith('image/')) return `data:${record.contentType};base64,${imageData}`;
+const supportedMediaTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+
+function safeMediaUrl(value) {
+  if (typeof value !== 'string' || !value) return '';
+  if (value.startsWith('/')) return value;
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? value : '';
+  } catch {
+    return '';
   }
-  if (record.contentType?.startsWith('image/') && record.storageUrl) return record.storageUrl;
-  return '';
 }
 
-export default function ContentManagement() {
+function mediaViewer(record) {
+  const data = record.mediaData || record.imageData;
+  let source = '';
+  if (typeof data === 'string' && data.startsWith('data:')) {
+    source = /^data:(application\/pdf|image\/png|image\/jpeg);base64,/i.test(data) ? data : '';
+  } else if (typeof data === 'string' && data) {
+    if (supportedMediaTypes.includes(record.contentType)) source = `data:${record.contentType};base64,${data}`;
+    else source = safeMediaUrl(data);
+  }
+  if (!source) source = safeMediaUrl(record.storageUrl);
+
+  const contentType = String(record.contentType || '').toLowerCase();
+  const fileReference = `${record.fileName || ''} ${record.storageUrl || ''}`.toLowerCase();
+  const type = contentType === 'application/pdf' || source.startsWith('data:application/pdf;') || /\.pdf(?:\?|$)/.test(fileReference)
+    ? 'pdf'
+    : contentType.startsWith('image/') || source.startsWith('data:image/') || /\.(png|jpe?g)(?:\?|$)/.test(fileReference)
+      ? 'image'
+      : 'file';
+  return source ? { source, type } : null;
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Unable to read the selected file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+export default function ContentManagement({ passengers = [], trips = [], vehicles = [] }) {
   const [sectionId, setSectionId] = useState('announcements');
   const [records, setRecords] = useState({});
   const [form, setForm] = useState(emptyForm(sections.announcements));
@@ -201,8 +217,56 @@ export default function ContentManagement() {
   const [viewingRecord, setViewingRecord] = useState(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [readingFile, setReadingFile] = useState(false);
   const [search, setSearch] = useState('');
+  const mediaFileInput = useRef(null);
   const section = sections[sectionId];
+
+  const uploadMediaFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const extensionType = /\.pdf$/i.test(file.name)
+      ? 'application/pdf'
+      : /\.png$/i.test(file.name)
+        ? 'image/png'
+        : /\.jpe?g$/i.test(file.name)
+          ? 'image/jpeg'
+          : '';
+    const browserType = String(file.type || '').toLowerCase();
+    const reportedType = browserType === 'application/x-pdf' ? 'application/pdf' : browserType;
+    const contentType = reportedType === 'application/octet-stream' || !reportedType ? extensionType : reportedType;
+
+    if (!extensionType || !supportedMediaTypes.includes(contentType) || contentType !== extensionType) {
+      setError('Choose a PDF, PNG, or JPG file.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Files must be 10 MB or smaller so they fit safely in MongoDB.');
+      event.target.value = '';
+      return;
+    }
+
+    try {
+      setReadingFile(true);
+      const dataUrl = await readFileAsDataUrl(file);
+      const encodedFile = dataUrl.slice(dataUrl.indexOf(',') + 1);
+      setForm((current) => ({
+        ...current,
+        mediaFile: file.name,
+        mediaData: `data:${contentType};base64,${encodedFile}`,
+        contentType,
+        mediaType: contentType.startsWith('image/') ? 'IMAGE' : 'DOCUMENT',
+        fileName: file.name,
+      }));
+      setError('');
+    } catch (requestError) {
+      setError(requestError.message || 'Unable to read the selected file.');
+      event.target.value = '';
+    } finally {
+      setReadingFile(false);
+    }
+  };
 
   const refresh = useCallback(async () => {
     try {
@@ -220,6 +284,7 @@ export default function ContentManagement() {
     setEditingId(null);
     setEditingRecord(null);
     setForm(emptyForm(section));
+    if (mediaFileInput.current) mediaFileInput.current.value = '';
   };
 
   const save = async (event) => {
@@ -240,6 +305,7 @@ export default function ContentManagement() {
   };
 
   const selectSection = (nextSection) => {
+    if (mediaFileInput.current) mediaFileInput.current.value = '';
     setSectionId(nextSection);
     setEditingId(null);
     setEditingRecord(null);
@@ -250,6 +316,7 @@ export default function ContentManagement() {
   };
 
   const beginEdit = (record) => {
+    if (mediaFileInput.current) mediaFileInput.current.value = '';
     setViewingRecord(null);
     setEditingId(record.id);
     setEditingRecord(record);
@@ -272,24 +339,16 @@ export default function ContentManagement() {
     }
   };
 
-  const changeAudience = (audience) => {
-    const selected = (form.audience || '').split(',').map((value) => value.trim()).filter(Boolean);
-    const next = selected.includes(audience)
-      ? selected.filter((value) => value !== audience)
-      : audience === 'ALL'
-        ? ['ALL']
-        : [...selected.filter((value) => value !== 'ALL'), audience];
-    setForm((current) => ({ ...current, audience: next.join(', ') }));
-  };
-
-  const visibleRecords = (records[sectionId] || []).filter((record) => (
-    !search || JSON.stringify(record).toLowerCase().includes(search.toLowerCase())
-  ));
-  const selectedAudience = (form.audience || '').split(',').map((value) => value.trim().toUpperCase()).filter(Boolean);
+  const visibleRecords = (records[sectionId] || []).filter((record) => {
+    if (!search) return true;
+    const searchableRecord = Object.fromEntries(Object.entries(record).filter(([key]) => !['mediaData', 'imageData'].includes(key)));
+    return JSON.stringify(searchableRecord).toLowerCase().includes(search.toLowerCase());
+  });
+  const viewingMedia = viewingRecord ? mediaViewer(viewingRecord) : null;
 
   return (
     <section className="page">
-      <PageHeader title="Announcements & media" subtitle="Create and update MongoDB records used by the customer portal" />
+      <PageHeader title="Announcements & media" subtitle="Manage announcements, notifications, and media shown in SmartMove" />
       <div className="stats-grid content-overview-grid">
         <article className="stat-card blue"><Icon name="message" size={22} /><div><div className="stat-title">Announcements</div><div className="stat-value">{records.announcements?.length || 0}</div></div></article>
         <article className="stat-card orange"><Icon name="bell" size={22} /><div><div className="stat-title">Notifications</div><div className="stat-value">{records.notifications?.length || 0}</div></div></article>
@@ -310,23 +369,70 @@ export default function ContentManagement() {
             <div>
               <span className="content-eyebrow">{editingId ? 'EDIT RECORD' : 'NEW RECORD'}</span>
               <h2>{editingId ? `Edit ${section.title}` : `Create ${section.title}`}</h2>
-              <p>{editingId ? 'Update the details below and save your changes.' : `Add a new ${section.title.toLowerCase()} record to MongoDB.`}</p>
+              <p>{editingId ? 'Update the information below.' : `Add a new ${section.title.toLowerCase()}.`}</p>
             </div>
             <span className="content-panel-icon"><Icon name={sectionId === 'announcements' ? 'message' : sectionId === 'notifications' ? 'bell' : 'image'} size={20} /></span>
           </div>
           <div className="content-fields">
-            {section.fields.map(([name, label, type = 'text']) => name === 'audience' ? (
-              <div className="content-field-wide" key={name}>
+            {section.fields.map(([name, label, type = 'text']) => type === 'audience' ? (
+              <label className="content-field-wide" key={name}>
                 <span className="content-field-label">{label}</span>
-                <div className="content-choice-group">
-                  {['CUSTOMER', 'DRIVER', 'ALL'].map((audience) => (
-                    <label key={audience} className={selectedAudience.includes(audience) ? 'selected' : ''}>
-                      <input type="checkbox" checked={selectedAudience.includes(audience)} onChange={() => changeAudience(audience)} />
-                      {audience === 'ALL' ? 'Everyone' : audience === 'CUSTOMER' ? 'Customers' : 'Drivers'}
-                    </label>
+                <select value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}>
+                  {form[name] === '__KEEP__' && <option value="__KEEP__">Keep current audience</option>}
+                  <option value="ALL">Everyone</option>
+                  <option value="CUSTOMER">Customers</option>
+                  <option value="DRIVER">Drivers</option>
+                </select>
+              </label>
+            ) : type === 'file' ? (
+              <label className="content-field-wide" key={name}>
+                <span>{label}</span>
+                <input
+                  ref={mediaFileInput}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
+                  required={!editingId && !(editingRecord?.mediaData || editingRecord?.imageData || editingRecord?.storageUrl)}
+                  onChange={uploadMediaFile}
+                />
+                <small className="content-upload-help">
+                  {form.mediaFile
+                    ? `Selected: ${form.mediaFile}`
+                    : editingRecord?.mediaData || editingRecord?.imageData || editingRecord?.storageUrl
+                      ? `Current file: ${editingRecord.fileName || 'attached file'}. Choose a new file to replace it.`
+                      : 'PDF, PNG, or JPG, up to 10 MB. The file name and type are filled in automatically.'}
+                </small>
+              </label>
+            ) : ['passenger', 'trip', 'vehicle'].includes(type) ? (
+              <label key={name}>
+                <span>{label}</span>
+                <select
+                  value={form[name]}
+                  required
+                  onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
+                >
+                  <option value="" disabled>Select a {type}</option>
+                  {form[name] && !(type === 'passenger' ? passengers : type === 'trip' ? trips : vehicles)
+                    .some((item) => String(item.id) === String(form[name])) && (
+                    <option value={form[name]}>
+                      {type === 'passenger' ? `Passenger #${form[name]}` : type === 'trip' ? `Trip #${form[name]}` : `Vehicle #${form[name]}`}
+                    </option>
+                  )}
+                  {type === 'passenger' && passengers.map((passenger) => (
+                    <option key={passenger.id} value={passenger.id}>
+                      {passenger.fullName || `Passenger #${passenger.id}`}{passenger.email ? ` · ${passenger.email}` : ''}
+                    </option>
                   ))}
-                </div>
-              </div>
+                  {type === 'trip' && trips.map((trip) => {
+                    const route = trip.route || [trip.from, trip.to].filter(Boolean).join(' → ') || `Trip #${trip.id}`;
+                    const when = [trip.date, trip.departure].filter(Boolean).join(' · ');
+                    return <option key={trip.id} value={trip.id}>{route}{when ? ` · ${when}` : ''}</option>;
+                  })}
+                  {type === 'vehicle' && vehicles.map((vehicle) => {
+                    const description = [vehicle.brand, vehicle.model, vehicle.vehicleType].filter(Boolean).join(' ');
+                    return <option key={vehicle.id} value={vehicle.id}>{vehicle.vehicleNo || `Vehicle #${vehicle.id}`}{description ? ` · ${description}` : ''}</option>;
+                  })}
+                </select>
+              </label>
             ) : (
               <label className={type === 'textarea' ? 'content-field-wide' : ''} key={name}>
                 {type === 'checkbox' ? (
@@ -338,9 +444,9 @@ export default function ContentManagement() {
                   <>
                     <span>{label}</span>
                     {type === 'textarea' ? (
-                      <textarea rows="3" value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
+                      <textarea rows="3" required value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
                     ) : (
-                      <input type={type} value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
+                      <input type={type} required value={form[name]} onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))} />
                     )}
                   </>
                 )}
@@ -348,13 +454,13 @@ export default function ContentManagement() {
             ))}
           </div>
           <div className="content-form-actions">
-            <button className="primary" type="submit" disabled={saving}>{saving ? 'Saving…' : editingId ? 'Save changes' : `Create ${section.title}`}</button>
+            <button className="primary" type="submit" disabled={saving || readingFile}>{readingFile ? 'Reading file…' : saving ? 'Saving…' : editingId ? 'Save changes' : `Create ${section.title}`}</button>
             {editingId && <button className="secondary" type="button" onClick={resetForm} disabled={saving}>Cancel edit</button>}
           </div>
         </form>
         <section className="content-records content-panel" aria-label={`${section.title} records`}>
           <div className="content-panel-heading content-records-heading">
-            <div><span className="content-eyebrow">MONGODB COLLECTION</span><h2>{section.title}</h2><p>{visibleRecords.length} {visibleRecords.length === 1 ? 'record' : 'records'} in this collection</p></div>
+            <div><span className="content-eyebrow">SAVED RECORDS</span><h2>{section.title}</h2><p>{visibleRecords.length} {visibleRecords.length === 1 ? 'record' : 'records'}</p></div>
             <span className="content-record-count">{visibleRecords.length}</span>
           </div>
           <label className="content-search">
@@ -398,8 +504,17 @@ export default function ContentManagement() {
               </div>
               <button className="content-view-close" type="button" aria-label="Close details" onClick={() => setViewingRecord(null)}>×</button>
             </div>
-            {mediaPreview(viewingRecord) && (
-              <img className="content-view-media" src={mediaPreview(viewingRecord)} alt={viewingRecord.title || viewingRecord.fileName || 'Media preview'} />
+            {viewingMedia?.type === 'image' && (
+              <img className="content-view-media" src={viewingMedia.source} alt={viewingRecord.title || viewingRecord.fileName || 'Media preview'} />
+            )}
+            {viewingMedia?.type === 'pdf' && (
+              <>
+                <iframe className="content-view-document" src={viewingMedia.source} title={viewingRecord.fileName || viewingRecord.title || 'PDF preview'} />
+                <a className="content-view-file-link" href={viewingMedia.source} target="_blank" rel="noreferrer">Open PDF in a new tab</a>
+              </>
+            )}
+            {viewingMedia?.type === 'file' && (
+              <a className="content-view-file-link" href={viewingMedia.source} target="_blank" rel="noreferrer">Open attached file</a>
             )}
             <div className="content-view-details">
               {detailEntries(viewingRecord).map(([key, value], index) => (

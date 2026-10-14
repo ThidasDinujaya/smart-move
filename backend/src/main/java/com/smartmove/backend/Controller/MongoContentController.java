@@ -35,6 +35,7 @@ import java.util.List;
 @RequestMapping("/api/content")
 @CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class MongoContentController {
+    private static final int MAX_MEDIA_DATA_LENGTH = 14 * 1024 * 1024;
 
     private final TravelAnnouncementRepository announcementRepository;
     private final NotificationRepository notificationRepository;
@@ -288,7 +289,10 @@ public class MongoContentController {
         request.setId(id);
         request.setRegistrationNo(vehicle.getVehicleNo());
         request.setUploadedAt(saved.getUploadedAt());
-        if (request.getImageData() == null) request.setImageData(saved.getImageData());
+        if (request.getMediaData() == null) {
+            request.setMediaData(saved.getMediaData());
+            if (request.getImageData() == null) request.setImageData(saved.getImageData());
+        }
         return vehicleMediaRepository.save(request);
     }
 
@@ -341,6 +345,7 @@ public class MongoContentController {
                 || !tripRepository.existsById(request.getTripOracleId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select an existing trip for the media.");
         }
+        validateMediaAttachment(request.getContentType(), request.getMediaData());
         requireText(request.getMediaType(), "A media type is required.");
         requireText(request.getTitle(), "A media title is required.");
     }
@@ -351,8 +356,26 @@ public class MongoContentController {
         }
         Vehicle vehicle = vehicleRepository.findById(request.getVehicleOracleId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "The selected vehicle was not found."));
+        validateMediaAttachment(request.getContentType(), request.getMediaData());
         requireText(request.getMediaType(), "A media type is required.");
         return vehicle;
+    }
+
+    private void validateMediaAttachment(String contentType, String mediaData) {
+        if (mediaData == null || mediaData.isBlank()) return;
+        if (mediaData.length() > MAX_MEDIA_DATA_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "The uploaded file is too large. Choose a file no larger than 10 MB.");
+        }
+        if (contentType == null || !(contentType.equals("application/pdf")
+                || contentType.equals("image/png") || contentType.equals("image/jpeg"))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Media uploads must be PDF, PNG, or JPG files.");
+        }
+        if (mediaData.startsWith("data:") && !mediaData.startsWith("data:" + contentType + ";base64,")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "The uploaded file does not match its content type.");
+        }
     }
 
     private void requireText(String value, String message) {
