@@ -4,6 +4,8 @@
 
 SmartMove uses Oracle for relational records and MongoDB for announcements, notifications, feedback comments, and uploaded trip and vehicle media. Set up both databases before starting the backend.
 
+ER Diagram Link :- https://drive.google.com/file/d/15QVnbhW9tUj682-7J2eJriL2mBJp3pUO/view?usp=sharing
+
 ### Oracle in SQL Developer
 
 1. Start Oracle and connect to the `XEPDB1` service on `localhost:1521`.
