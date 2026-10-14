@@ -1,7 +1,5 @@
 
 import { useState } from 'react';
-import { UploadCloud } from 'lucide-react';
-import fileToDataUrl from '../../utils/fileToDataUrl.js';
 import { formatRecordId } from '../../utils/recordIds.js';
 
 function AddDriver({
@@ -18,34 +16,7 @@ function AddDriver({
   const [address, setAddress] = useState('');
   const [assignedVehicle, setAssignedVehicle] = useState('');
   const [status, setStatus] = useState('Active');
-  const [photoPreview, setPhotoPreview] = useState('');
-  const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
-
-  function handlePhotoChange(event) {
-    const file = event.target.files?.[0];
-
-    if (!file) return;
-
-    if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      window.alert('Please select a JPG or PNG image.');
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      window.alert('Photo must be smaller than 2MB.');
-      event.target.value = '';
-      return;
-    }
-
-    if (photoPreview) {
-      URL.revokeObjectURL(photoPreview);
-    }
-
-    setPhotoPreview(URL.createObjectURL(file));
-    setPhotoFile(file);
-  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -82,7 +53,6 @@ function AddDriver({
       address: address.trim(),
       assignedVehicle,
       status,
-      imageData: await fileToDataUrl(photoFile),
     };
 
     if (!newDriver.name || !newDriver.nic ||
@@ -240,35 +210,6 @@ function AddDriver({
             </div>
           </div>
 
-          {/* RIGHT SIDE - PHOTO */}
-          <div className="vehicle-image-section">
-            <label className="image-title">
-              Driver Photo
-            </label>
-
-            <label className="image-upload-box">
-              {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Driver preview"
-                  className="driver-photo-preview"
-                />
-              ) : (
-                <>
-                  <UploadCloud size={45} />
-                  <strong>Choose photo</strong>
-                  <span>JPG, PNG (Max 2MB)</span>
-                </>
-              )}
-
-              <input
-                type="file"
-                accept=".jpg,.jpeg,.png"
-                onChange={handlePhotoChange}
-                hidden
-              />
-            </label>
-          </div>
         </div>
 
         {/* BUTTONS */}

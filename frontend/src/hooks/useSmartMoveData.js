@@ -68,7 +68,6 @@ async function migrateLegacyRecords() {
         email: record.email || null,
         assignedVehicle: record.assignedVehicle || null,
         address: record.address || null,
-        imageData: record.imageData || null,
         status: record.status || 'Active',
       }),
     },
@@ -261,7 +260,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       address: value.address || null,
       assignedVehicle: value.assignedVehicle || null,
       status: value.status,
-      imageData: value.imageData || null,
     };
     const saved = value.id
       ? await api.put(`/api/drivers/${value.id}`, payload)

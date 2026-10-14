@@ -1,5 +1,11 @@
 -- Insert a small connected sample set for the SmartMove screens and reports.
 -- Demo accounts use Welcome123! as their password.
+-- Oracle identity columns start at 1000. Their numeric keys are displayed with
+-- the entity prefixes used by the app: Passenger P, Payment PA, Driver D,
+-- Ticket TI, Trip T, Booking B, Vehicle V, Route R, User U, Maintenance M,
+-- and Feedback F (for example, passenger_id 1000 is shown as P1000).
+-- Keep the numeric foreign-key values below unchanged so sample relationships
+-- continue to point to the correct Oracle records.
 
 SET DEFINE OFF
 

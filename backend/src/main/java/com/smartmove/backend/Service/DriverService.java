@@ -103,7 +103,6 @@ public class DriverService {
         existingDriver.setContact(updatedDriver.getContact());
         existingDriver.setEmail(updatedDriver.getEmail());
         existingDriver.setVehicle(findVehicle(updatedDriver.getAssignedVehicle()));
-        existingDriver.setImageData(updatedDriver.getImageData());
         existingDriver.setAddress(updatedDriver.getAddress());
         existingDriver.setStatus(updatedDriver.getStatus());
 

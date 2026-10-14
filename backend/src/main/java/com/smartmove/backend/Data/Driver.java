@@ -32,9 +32,6 @@ public class Driver {
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicle;
 
-    @Lob
-    private String imageData;
-
     private String address;
 
     private String status;
@@ -89,9 +86,6 @@ public class Driver {
     @JsonIgnore
     public Vehicle getVehicle() { return vehicle; }
     public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
-    public String getImageData() { return imageData; }
-    public void setImageData(String imageData) { this.imageData = imageData; }
-
     public String getAddress() {
         return address;
     }

@@ -78,13 +78,6 @@ const CustomerHome = () => {
                 {announcement.startsAt ? ` · Starts: ${new Date(announcement.startsAt).toLocaleDateString()}` : ''}
                 {announcement.endsAt ? ` · Ends: ${new Date(announcement.endsAt).toLocaleDateString()}` : ''}
               </p>
-              {(announcement.details?.source || announcement.details?.language) && (
-                <p style={{ color: '#64748b', fontSize: '11px', margin: '6px 0 0' }}>
-                  {announcement.details?.source ? `Source: ${announcement.details.source}` : ''}
-                  {announcement.details?.source && announcement.details?.language ? ' · ' : ''}
-                  {announcement.details?.language ? `Language: ${announcement.details.language}` : ''}
-                </p>
-              )}
             </article>
           ))}
         </section>

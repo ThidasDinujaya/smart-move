@@ -48,9 +48,6 @@ function ViewDriver({ driver, onBack, onEdit }) {
 
       {/* DRIVER DETAILS CARD */}
       <div className="details-card">
-        {driver.imageData && (
-          <img src={driver.imageData} alt={`${driver.name} driver`} style={{ width: '160px', height: '160px', objectFit: 'cover', borderRadius: '12px', marginBottom: '20px' }} />
-        )}
         <div className="details-title">
           <div>
             <h2>{driver.name}</h2>

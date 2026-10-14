@@ -4,31 +4,20 @@ import { ArrowLeft, Pencil } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { formatRecordId } from '../../utils/recordIds.js';
 
-function safeVehicleMediaUrl(value) {
-  if (typeof value !== 'string' || !value) return '';
-  if (value.startsWith('/')) return value;
-  try {
-    const url = new URL(value);
-    return ['http:', 'https:'].includes(url.protocol) ? value : '';
-  } catch {
-    return '';
-  }
-}
-
 function vehicleMediaSource(item) {
-  const data = item.mediaData || item.imageData;
+  const data = item.mediaData;
   if (typeof data === 'string' && data.startsWith('data:')) {
     return /^data:(application\/pdf|image\/png|image\/jpeg);base64,/i.test(data) ? data : '';
   }
   if (typeof data === 'string' && data && ['application/pdf', 'image/png', 'image/jpeg'].includes(item.contentType)) {
     return `data:${item.contentType};base64,${data}`;
   }
-  return safeVehicleMediaUrl(data) || safeVehicleMediaUrl(item.storageUrl);
+  return '';
 }
 
 function vehicleMediaType(item, source) {
   const contentType = String(item.contentType || '').toLowerCase();
-  const fileReference = `${item.fileName || ''} ${item.storageUrl || ''}`.toLowerCase();
+  const fileReference = String(item.fileName || '').toLowerCase();
   if (contentType === 'application/pdf' || source.startsWith('data:application/pdf;') || /\.pdf(?:\?|$)/.test(fileReference)) return 'pdf';
   if (contentType.startsWith('image/') || source.startsWith('data:image/') || /\.(png|jpe?g)(?:\?|$)/.test(fileReference)) return 'image';
   return 'file';
@@ -193,15 +182,12 @@ function ViewVehicle({ vehicle, onBack, onEdit }) {
                   </>
                 )}
                 {source && type === 'file' && <p><a href={source} target="_blank" rel="noreferrer">Open attached file</a></p>}
-                <strong>{item.mediaType || 'Vehicle file'}{item.fileName ? ` · ${item.fileName}` : ''}</strong>
+                <strong>{item.title || item.fileName || item.mediaType || 'Vehicle file'}</strong>
                 <p style={{ margin: '5px 0', color: '#475569', fontSize: '13px' }}>
                   {item.registrationNo || vehicle.vehicleNo}
-                  {item.documentNumber ? ` · Document ${item.documentNumber}` : ''}
                   {item.contentType ? ` · ${item.contentType}` : ''}
                   {item.uploadedAt ? ` · Uploaded ${new Date(item.uploadedAt).toLocaleString()}` : ''}
-                  {item.expiresAt ? ` · Expires ${new Date(item.expiresAt).toLocaleDateString()}` : ''}
                 </p>
-                {item.metadata && <details><summary>Metadata</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
               </article>
             );
           }) : <p style={{ color: '#64748b' }}>No vehicle documents or media are recorded.</p>}

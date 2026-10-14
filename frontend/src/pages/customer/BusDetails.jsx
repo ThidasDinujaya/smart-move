@@ -5,17 +5,6 @@ import { Bus } from 'lucide-react';
 import { api } from '../../api/client.js';
 import { formatRecordId } from '../../utils/recordIds.js';
 
-function safeTripMediaUrl(value) {
-  if (typeof value !== 'string' || !value) return '';
-  if (value.startsWith('/')) return value;
-  try {
-    const url = new URL(value);
-    return ['http:', 'https:'].includes(url.protocol) ? value : '';
-  } catch {
-    return '';
-  }
-}
-
 function tripMediaSource(item) {
   const data = item.mediaData;
   if (typeof data === 'string' && data.startsWith('data:')) {
@@ -24,12 +13,12 @@ function tripMediaSource(item) {
   if (typeof data === 'string' && data && ['application/pdf', 'image/png', 'image/jpeg'].includes(item.contentType)) {
     return `data:${item.contentType};base64,${data}`;
   }
-  return safeTripMediaUrl(data) || safeTripMediaUrl(item.storageUrl);
+  return '';
 }
 
 function tripMediaType(item, source) {
   const contentType = String(item.contentType || '').toLowerCase();
-  const fileReference = `${item.fileName || ''} ${item.storageUrl || ''}`.toLowerCase();
+  const fileReference = String(item.fileName || '').toLowerCase();
   if (contentType === 'application/pdf' || source.startsWith('data:application/pdf;') || /\.pdf(?:\?|$)/.test(fileReference)) return 'pdf';
   if (contentType.startsWith('image/') || source.startsWith('data:image/') || /\.(png|jpe?g)(?:\?|$)/.test(fileReference)) return 'image';
   return 'file';
@@ -110,14 +99,11 @@ const BusDetails = () => {
                     )}
                     {mediaUrl && mediaType === 'file' && <a href={mediaUrl} target="_blank" rel="noreferrer">Open {item.mediaType || 'trip file'}</a>}
                     <h3 style={{ fontSize: '14px', margin: '10px 0 4px' }}>{item.title || item.mediaType}</h3>
-                    {item.description && <p style={{ fontSize: '12px', color: '#475569' }}>{item.description}</p>}
                     <p style={{ fontSize: '11px', color: '#64748b' }}>
                       {item.mediaType} {item.contentType ? `· ${item.contentType}` : ''}
-                      {item.location ? ` · ${item.location}` : ''}
                       {item.uploadedAt ? ` · Uploaded ${new Date(item.uploadedAt).toLocaleString()}` : ''}
                       {item.uploadedByOracleId != null ? ` · Uploaded by ${formatRecordId('passenger', item.uploadedByOracleId)}` : ''}
                     </p>
-                    {item.metadata && <details style={{ fontSize: '11px', color: '#64748b' }}><summary>Metadata</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
                   </article>
                 );
               })}

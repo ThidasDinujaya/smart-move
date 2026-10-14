@@ -2,6 +2,7 @@ package com.smartmove.backend.controller;
 
 import com.smartmove.backend.data.NotificationDocument;
 import com.smartmove.backend.data.NotificationRepository;
+import com.smartmove.backend.data.Passenger;
 import com.smartmove.backend.data.PassengerRepository;
 import com.smartmove.backend.data.TravelAnnouncementDocument;
 import com.smartmove.backend.data.TravelAnnouncementRepository;
@@ -143,6 +144,7 @@ public class MongoContentController {
         request.setDisplayId(nextDisplayId("announcements", "A", announcementRepository.findAll().stream()
                 .map(TravelAnnouncementDocument::getDisplayId).toList()));
         if (request.getPublishedAt() == null) request.setPublishedAt(Instant.now());
+        if (request.getSeverity() == null || request.getSeverity().isBlank()) request.setSeverity("INFO");
         if (request.getActive() == null) request.setActive(true);
         return announcementRepository.save(request);
     }
@@ -161,6 +163,8 @@ public class MongoContentController {
         request.setId(id);
         request.setDisplayId(saved.getDisplayId());
         if (request.getPublishedAt() == null) request.setPublishedAt(saved.getPublishedAt());
+        if (request.getSeverity() == null || request.getSeverity().isBlank()) request.setSeverity(saved.getSeverity());
+        if (request.getRouteOracleIds() == null) request.setRouteOracleIds(saved.getRouteOracleIds());
         return announcementRepository.save(request);
     }
 
@@ -196,6 +200,9 @@ public class MongoContentController {
         if (request.getRecipientRole() == null || request.getRecipientRole().isBlank()) {
             request.setRecipientRole("CUSTOMER");
         }
+        if (request.getNotificationType() == null || request.getNotificationType().isBlank()) {
+            request.setNotificationType("GENERAL");
+        }
         if (request.getChannel() == null || request.getChannel().isBlank()) request.setChannel("IN_APP");
         return notificationRepository.save(request);
     }
@@ -214,6 +221,9 @@ public class MongoContentController {
         request.setCreatedAt(saved.getCreatedAt());
         request.setReadAt(saved.getReadAt());
         request.setStatus(saved.getStatus());
+        if (request.getNotificationType() == null || request.getNotificationType().isBlank()) {
+            request.setNotificationType(saved.getNotificationType() == null ? "GENERAL" : saved.getNotificationType());
+        }
         if (request.getChannel() == null || request.getChannel().isBlank()) request.setChannel(saved.getChannel());
         return notificationRepository.save(request);
     }
@@ -312,7 +322,6 @@ public class MongoContentController {
         request.setUploadedAt(saved.getUploadedAt());
         if (request.getMediaData() == null) {
             request.setMediaData(saved.getMediaData());
-            if (request.getImageData() == null) request.setImageData(saved.getImageData());
         }
         return vehicleMediaRepository.save(request);
     }
@@ -350,11 +359,38 @@ public class MongoContentController {
         long highest = highestDisplayNumber(results.stream().map(NotificationDocument::getDisplayId).toList(), "N");
         for (int index = 0; index < results.size(); index++) {
             NotificationDocument record = results.get(index);
+            boolean changed = false;
             if (record.getDisplayId() == null || record.getDisplayId().isBlank()) {
                 record.setDisplayId(publicIdService.nextId("notifications", "N", highest));
                 highest = highestDisplayNumber(List.of(record.getDisplayId()), "N");
-                results.set(index, notificationRepository.save(record));
+                changed = true;
             }
+            if (record.getRecipientOracleId() != null
+                    && (record.getRecipientName() == null || record.getRecipientName().isBlank()
+                    || record.getRecipientEmail() == null || record.getRecipientEmail().isBlank())) {
+                passengerRepository.findById(record.getRecipientOracleId()).ifPresent(passenger -> {
+                    record.setRecipientName(passenger.getFullName());
+                    record.setRecipientEmail(passenger.getEmail());
+                });
+                changed = changed || record.getRecipientName() != null && record.getRecipientEmail() != null;
+            }
+            if (record.getRecipientRole() == null || record.getRecipientRole().isBlank()) {
+                record.setRecipientRole("CUSTOMER");
+                changed = true;
+            }
+            if (record.getNotificationType() == null || record.getNotificationType().isBlank()) {
+                record.setNotificationType("GENERAL");
+                changed = true;
+            }
+            if (record.getChannel() == null || record.getChannel().isBlank()) {
+                record.setChannel("IN_APP");
+                changed = true;
+            }
+            if (record.getStatus() == null || record.getStatus().isBlank()) {
+                record.setStatus("UNREAD");
+                changed = true;
+            }
+            if (changed) results.set(index, notificationRepository.save(record));
         }
         return results;
     }
@@ -412,10 +448,14 @@ public class MongoContentController {
     }
 
     private void validateNotification(NotificationDocument request) {
-        if (request == null || request.getRecipientOracleId() == null
-                || !passengerRepository.existsById(request.getRecipientOracleId())) {
+        if (request == null || request.getRecipientOracleId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select an existing passenger for the notification.");
         }
+        Passenger passenger = passengerRepository.findById(request.getRecipientOracleId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Select an existing passenger for the notification."));
+        request.setRecipientName(passenger.getFullName());
+        request.setRecipientEmail(passenger.getEmail());
         requireText(request.getTitle(), "A notification title is required.");
         requireText(request.getMessage(), "A notification message is required.");
     }
@@ -453,6 +493,7 @@ public class MongoContentController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "The selected vehicle was not found."));
         validateMediaAttachment(request.getContentType(), request.getMediaData());
         requireText(request.getMediaType(), "A media type is required.");
+        requireText(request.getTitle(), "A media title is required.");
         return vehicle;
     }
 

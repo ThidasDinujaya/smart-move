@@ -9,7 +9,6 @@
     "publishedAt": { "$date": "2026-10-12T00:00:00Z" },
     "startsAt": { "$date": "2026-10-12T00:00:00Z" },
     "endsAt": null,
-    "active": true,
-    "details": { "source": "operations", "language": "en" }
+    "active": true
   }
 ]

@@ -4,35 +4,29 @@
     "vehicleOracleId": 1000,
     "registrationNo": "WP-CAB-1234",
     "mediaType": "INSURANCE",
+    "title": "Vehicle insurance document",
     "fileName": "WP-CAB-1234-insurance.pdf",
-    "documentNumber": "DEMO-INS-001",
     "contentType": "application/pdf",
-    "storageUrl": null,
-    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" },
-    "expiresAt": { "$date": "2027-04-09T00:00:00Z" },
-    "metadata": { "note": "Sample insurance document record; add a real storage URL when one is available." }
+    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" }
   },
   {
     "displayId": "VM1001",
     "vehicleOracleId": 1001,
     "registrationNo": "WP-VAN-4567",
     "mediaType": "PHOTO",
+    "title": "Front view",
     "fileName": "WP-VAN-4567-front.jpg",
     "contentType": "image/jpeg",
-    "storageUrl": null,
-    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" },
-    "metadata": { "view": "front", "note": "Sample vehicle photo record; upload a real image from the application." }
+    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" }
   },
   {
     "displayId": "VM1002",
     "vehicleOracleId": 1002,
     "registrationNo": "WP-BUS-8899",
     "mediaType": "INSPECTION_REPORT",
+    "title": "Vehicle inspection report",
     "fileName": "WP-BUS-8899-inspection.pdf",
-    "documentNumber": "DEMO-INSP-003",
     "contentType": "application/pdf",
-    "storageUrl": null,
-    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" },
-    "metadata": { "note": "Sample inspection document record; add a real storage URL when one is available." }
+    "uploadedAt": { "$date": "2026-10-11T00:00:00Z" }
   }
 ]

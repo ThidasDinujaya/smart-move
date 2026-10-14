@@ -26,14 +26,14 @@ const sections = {
     title: 'Trip media',
     path: '/api/content/admin/trip-media',
     fields: [
-      ['tripOracleId', 'Trip', 'trip'], ['mediaFile', 'Image or PDF', 'file'],
+      ['title', 'Title'], ['tripOracleId', 'Trip', 'trip'], ['mediaFile', 'Image or PDF', 'file'],
     ],
   },
   vehicleMedia: {
     title: 'Vehicle media',
     path: '/api/content/admin/vehicle-media',
     fields: [
-      ['vehicleOracleId', 'Vehicle', 'vehicle'], ['mediaFile', 'Image or PDF', 'file'],
+      ['title', 'Title'], ['vehicleOracleId', 'Vehicle', 'vehicle'], ['mediaFile', 'Image or PDF', 'file'],
     ],
   },
 };
@@ -60,7 +60,7 @@ function formFromRecord(section, record) {
   return values;
 }
 
-function buildPayload(sectionId, form, existingRecord) {
+function buildPayload(sectionId, form, existingRecord, selectedPassenger) {
   const numberOrNull = (value) => value === '' ? null : Number(value);
   const existing = existingRecord ? { ...existingRecord } : {};
 
@@ -77,6 +77,8 @@ function buildPayload(sectionId, form, existingRecord) {
     return {
       ...existing,
       recipientOracleId: numberOrNull(form.recipientOracleId),
+      recipientName: selectedPassenger?.fullName || selectedPassenger?.name || existingRecord?.recipientName || null,
+      recipientEmail: selectedPassenger?.email || existingRecord?.recipientEmail || null,
       recipientRole: existingRecord?.recipientRole || 'CUSTOMER',
       title: form.title.trim(),
       message: form.message.trim(),
@@ -85,12 +87,11 @@ function buildPayload(sectionId, form, existingRecord) {
   }
   if (sectionId === 'tripMedia') {
     const fileName = form.fileName || existingRecord?.fileName || null;
-    const generatedTitle = fileName ? fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim() : '';
     return {
       ...existing,
       tripOracleId: numberOrNull(form.tripOracleId),
-      title: form.mediaFile ? generatedTitle || fileName : existingRecord?.title || generatedTitle || 'Trip media',
-      mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'IMAGE'),
+      title: form.title.trim(),
+      mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'PHOTO'),
       fileName,
       contentType: form.contentType || existingRecord?.contentType || null,
       mediaData: form.mediaData || existingRecord?.mediaData || null,
@@ -99,11 +100,11 @@ function buildPayload(sectionId, form, existingRecord) {
   return {
     ...existing,
     vehicleOracleId: numberOrNull(form.vehicleOracleId),
-    mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'IMAGE'),
+    title: form.title.trim(),
+    mediaType: form.mediaType || existingRecord?.mediaType || (form.contentType === 'application/pdf' ? 'DOCUMENT' : 'PHOTO'),
     fileName: form.fileName || existingRecord?.fileName || null,
     contentType: form.contentType || existingRecord?.contentType || null,
     mediaData: form.mediaData || existingRecord?.mediaData || null,
-    imageData: form.mediaFile ? null : existingRecord?.imageData || null,
   };
 }
 
@@ -112,23 +113,21 @@ function recordMeta(sectionId, record) {
     return [
       record.severity || 'General',
       (record.audience || []).join(', ') || 'All audiences',
-      record.details?.source,
-      record.details?.language,
       record.publishedAt ? `Published ${formatDateTime(record.publishedAt)}` : 'Publish time not set',
     ].filter(Boolean);
   }
   if (sectionId === 'notifications') {
-    return [record.recipientRole || 'CUSTOMER', record.notificationType || 'Notification', record.status || 'UNREAD'];
+    return [record.recipientName, record.recipientEmail, record.recipientRole || 'CUSTOMER', record.notificationType || 'Notification', record.status || 'UNREAD'].filter(Boolean);
   }
   if (sectionId === 'tripMedia') {
-    return [record.mediaType || 'Trip media', record.contentType, record.location, record.metadata?.view].filter(Boolean);
+    return [record.mediaType || 'Trip media', record.contentType].filter(Boolean);
   }
-  return [record.mediaType || 'Vehicle media', record.registrationNo, record.metadata?.view, record.expiresAt ? `Expires ${formatDateTime(record.expiresAt)}` : null].filter(Boolean);
+  return [record.mediaType || 'Vehicle media', record.registrationNo, record.contentType].filter(Boolean);
 }
 
 function recordDescription(sectionId, record) {
   if (sectionId === 'announcements' || sectionId === 'notifications') return record.message || '';
-  return record.description || record.metadata?.note || record.fileName || record.documentNumber || record.storageUrl || '';
+  return record.fileName || '';
 }
 
 function detailLabel(key) {
@@ -150,7 +149,7 @@ function detailValue(value) {
 function detailEntries(record) {
   const entries = record.displayId ? [['ID', record.displayId]] : [];
   const addEntry = (key, value) => {
-    if (['mediaData', 'imageData'].includes(key) || value == null || value === '') return;
+    if (key === 'mediaData' || value == null || value === '') return;
     const reference = formatRecordReference(key, value);
     if (reference != null) {
       entries.push([key, reference]);
@@ -175,30 +174,17 @@ function detailEntries(record) {
 
 const supportedMediaTypes = ['application/pdf', 'image/png', 'image/jpeg'];
 
-function safeMediaUrl(value) {
-  if (typeof value !== 'string' || !value) return '';
-  if (value.startsWith('/')) return value;
-  try {
-    const url = new URL(value);
-    return ['http:', 'https:'].includes(url.protocol) ? value : '';
-  } catch {
-    return '';
-  }
-}
-
 function mediaViewer(record) {
-  const data = record.mediaData || record.imageData;
+  const data = record.mediaData;
   let source = '';
   if (typeof data === 'string' && data.startsWith('data:')) {
     source = /^data:(application\/pdf|image\/png|image\/jpeg);base64,/i.test(data) ? data : '';
   } else if (typeof data === 'string' && data) {
     if (supportedMediaTypes.includes(record.contentType)) source = `data:${record.contentType};base64,${data}`;
-    else source = safeMediaUrl(data);
   }
-  if (!source) source = safeMediaUrl(record.storageUrl);
 
   const contentType = String(record.contentType || '').toLowerCase();
-  const fileReference = `${record.fileName || ''} ${record.storageUrl || ''}`.toLowerCase();
+  const fileReference = String(record.fileName || '').toLowerCase();
   const type = contentType === 'application/pdf' || source.startsWith('data:application/pdf;') || /\.pdf(?:\?|$)/.test(fileReference)
     ? 'pdf'
     : contentType.startsWith('image/') || source.startsWith('data:image/') || /\.(png|jpe?g)(?:\?|$)/.test(fileReference)
@@ -227,8 +213,36 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
   const [saving, setSaving] = useState(false);
   const [readingFile, setReadingFile] = useState(false);
   const [search, setSearch] = useState('');
+  const [tripFrom, setTripFrom] = useState('');
+  const [tripTo, setTripTo] = useState('');
+  const [tripDate, setTripDate] = useState('');
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState('');
+  const [vehicleModelFilter, setVehicleModelFilter] = useState('');
   const mediaFileInput = useRef(null);
   const section = sections[sectionId];
+  const selectedPassenger = passengers.find((passenger) => String(passenger.id) === String(form.recipientOracleId));
+  const selectedTrip = trips.find((trip) => String(trip.id) === String(form.tripOracleId));
+  const selectedVehicle = vehicles.find((vehicle) => String(vehicle.id) === String(form.vehicleOracleId));
+  const distinct = (values) => [...new Set(values.filter(Boolean))].sort((left, right) => String(left).localeCompare(String(right)));
+  const tripFromOptions = distinct(trips.map((trip) => trip.from));
+  const tripsFromOrigin = trips.filter((trip) => !tripFrom || String(trip.from) === String(tripFrom));
+  const tripToOptions = distinct(tripsFromOrigin.map((trip) => trip.to));
+  const tripsForRoute = tripsFromOrigin.filter((trip) => !tripTo || String(trip.to) === String(tripTo));
+  const tripDateOptions = distinct(tripsForRoute.map((trip) => trip.date));
+  const availableTrips = tripsForRoute
+    .filter((trip) => !tripDate || String(trip.date) === String(tripDate))
+    .filter((trip) => String(trip.status || '').toLowerCase() !== 'cancelled' || String(trip.id) === String(form.tripOracleId))
+    .sort((left, right) => String(left.departure || '').localeCompare(String(right.departure || '')));
+  const vehicleTypeOptions = distinct(vehicles.map((vehicle) => vehicle.vehicleType || vehicle.type));
+  const vehiclesOfType = vehicles.filter((vehicle) => !vehicleTypeFilter || String(vehicle.vehicleType || vehicle.type) === vehicleTypeFilter);
+  const vehicleModelOptions = [...new Map(vehiclesOfType.map((vehicle) => {
+    const key = JSON.stringify([vehicle.brand || '', vehicle.model || '']);
+    const label = [vehicle.brand, vehicle.model].filter(Boolean).join(' ') || 'Model not specified';
+    return [key, { key, label }];
+  })).values()].sort((left, right) => left.label.localeCompare(right.label));
+  const availableVehicles = vehiclesOfType
+    .filter((vehicle) => !vehicleModelFilter || JSON.stringify([vehicle.brand || '', vehicle.model || '']) === vehicleModelFilter)
+    .sort((left, right) => String(left.vehicleNo || '').localeCompare(String(right.vehicleNo || '')));
 
   const uploadMediaFile = async (event) => {
     const file = event.target.files?.[0];
@@ -264,7 +278,7 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
         mediaFile: file.name,
         mediaData: `data:${contentType};base64,${encodedFile}`,
         contentType,
-        mediaType: contentType.startsWith('image/') ? 'IMAGE' : 'DOCUMENT',
+        mediaType: contentType.startsWith('image/') ? 'PHOTO' : 'DOCUMENT',
         fileName: file.name,
       }));
       setError('');
@@ -292,6 +306,11 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
     setEditingId(null);
     setEditingRecord(null);
     setForm(emptyForm(section));
+    setTripFrom('');
+    setTripTo('');
+    setTripDate('');
+    setVehicleTypeFilter('');
+    setVehicleModelFilter('');
     if (mediaFileInput.current) mediaFileInput.current.value = '';
   };
 
@@ -300,7 +319,7 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
     setSaving(true);
     setError('');
     try {
-      const payload = buildPayload(sectionId, form, editingRecord);
+      const payload = buildPayload(sectionId, form, editingRecord, selectedPassenger);
       if (editingId) await api.put(`${section.path}/${editingId}`, payload);
       else await api.post(section.path, payload);
       await refresh();
@@ -319,6 +338,11 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
     setEditingRecord(null);
     setViewingRecord(null);
     setForm(emptyForm(sections[nextSection]));
+    setTripFrom('');
+    setTripTo('');
+    setTripDate('');
+    setVehicleTypeFilter('');
+    setVehicleModelFilter('');
     setSearch('');
     setError('');
   };
@@ -329,6 +353,13 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
     setEditingId(record.id);
     setEditingRecord(record);
     setForm(formFromRecord(section, record));
+    const linkedTrip = trips.find((trip) => String(trip.id) === String(record.tripOracleId));
+    setTripFrom(linkedTrip?.from || '');
+    setTripTo(linkedTrip?.to || '');
+    setTripDate(linkedTrip?.date || '');
+    const linkedVehicle = vehicles.find((vehicle) => String(vehicle.id) === String(record.vehicleOracleId));
+    setVehicleTypeFilter(linkedVehicle?.vehicleType || linkedVehicle?.type || '');
+    setVehicleModelFilter(linkedVehicle ? JSON.stringify([linkedVehicle.brand || '', linkedVehicle.model || '']) : '');
     setError('');
   };
 
@@ -349,7 +380,7 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
 
   const visibleRecords = (records[sectionId] || []).filter((record) => {
     if (!search) return true;
-    const searchableRecord = Object.fromEntries(Object.entries(record).filter(([key]) => !['mediaData', 'imageData'].includes(key)));
+    const searchableRecord = Object.fromEntries(Object.entries(record).filter(([key]) => key !== 'mediaData'));
     return JSON.stringify(searchableRecord).toLowerCase().includes(search.toLowerCase());
   });
   const viewingMedia = viewingRecord ? mediaViewer(viewingRecord) : null;
@@ -399,48 +430,170 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
                   ref={mediaFileInput}
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg"
-                  required={!editingId && !(editingRecord?.mediaData || editingRecord?.imageData || editingRecord?.storageUrl)}
+                  required={!editingId && !editingRecord?.mediaData}
                   onChange={uploadMediaFile}
                 />
                 <small className="content-upload-help">
                   {form.mediaFile
                     ? `Selected: ${form.mediaFile}`
-                    : editingRecord?.mediaData || editingRecord?.imageData || editingRecord?.storageUrl
+                    : editingRecord?.mediaData
                       ? `Current file: ${editingRecord.fileName || 'attached file'}. Choose a new file to replace it.`
                       : 'PDF, PNG, or JPG, up to 10 MB. The file name and type are filled in automatically.'}
                 </small>
               </label>
-            ) : ['passenger', 'trip', 'vehicle'].includes(type) ? (
-              <label key={name}>
-                <span>{label}</span>
-                <select
-                  value={form[name]}
-                  required
-                  onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
-                >
-                  <option value="" disabled>Select a {type}</option>
-                  {form[name] && !(type === 'passenger' ? passengers : type === 'trip' ? trips : vehicles)
-                    .some((item) => String(item.id) === String(form[name])) && (
-                    <option value={form[name]}>
-                      {formatRecordId(type, form[name])}
-                    </option>
+            ) : type === 'passenger' ? (
+              <div className="content-field-wide content-passenger-fields" key={name}>
+                <label>
+                  <span>Passenger name</span>
+                  <select
+                    value={form[name]}
+                    required
+                    onChange={(event) => setForm((current) => ({ ...current, [name]: event.target.value }))}
+                  >
+                    <option value="">Select a passenger</option>
+                    {passengers.map((passenger) => (
+                      <option key={passenger.id} value={passenger.id}>{passenger.fullName || passenger.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input type="email" value={selectedPassenger?.email || ''} placeholder="Filled from passenger" readOnly />
+                </label>
+                <label>
+                  <span>Passenger ID</span>
+                  <input type="text" value={selectedPassenger ? formatRecordId('passenger', selectedPassenger.id) : ''} placeholder="Filled from passenger" readOnly />
+                </label>
+              </div>
+            ) : type === 'trip' ? (
+              <div className="content-field-wide content-selection-flow" key={name}>
+                <div className="content-selection-step">
+                  <label>
+                    <span>From</span>
+                    <select value={tripFrom} required onChange={(event) => {
+                      setTripFrom(event.target.value);
+                      setTripTo('');
+                      setTripDate('');
+                      setForm((current) => ({ ...current, tripOracleId: '' }));
+                    }}>
+                      <option value="">Select origin</option>
+                      {tripFromOptions.map((place) => <option key={place} value={place}>{place}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>To</span>
+                    <select value={tripTo} required disabled={!tripFrom} onChange={(event) => {
+                      setTripTo(event.target.value);
+                      setTripDate('');
+                      setForm((current) => ({ ...current, tripOracleId: '' }));
+                    }}>
+                      <option value="">Select destination</option>
+                      {tripToOptions.map((place) => <option key={place} value={place}>{place}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Date</span>
+                    <select value={tripDate} required disabled={!tripTo} onChange={(event) => {
+                      setTripDate(event.target.value);
+                      setForm((current) => ({ ...current, tripOracleId: '' }));
+                    }}>
+                      <option value="">Select date</option>
+                      {tripDateOptions.map((date) => <option key={date} value={date}>{date}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="content-available-options">
+                  <strong>Available trips</strong>
+                  {!tripFrom || !tripTo || !tripDate ? (
+                    <p>Select a route and date to see matching trips.</p>
+                  ) : !availableTrips.length ? (
+                    <p>No trips are available for this route and date.</p>
+                  ) : (
+                    <div className="content-option-list">
+                      {availableTrips.map((trip) => (
+                        <label className={`content-option-card ${String(form.tripOracleId) === String(trip.id) ? 'selected' : ''}`} key={trip.id}>
+                          <input
+                            type="radio"
+                            name="tripOracleId"
+                            value={trip.id}
+                            required
+                            checked={String(form.tripOracleId) === String(trip.id)}
+                            onChange={() => setForm((current) => ({ ...current, tripOracleId: String(trip.id) }))}
+                          />
+                          <span className="content-option-card-body">
+                            <span className="content-option-row"><span>Trip ID</span><strong>{formatRecordId('trip', trip.id)}</strong></span>
+                            <span className="content-option-row"><span>Departure</span><strong>{trip.departure || '—'}</strong></span>
+                            <span className="content-option-row"><span>Arrival</span><strong>{trip.arrival || '—'}</strong></span>
+                            <span className="content-option-row"><span>Vehicle</span><strong>{trip.vehicle || '—'}</strong></span>
+                            <span className="content-option-row"><span>Vehicle type</span><strong>{trip.vehicleType || '—'}</strong></span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   )}
-                  {type === 'passenger' && passengers.map((passenger) => (
-                    <option key={passenger.id} value={passenger.id}>
-                      {formatRecordId('passenger', passenger.id)} · {passenger.fullName}{passenger.email ? ` · ${passenger.email}` : ''}
-                    </option>
-                  ))}
-                  {type === 'trip' && trips.map((trip) => {
-                    const route = trip.route || [trip.from, trip.to].filter(Boolean).join(' → ') || 'Trip';
-                    const when = [trip.date, trip.departure].filter(Boolean).join(' · ');
-                    return <option key={trip.id} value={trip.id}>{formatRecordId('trip', trip.id)} · {route}{when ? ` · ${when}` : ''}</option>;
-                  })}
-                  {type === 'vehicle' && vehicles.map((vehicle) => {
-                    const description = [vehicle.brand, vehicle.model, vehicle.vehicleType].filter(Boolean).join(' ');
-                    return <option key={vehicle.id} value={vehicle.id}>{formatRecordId('vehicle', vehicle.id)} · {vehicle.vehicleNo || 'Vehicle'}{description ? ` · ${description}` : ''}</option>;
-                  })}
-                </select>
-              </label>
+                  {selectedTrip && !availableTrips.some((trip) => String(trip.id) === String(selectedTrip.id)) && (
+                    <p className="content-selection-note">The saved trip is no longer available in the current selection.</p>
+                  )}
+                </div>
+              </div>
+            ) : type === 'vehicle' ? (
+              <div className="content-field-wide content-selection-flow" key={name}>
+                <div className="content-selection-step">
+                  <label>
+                    <span>Vehicle type</span>
+                    <select value={vehicleTypeFilter} required onChange={(event) => {
+                      setVehicleTypeFilter(event.target.value);
+                      setVehicleModelFilter('');
+                      setForm((current) => ({ ...current, vehicleOracleId: '' }));
+                    }}>
+                      <option value="">Select vehicle type</option>
+                      {vehicleTypeOptions.map((vehicleType) => <option key={vehicleType} value={vehicleType}>{vehicleType}</option>)}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Make and model</span>
+                    <select value={vehicleModelFilter} required disabled={!vehicleTypeFilter} onChange={(event) => {
+                      setVehicleModelFilter(event.target.value);
+                      setForm((current) => ({ ...current, vehicleOracleId: '' }));
+                    }}>
+                      <option value="">Select make and model</option>
+                      {vehicleModelOptions.map((model) => <option key={model.key} value={model.key}>{model.label}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="content-available-options">
+                  <strong>Available vehicles</strong>
+                  {!vehicleTypeFilter || !vehicleModelFilter ? (
+                    <p>Select a vehicle type and make/model to see matching vehicles.</p>
+                  ) : !availableVehicles.length ? (
+                    <p>No vehicles match those selections.</p>
+                  ) : (
+                    <div className="content-option-list">
+                      {availableVehicles.map((vehicle) => (
+                        <label className={`content-option-card ${String(form.vehicleOracleId) === String(vehicle.id) ? 'selected' : ''}`} key={vehicle.id}>
+                          <input
+                            type="radio"
+                            name="vehicleOracleId"
+                            value={vehicle.id}
+                            required
+                            checked={String(form.vehicleOracleId) === String(vehicle.id)}
+                            onChange={() => setForm((current) => ({ ...current, vehicleOracleId: String(vehicle.id) }))}
+                          />
+                          <span className="content-option-card-body">
+                            <span className="content-option-row"><span>Vehicle ID</span><strong>{formatRecordId('vehicle', vehicle.id)}</strong></span>
+                            <span className="content-option-row"><span>Registration</span><strong>{vehicle.vehicleNo || '—'}</strong></span>
+                            <span className="content-option-row"><span>Make and model</span><strong>{[vehicle.brand, vehicle.model].filter(Boolean).join(' ') || '—'}</strong></span>
+                            <span className="content-option-row"><span>Seats</span><strong>{vehicle.seatingCapacity || vehicle.capacity || '—'}</strong></span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {selectedVehicle && !availableVehicles.some((vehicle) => String(vehicle.id) === String(selectedVehicle.id)) && (
+                    <p className="content-selection-note">The saved vehicle is no longer available in the current selection.</p>
+                  )}
+                </div>
+              </div>
             ) : (
               <label className={type === 'textarea' ? 'content-field-wide' : ''} key={name}>
                 {type === 'checkbox' ? (

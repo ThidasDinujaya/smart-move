@@ -2,6 +2,8 @@
   {
     "displayId": "N1000",
     "recipientOracleId": 1002,
+    "recipientName": "Amaya Rathnayake",
+    "recipientEmail": "amaya@example.com",
     "recipientRole": "CUSTOMER",
     "notificationType": "BOOKING_CONFIRMED",
     "title": "Your trip is confirmed",
@@ -11,7 +13,6 @@
     "createdAt": { "$date": "2026-10-12T00:00:00Z" },
     "readAt": null,
     "status": "UNREAD",
-    "bookingReference": "SMB-DEMO-0002",
-    "details": { "bookingReference": "SMB-DEMO-0002" }
+    "bookingReference": "SMB-DEMO-0002"
   }
 ]

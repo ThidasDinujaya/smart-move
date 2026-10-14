@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { logoutCustomer, updateCurrentCustomer, fetchCurrentProfile } from '../../utils/customerAuth.js';
 
 const CustomerProfile = () => {
@@ -69,15 +69,6 @@ const CustomerProfile = () => {
           <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px' }}>My Profile</h2>
 
           {loading ? <p style={{ color: '#64748b' }}>Loading your profile…</p> : <form onSubmit={handleUpdate} style={{ display: 'flex', flexWrap: 'wrap', gap: '28px' }}>
-            <div style={{ flex: '0 0 120px', textAlign: 'center' }}>
-              <div style={{ width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                <User size={40} color="#64748b" />
-              </div>
-              <button type="button" style={{ marginTop: '12px', border: '1px solid #0066ff', color: '#0066ff', backgroundColor: 'white', padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                Change Photo
-              </button>
-            </div>
-
             <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>Full Name</label>

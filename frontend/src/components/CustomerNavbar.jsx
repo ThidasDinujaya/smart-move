@@ -97,7 +97,7 @@ const CustomerNavbar = () => {
                     <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
                       {notification.recipientRole} · {notification.notificationType} · {notification.channel} · {notification.status}
                     </p>
-                    {(notification.bookingReference || notification.details?.bookingReference) && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Booking: {notification.bookingReference || notification.details.bookingReference}</p>}
+                    {notification.bookingReference && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Booking: {notification.bookingReference}</p>}
                     {notification.relatedTripOracleId != null && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Trip ID: {formatRecordId('trip', notification.relatedTripOracleId)}</p>}
                     {notification.createdAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Created: {new Date(notification.createdAt).toLocaleString()}</p>}
                     {notification.readAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Read: {new Date(notification.readAt).toLocaleString()}</p>}

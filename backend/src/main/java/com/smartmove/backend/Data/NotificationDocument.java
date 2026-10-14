@@ -4,7 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.Map;
 
 @Document(collection = "notifications")
 public class NotificationDocument {
@@ -12,6 +11,8 @@ public class NotificationDocument {
     private String id;
     private String displayId;
     private Long recipientOracleId;
+    private String recipientName;
+    private String recipientEmail;
     private String recipientRole;
     private String notificationType;
     private String title;
@@ -22,7 +23,6 @@ public class NotificationDocument {
     private Instant readAt;
     private String status;
     private String bookingReference;
-    private Map<String, Object> details;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -30,6 +30,10 @@ public class NotificationDocument {
     public void setDisplayId(String displayId) { this.displayId = displayId; }
     public Long getRecipientOracleId() { return recipientOracleId; }
     public void setRecipientOracleId(Long recipientOracleId) { this.recipientOracleId = recipientOracleId; }
+    public String getRecipientName() { return recipientName; }
+    public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
+    public String getRecipientEmail() { return recipientEmail; }
+    public void setRecipientEmail(String recipientEmail) { this.recipientEmail = recipientEmail; }
     public String getRecipientRole() { return recipientRole; }
     public void setRecipientRole(String recipientRole) { this.recipientRole = recipientRole; }
     public String getNotificationType() { return notificationType; }
@@ -50,6 +54,4 @@ public class NotificationDocument {
     public void setStatus(String status) { this.status = status; }
     public String getBookingReference() { return bookingReference; }
     public void setBookingReference(String bookingReference) { this.bookingReference = bookingReference; }
-    public Map<String, Object> getDetails() { return details; }
-    public void setDetails(Map<String, Object> details) { this.details = details; }
 }

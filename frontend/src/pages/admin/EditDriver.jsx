@@ -1,6 +1,5 @@
 
 import { useEffect, useState } from 'react';
-import fileToDataUrl from '../../utils/fileToDataUrl.js';
 import { formatRecordId } from '../../utils/recordIds.js';
 
 function EditDriver({
@@ -17,7 +16,6 @@ function EditDriver({
   const [address, setAddress] = useState('');
   const [assignedVehicle, setAssignedVehicle] = useState('');
   const [status, setStatus] = useState('Active');
-  const [photoFile, setPhotoFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // Load selected driver details
@@ -32,7 +30,6 @@ function EditDriver({
     setAddress(driver.address || '');
     setAssignedVehicle(driver.assignedVehicle || '');
     setStatus(driver.status || 'Active');
-    setPhotoFile(null);
   }, [driver]);
 
   async function handleSubmit(event) {
@@ -51,7 +48,6 @@ function EditDriver({
       address: address.trim(),
       assignedVehicle,
       status,
-      imageData: photoFile ? await fileToDataUrl(photoFile) : driver.imageData || null,
     };
 
     if (
@@ -245,27 +241,6 @@ function EditDriver({
                 />
               </div>
             </div>
-          </div>
-          <div className="vehicle-image-section">
-            <label className="image-title" htmlFor="edit-driver-photo">Driver Photo</label>
-            <input
-              id="edit-driver-photo"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 2 * 1024 * 1024) {
-                  window.alert('Select a JPG or PNG photo smaller than 2 MB.');
-                  event.target.value = '';
-                  return;
-                }
-                setPhotoFile(file);
-              }}
-            />
-            {photoFile ? <p>{photoFile.name}</p> : driver.imageData ? (
-              <img src={driver.imageData} alt={`${driver.name} driver`} className="vehicle-image-preview" />
-            ) : <p>No photo uploaded.</p>}
           </div>
         </div>
 

@@ -5,7 +5,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Document(collection = "travel_announcements")
 public class TravelAnnouncementDocument {
@@ -21,7 +20,6 @@ public class TravelAnnouncementDocument {
     private Instant startsAt;
     private Instant endsAt;
     private Boolean active;
-    private Map<String, Object> details;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -45,6 +43,4 @@ public class TravelAnnouncementDocument {
     public void setEndsAt(Instant endsAt) { this.endsAt = endsAt; }
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
-    public Map<String, Object> getDetails() { return details; }
-    public void setDetails(Map<String, Object> details) { this.details = details; }
 }
