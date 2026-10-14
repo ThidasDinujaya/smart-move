@@ -105,14 +105,12 @@ async function migrateLegacyRecords() {
 
 export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
   const [records, setRecords] = useState(empty);
-  const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
     if (!enabled) {
       setRecords(empty);
-      setReports(null);
       return;
     }
     setLoading(true);
@@ -121,7 +119,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     const canOperate = isAdmin || roles.includes('operations');
     const canSeeFinance = isAdmin || roles.includes('finance');
     const canSupport = isAdmin || roles.includes('support');
-    if (!canSeeFinance) setReports(null);
     try {
       if (canOperate) await migrateLegacyRecords();
     } catch (migrationError) {
@@ -140,20 +137,13 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       ...(canOperate ? [['passengers', '/api/passengers'], ['trips', '/api/trips']] : []),
       ...(canOperate || canSeeFinance ? [['bookings', '/api/bookings/admin']] : []),
       ...(canSeeFinance ? [['payments', '/api/payments']] : []),
-      ...(canSeeFinance ? [['reports', '/api/reports']] : []),
     ];
     const results = await Promise.allSettled(resources.map(([, path]) => api.get(path)));
     const failed = [];
     const next = { ...empty };
     results.forEach((result, index) => {
       const [key] = resources[index];
-      if (key === 'reports') {
-        if (result.status === 'fulfilled') setReports(result.value);
-        else {
-          setReports(null);
-          failed.push(result.reason?.message || 'Unable to load reports.');
-        }
-      } else if (result.status === 'fulfilled') next[key] = asArray(result.value);
+      if (result.status === 'fulfilled') next[key] = asArray(result.value);
       else failed.push(result.reason?.message || `Unable to load ${key}.`);
     });
 
@@ -423,7 +413,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     loading,
     error,
     refresh,
-    reports,
     routes,
     routeRecords: records.routeRecords,
     tripOptions,

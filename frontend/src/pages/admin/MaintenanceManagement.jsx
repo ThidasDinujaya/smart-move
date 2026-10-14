@@ -1,5 +1,4 @@
 import PageHeader from '../../components/PageHeader.jsx';
-import Icon from '../../components/Icon.jsx';
 import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
@@ -31,11 +30,6 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
       ),
     },
   ];
-  const countByStatus = (status) => records.filter((record) => record.status === status).length;
-  const dueCount = records.filter((record) => ['pending', 'overdue'].includes(
-    String(record.status || '').toLowerCase(),
-  )).length;
-
   return (
     <section className="page maintenance-page">
       <PageHeader
@@ -44,21 +38,6 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
         actionLabel="Add Maintenance"
         onAction={onAdd}
       />
-
-      <div className="stats-grid">
-        <article className="stat-card blue">
-          <Icon name="bus" size={22} />
-          <div><div className="stat-title">Total Records</div><div className="stat-value">{records.length}</div></div>
-        </article>
-        <article className="stat-card orange">
-          <Icon name="wrench" size={22} />
-          <div><div className="stat-title">Due for Service</div><div className="stat-value">{dueCount}</div></div>
-        </article>
-        <article className="stat-card green">
-          <Icon name="check" size={22} />
-          <div><div className="stat-title">Completed</div><div className="stat-value">{countByStatus('Completed')}</div></div>
-        </article>
-      </div>
 
       <SearchFilters
         search={list.search}

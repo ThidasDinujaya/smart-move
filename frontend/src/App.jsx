@@ -749,11 +749,7 @@ function AdminApp() {
       // ===
 
       case "reports":
-        return (
-          <ReportsDashboard
-            report={data.reports}
-          />
-        );
+        return <ReportsDashboard passengers={passengers} />;
 
       case "content":
         return <ContentManagement passengers={passengers} trips={trips} vehicles={vehicles} />;

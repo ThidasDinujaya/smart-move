@@ -51,6 +51,45 @@ public class OracleProcedureService {
         return available == null ? 0 : available;
     }
 
+    public List<String> runReport(
+            String reportType,
+            LocalDate fromDate,
+            LocalDate toDate,
+            Long passengerId,
+            Integer maintenanceDays) {
+        return jdbcTemplate.execute((ConnectionCallback<List<String>>) connection -> {
+            try (CallableStatement enable = connection.prepareCall("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")) {
+                enable.execute();
+            }
+
+            try {
+                return switch (reportType) {
+                    case "routeBookings" -> readOutput(connection,
+                            "BEGIN sp_report_route_bookings; END;", null);
+                    case "revenue" -> readOutput(connection,
+                            "BEGIN sp_report_revenue(?, ?); END;", statement -> {
+                                statement.setDate(1, Date.valueOf(fromDate));
+                                statement.setDate(2, Date.valueOf(toDate));
+                            });
+                    case "passengerTrips" -> readOutput(connection,
+                            "BEGIN sp_report_passenger_trips(?); END;", statement -> {
+                                if (passengerId == null) statement.setNull(1, Types.NUMERIC);
+                                else statement.setLong(1, passengerId);
+                            });
+                    case "maintenanceDue" -> readOutput(connection,
+                            "BEGIN sp_report_maintenance_due(?); END;", statement -> statement.setInt(1, maintenanceDays));
+                    case "feedbackSummary" -> readOutput(connection,
+                            "BEGIN sp_report_feedback_summary; END;", null);
+                    default -> throw new IllegalArgumentException("Select a valid report.");
+                };
+            } finally {
+                try (CallableStatement disable = connection.prepareCall("BEGIN DBMS_OUTPUT.DISABLE; END;")) {
+                    disable.execute();
+                }
+            }
+        });
+    }
+
     public Reports runReports() {
         return jdbcTemplate.execute((ConnectionCallback<Reports>) connection -> {
             try (CallableStatement enable = connection.prepareCall("BEGIN DBMS_OUTPUT.ENABLE(NULL); END;")) {
