@@ -8,11 +8,15 @@ SmartMove uses Oracle for relational records and MongoDB for announcements, noti
 
 1. Start Oracle and connect to the `XEPDB1` service on `localhost:1521`.
 2. Use the `SYSTEM` account configured by default in the backend, or configure the backend to use the schema owner you choose.
-3. Open `database/oracle_db/install.sql` and choose **Run Script** (F5).
+3. Open each file in `database/oracle_db` and choose **Run Script** (F5), in this order:
+   1. `tables.sql` — creates the relational tables.
+   2. `triggers.sql` — creates the maintenance trigger.
+   3. `functions.sql` — creates the seat-availability function.
+   4. `procedures.sql` — creates the payment and trip procedures.
+   5. `reports.sql` — creates the five report procedures.
+   6. `example_data.sql` — inserts the connected sample records.
 
-The install script creates the Oracle tables, loads connected sample rows, creates the maintenance trigger and seat-availability function, installs payment and trip procedures, and runs the five report procedures. The sample accounts use `Welcome123!` as their password.
-
-This is an initial-install script for a new or empty SmartMove schema. It does not drop tables or erase existing data. Do not run it over an existing populated schema or run it a second time; the table creation will stop when it encounters existing objects. Hibernate is set to validate the schema, so the Oracle tables and procedures must be installed before the backend starts.
+The sample accounts use `Welcome123!` as their password. Run `tables.sql` only when setting up a new or empty SmartMove schema; it will fail if the tables already exist. Hibernate is set to validate the schema, so create the Oracle tables and procedures before starting the backend.
 
 ### MongoDB in Compass
 
