@@ -4,6 +4,7 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import ActionButtons from '../../components/ActionButtons.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function MaintenanceManagement({ records = [], statuses: availableStatuses = [], onAdd, onView, onEdit, onDelete }) {
   const list = useRecordList(records);
@@ -12,7 +13,7 @@ export default function MaintenanceManagement({ records = [], statuses: availabl
     ...records.map((record) => record.status).filter(Boolean),
   ])];
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
+    { key: 'id', label: 'Maintenance ID', className: 'strong', render: (record) => formatRecordId('maintenance', record.id) },
     { key: 'vehicleNo', label: 'Vehicle No', className: 'strong' },
     { key: 'type', label: 'Maintenance Type' },
     { key: 'date', label: 'Date' },

@@ -3,6 +3,7 @@ import CustomerNavbar from '../../components/CustomerNavbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bus } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function safeTripMediaUrl(value) {
   if (typeof value !== 'string' || !value) return '';
@@ -114,7 +115,7 @@ const BusDetails = () => {
                       {item.mediaType} {item.contentType ? `· ${item.contentType}` : ''}
                       {item.location ? ` · ${item.location}` : ''}
                       {item.uploadedAt ? ` · Uploaded ${new Date(item.uploadedAt).toLocaleString()}` : ''}
-                      {item.uploadedByOracleId != null ? ` · User ${item.uploadedByOracleId}` : ''}
+                      {item.uploadedByOracleId != null ? ` · Uploaded by ${formatRecordId('passenger', item.uploadedByOracleId)}` : ''}
                     </p>
                     {item.metadata && <details style={{ fontSize: '11px', color: '#64748b' }}><summary>Metadata</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
                   </article>

@@ -29,10 +29,6 @@ public class OracleProcedureService {
         });
     }
 
-    public void refundPayment(Long paymentId) {
-        execute("BEGIN sp_refund_payment(?); END;", statement -> statement.setLong(1, paymentId));
-    }
-
     public void cancelBooking(Long bookingId) {
         execute("BEGIN sp_cancel_booking(?); END;", statement -> statement.setLong(1, bookingId));
     }

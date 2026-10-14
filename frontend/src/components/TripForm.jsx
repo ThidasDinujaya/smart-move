@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
 import PageHeader from './PageHeader.jsx';
+import { formatRecordId } from '../utils/recordIds.js';
 
 const emptyTrip = {
   routeId: '',
@@ -46,7 +47,7 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
             {routes.length > 0 ? (
               <select required value={form.routeId || ''} onChange={(event) => update('routeId', event.target.value)}>
                 <option value="">Select Route</option>
-                {routes.map((route) => <option key={route.id} value={route.id}>{route.routeName}</option>)}
+                {routes.map((route) => <option key={route.id} value={route.id}>{formatRecordId('route', route.id)} · {route.routeName}</option>)}
               </select>
             ) : (
               <select required value="" disabled><option value="">Save a route before scheduling a trip</option></select>
@@ -66,7 +67,7 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
             {vehicles.length > 0 ? (
               <select required value={form.vehicleId || ''} onChange={(event) => update('vehicleId', event.target.value)}>
                 <option value="">Select Vehicle</option>
-                {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.vehicleNo}</option>)}
+                {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{formatRecordId('vehicle', vehicle.id)} · {vehicle.vehicleNo}</option>)}
               </select>
             ) : (
               <select required value="" disabled><option value="">Save a vehicle before scheduling a trip</option></select>
@@ -88,7 +89,7 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
             {drivers.length > 0 ? (
               <select required value={form.driverId || ''} onChange={(event) => update('driverId', event.target.value)}>
                 <option value="">Select Driver</option>
-                {drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
+                {drivers.map((driver) => <option key={driver.id} value={driver.id}>{formatRecordId('driver', driver.id)} · {driver.name}</option>)}
               </select>
             ) : (
               <select required value="" disabled><option value="">Save a driver before scheduling a trip</option></select>

@@ -122,7 +122,6 @@ BEGIN
           FROM routes
           LEFT JOIN trips ON trips.route_id = routes.id
           LEFT JOIN feedback ON feedback.trip_id = trips.trip_id
-                              AND feedback.review_status <> 'HIDDEN'
          GROUP BY routes.route_name
          ORDER BY routes.route_name
     ) LOOP

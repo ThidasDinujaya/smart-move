@@ -8,15 +8,12 @@ import com.smartmove.backend.data.BookingRepository;
 import com.smartmove.backend.data.Trip;
 import com.smartmove.backend.data.TripRepository;
 import java.time.LocalDateTime;
-import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class FeedbackService {
@@ -72,14 +69,11 @@ public class FeedbackService {
             FeedbackDocument document = commentsByFeedbackId.get(feedback.getId());
             if (document != null) {
                 feedback.setComment(document.getComment());
-                feedback.setIsComplaint(document.getIsComplaint());
                 feedback.setRouteName(document.getRouteName());
                 feedback.setVehicleOracleId(document.getVehicleOracleId());
                 feedback.setRegistrationNo(document.getRegistrationNo());
                 feedback.setDriverOracleId(document.getDriverOracleId());
                 feedback.setDriverName(document.getDriverName());
-                feedback.setKeywords(document.getKeywords());
-                feedback.setResponse(document.getResponse());
             }
         });
     }
@@ -108,7 +102,6 @@ public class FeedbackService {
         }
         feedback.setId(null);
         feedback.setPassengerId(customer.id());
-        feedback.setReviewStatus("NEW");
         feedback.setCreatedAt(LocalDateTime.now());
         if (feedback.getDriverRating() == null) {
             feedback.setDriverRating(feedback.getRating());
@@ -135,72 +128,16 @@ public class FeedbackService {
         document.setRatings(new FeedbackDocument.FeedbackRatings(
                 savedFeedback.getRating(), savedFeedback.getVehicleRating(), savedFeedback.getDriverRating()));
         document.setComment(comment);
-        document.setIsComplaint(Boolean.TRUE.equals(feedback.getIsComplaint()));
-        document.setKeywords(keywordsFrom(comment));
         document.setSubmittedAt(savedFeedback.getCreatedAt());
-        document.setModerationStatus(Optional.ofNullable(savedFeedback.getReviewStatus()).orElse("NEW"));
         feedbackDocumentRepository.save(document);
 
         savedFeedback.setComment(comment);
-        savedFeedback.setIsComplaint(feedback.getIsComplaint());
         savedFeedback.setRouteName(document.getRouteName());
         savedFeedback.setVehicleOracleId(document.getVehicleOracleId());
         savedFeedback.setRegistrationNo(document.getRegistrationNo());
         savedFeedback.setDriverOracleId(document.getDriverOracleId());
         savedFeedback.setDriverName(document.getDriverName());
-        savedFeedback.setKeywords(document.getKeywords());
-        savedFeedback.setResponse(document.getResponse());
         return savedFeedback;
-    }
-
-    @Transactional
-    public Feedback updateReviewStatus(Long feedbackId, String requestedStatus, String userId) {
-        customerAuthService.requireAnyRole(userId, "ADMIN", "SUPPORT");
-
-        String status = requestedStatus == null ? "" : requestedStatus.trim().toUpperCase();
-        if (!List.of("NEW", "REVIEWED", "HIDDEN").contains(status)) {
-            throw new IllegalArgumentException("Review status must be New, Reviewed, or Hidden.");
-        }
-
-        Feedback feedback = feedbackRepository.findById(feedbackId)
-                .orElseThrow(() -> new IllegalArgumentException("Feedback was not found."));
-        feedback.setReviewStatus(status);
-        Feedback savedFeedback = feedbackRepository.save(feedback);
-        feedbackDocumentRepository.findByFeedbackOracleId(feedbackId).ifPresent(document -> {
-            document.setModerationStatus(status);
-            feedbackDocumentRepository.save(document);
-            savedFeedback.setComment(document.getComment());
-            savedFeedback.setIsComplaint(document.getIsComplaint());
-            savedFeedback.setRouteName(document.getRouteName());
-            savedFeedback.setVehicleOracleId(document.getVehicleOracleId());
-            savedFeedback.setRegistrationNo(document.getRegistrationNo());
-            savedFeedback.setDriverOracleId(document.getDriverOracleId());
-            savedFeedback.setDriverName(document.getDriverName());
-            savedFeedback.setKeywords(document.getKeywords());
-            savedFeedback.setResponse(document.getResponse());
-        });
-        return savedFeedback;
-    }
-
-    @Transactional
-    public Feedback updateResponse(Long feedbackId, String requestedResponse, String userId) {
-        CustomerAuthService.CustomerView currentUser = customerAuthService.requireAnyRole(userId, "ADMIN", "SUPPORT");
-        Feedback feedback = feedbackRepository.findById(feedbackId)
-                .orElseThrow(() -> new IllegalArgumentException("Feedback was not found."));
-        FeedbackDocument document = feedbackDocumentRepository.findByFeedbackOracleId(feedbackId)
-                .orElseGet(FeedbackDocument::new);
-        document.setFeedbackOracleId(feedbackId);
-        String message = requestedResponse == null ? "" : requestedResponse.trim();
-        if (message.length() > 2000) {
-            throw new IllegalArgumentException("The feedback response must be 2000 characters or fewer.");
-        }
-        Map<String, Object> response = message.isEmpty()
-                ? null
-                : Map.of("message", message, "respondedAt", Instant.now().toString(), "respondedBy", currentUser.fullName());
-        document.setResponse(response);
-        feedbackDocumentRepository.save(document);
-        feedback.setResponse(response);
-        return feedback;
     }
 
     private CustomerAuthService.CustomerView requireCustomer(String userId) {
@@ -211,17 +148,4 @@ public class FeedbackService {
         return rating == null || (rating >= 1 && rating <= 5);
     }
 
-    private List<String> keywordsFrom(String comment) {
-        List<String> keywords = new ArrayList<>();
-        if (comment == null || comment.isBlank()) {
-            return keywords;
-        }
-
-        for (String word : comment.toLowerCase().split("[^a-z0-9]+")) {
-            if (word.length() > 2 && !keywords.contains(word)) {
-                keywords.add(word);
-            }
-        }
-        return keywords;
-    }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 public class TripMediaDocument {
     @Id
     private String id;
+    private String displayId;
     private Long tripOracleId;
     private String mediaType;
     private String title;
@@ -25,6 +26,8 @@ public class TripMediaDocument {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getDisplayId() { return displayId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public Long getTripOracleId() { return tripOracleId; }
     public void setTripOracleId(Long tripOracleId) { this.tripOracleId = tripOracleId; }
     public String getMediaType() { return mediaType; }

@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import fileToDataUrl from '../../utils/fileToDataUrl.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function EditDriver({
   driver,
@@ -211,7 +212,7 @@ function EditDriver({
                       key={vehicle.id}
                       value={vehicle.vehicleNo}
                     >
-                      {vehicle.vehicleNo}
+                        {formatRecordId('vehicle', vehicle.id)} · {vehicle.vehicleNo}
                     </option>
                   ))}
                 </select>

@@ -1,9 +1,11 @@
 import PageHeader from '../../components/PageHeader.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 const detailsByType = {
   passenger: (record) => [
+    ['Passenger ID', formatRecordId('passenger', record.id)],
     ['Full Name', record.fullName || record.name],
     ['Email', record.email],
     ['Contact Number', record.phone],
@@ -13,6 +15,7 @@ const detailsByType = {
     ['Status', record.status],
   ],
   booking: (record) => [
+    ['Booking ID', formatRecordId('booking', record.id)],
     ['Booking Reference', record.bookingReference],
     ['Passenger', record.passenger],
     ['Route', record.route],
@@ -22,8 +25,8 @@ const detailsByType = {
     ['Status', record.status],
   ],
   payment: (record, booking) => [
-    ['Payment ID', record.id],
-    ['Booking ID', record.bookingId ?? record.booking],
+    ['Payment ID', formatRecordId('payment', record.id)],
+    ['Booking ID', formatRecordId('booking', record.bookingId ?? record.booking)],
     ['Passenger', record.passenger],
     ['Route', booking?.route || record.route],
     ['Travel Date', formatDate(booking?.date)],
@@ -31,7 +34,6 @@ const detailsByType = {
     ['Amount', formatMoney(record.amount)],
     ['Payment Method', record.method || record.paymentMethod],
     ['Payment Date', formatDateTime(record.date || record.paymentDate)],
-    ...(record.refundedAt ? [['Refunded At', formatDateTime(record.refundedAt)]] : []),
     ['Status', record.status || record.paymentStatus],
   ],
 };
@@ -57,8 +59,8 @@ export default function AdminRecordDetailsPage({ type, record, booking, onBack, 
   const summary = type === 'passenger'
     ? record.fullName || record.name
     : type === 'booking'
-      ? record.bookingReference || `Booking #${record.id}`
-      : `Payment #${record.id}`;
+      ? record.bookingReference || formatRecordId('booking', record.id)
+      : formatRecordId('payment', record.id);
 
   return (
     <section className="page form-page admin-record-details-page">
@@ -72,7 +74,7 @@ export default function AdminRecordDetailsPage({ type, record, booking, onBack, 
         <div className="admin-record-details-summary">
           <div>
             <h2>{summary}</h2>
-            {type !== 'passenger' && <p>Record ID: {record.id}</p>}
+            <p>Record ID: {formatRecordId(type, record.id)}</p>
           </div>
           {(record.status || record.paymentStatus) && (
             <StatusBadge>{record.status || record.paymentStatus}</StatusBadge>

@@ -11,6 +11,7 @@ import java.util.Map;
 public class TravelAnnouncementDocument {
     @Id
     private String id;
+    private String displayId;
     private String title;
     private String message;
     private String severity;
@@ -24,6 +25,8 @@ public class TravelAnnouncementDocument {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getDisplayId() { return displayId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getMessage() { return message; }

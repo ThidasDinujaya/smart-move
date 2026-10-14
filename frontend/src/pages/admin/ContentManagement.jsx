@@ -4,6 +4,7 @@ import Icon from '../../components/Icon.jsx';
 import ActionButtons from '../../components/ActionButtons.jsx';
 import { api } from '../../api/client.js';
 import { formatDateTime } from '../../utils/formatters.js';
+import { formatRecordId, formatRecordReference } from '../../utils/recordIds.js';
 
 const sections = {
   announcements: {
@@ -147,9 +148,14 @@ function detailValue(value) {
 }
 
 function detailEntries(record) {
-  const entries = [];
+  const entries = record.displayId ? [['ID', record.displayId]] : [];
   const addEntry = (key, value) => {
     if (['mediaData', 'imageData'].includes(key) || value == null || value === '') return;
+    const reference = formatRecordReference(key, value);
+    if (reference != null) {
+      entries.push([key, reference]);
+      return;
+    }
     if (Array.isArray(value)) {
       entries.push([key, detailValue(value)]);
       return;
@@ -161,7 +167,9 @@ function detailEntries(record) {
     entries.push([key, detailValue(value)]);
   };
 
-  Object.entries(record).forEach(([key, value]) => addEntry(key, value));
+  Object.entries(record).forEach(([key, value]) => {
+    if (key !== 'id' && key !== 'displayId') addEntry(key, value);
+  });
   return entries;
 }
 
@@ -414,22 +422,22 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
                   {form[name] && !(type === 'passenger' ? passengers : type === 'trip' ? trips : vehicles)
                     .some((item) => String(item.id) === String(form[name])) && (
                     <option value={form[name]}>
-                      {type === 'passenger' ? `Passenger #${form[name]}` : type === 'trip' ? `Trip #${form[name]}` : `Vehicle #${form[name]}`}
+                      {formatRecordId(type, form[name])}
                     </option>
                   )}
                   {type === 'passenger' && passengers.map((passenger) => (
                     <option key={passenger.id} value={passenger.id}>
-                      {passenger.fullName || `Passenger #${passenger.id}`}{passenger.email ? ` · ${passenger.email}` : ''}
+                      {formatRecordId('passenger', passenger.id)} · {passenger.fullName}{passenger.email ? ` · ${passenger.email}` : ''}
                     </option>
                   ))}
                   {type === 'trip' && trips.map((trip) => {
-                    const route = trip.route || [trip.from, trip.to].filter(Boolean).join(' → ') || `Trip #${trip.id}`;
+                    const route = trip.route || [trip.from, trip.to].filter(Boolean).join(' → ') || 'Trip';
                     const when = [trip.date, trip.departure].filter(Boolean).join(' · ');
-                    return <option key={trip.id} value={trip.id}>{route}{when ? ` · ${when}` : ''}</option>;
+                    return <option key={trip.id} value={trip.id}>{formatRecordId('trip', trip.id)} · {route}{when ? ` · ${when}` : ''}</option>;
                   })}
                   {type === 'vehicle' && vehicles.map((vehicle) => {
                     const description = [vehicle.brand, vehicle.model, vehicle.vehicleType].filter(Boolean).join(' ');
-                    return <option key={vehicle.id} value={vehicle.id}>{vehicle.vehicleNo || `Vehicle #${vehicle.id}`}{description ? ` · ${description}` : ''}</option>;
+                    return <option key={vehicle.id} value={vehicle.id}>{formatRecordId('vehicle', vehicle.id)} · {vehicle.vehicleNo || 'Vehicle'}{description ? ` · ${description}` : ''}</option>;
                   })}
                 </select>
               </label>
@@ -479,7 +487,7 @@ export default function ContentManagement({ passengers = [], trips = [], vehicle
                 </div>
                 {recordDescription(sectionId, record) && <p className="content-record-description">{recordDescription(sectionId, record)}</p>}
                 <div className="content-record-meta">{recordMeta(sectionId, record).map((value, index) => <span key={`${index}-${value}`}>{value}</span>)}</div>
-                <small className="content-record-id">ID {record.id}</small>
+                <small className="content-record-id">{record.displayId || '—'}</small>
               </div>
               <ActionButtons
                 onView={() => setViewingRecord(record)}

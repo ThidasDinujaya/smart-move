@@ -1,5 +1,6 @@
 
 import { ArrowLeft, Pencil } from 'lucide-react';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function ViewDriver({ driver, onBack, onEdit }) {
   if (!driver) {
@@ -63,6 +64,11 @@ function ViewDriver({ driver, onBack, onEdit }) {
 
         {/* DRIVER INFORMATION */}
         <div className="details-grid">
+          <div className="detail-item">
+            <span>Driver ID</span>
+            <strong>{formatRecordId('driver', driver.id)}</strong>
+          </div>
+
           <div className="detail-item">
             <span>Driver Name</span>
             <strong>{driver.name || 'Not specified'}</strong>

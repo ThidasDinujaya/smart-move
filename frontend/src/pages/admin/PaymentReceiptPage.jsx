@@ -2,11 +2,12 @@ import Icon from '../../components/Icon.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function PaymentReceiptPage({ receipt, booking, onDownload, onBack }) {
   const receiptFields = [
-    ['Payment ID', receipt?.id || '—'],
-    ['Booking ID', receipt?.booking || '—'],
+    ['Payment ID', formatRecordId('payment', receipt?.id)],
+    ['Booking ID', formatRecordId('booking', receipt?.booking)],
     ['Passenger', receipt?.passenger || '—'],
     ['Route', booking?.route || '—'],
     ['Travel Date', formatDate(booking?.date)],
@@ -14,7 +15,6 @@ export default function PaymentReceiptPage({ receipt, booking, onDownload, onBac
     ['Amount', receipt ? formatMoney(receipt.amount) : '—'],
     ['Payment Method', receipt?.method || '—'],
     ['Payment Date', formatDateTime(receipt?.date)],
-    ...(receipt?.refundedAt ? [['Refunded At', formatDateTime(receipt.refundedAt)]] : []),
   ];
 
   return (

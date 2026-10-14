@@ -1,13 +1,14 @@
 [
   {
-    "tripOracleId": 1,
+    "displayId": "TM1000",
+    "tripOracleId": 1000,
     "mediaType": "PHOTO",
     "title": "Colombo to Kandy coach",
     "description": "Sample trip photo record.",
     "contentType": "image/jpeg",
     "storageUrl": null,
     "uploadedAt": { "$date": "2026-10-09T00:00:00Z" },
-    "uploadedByOracleId": 2,
+    "uploadedByOracleId": 1001,
     "location": "Colombo",
     "metadata": { "note": "Sample media record; add a real storage URL when one is available." }
   }

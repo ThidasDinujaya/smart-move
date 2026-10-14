@@ -31,12 +31,6 @@ public class PaymentController {
         return paymentService.processPayment(payment, userId);
     }
 
-    @PostMapping("/{id}/refund")
-    public Payment refundPayment(@PathVariable Long id,
-                                 @RequestHeader(name = "X-User-Id", required = false) String userId) {
-        return paymentService.refundPayment(id, userId);
-    }
-
     @ExceptionHandler(CustomerAuthService.AuthenticationFailedException.class)
     public ResponseEntity<Map<String, String>> handleAuthenticationFailure(CustomerAuthService.AuthenticationFailedException exception) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", exception.getMessage()));

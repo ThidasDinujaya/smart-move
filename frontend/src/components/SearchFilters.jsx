@@ -7,6 +7,7 @@ export default function SearchFilters({
   status,
   onStatusChange,
   statuses = [],
+  statusLabel = 'Status',
   route,
   onRouteChange,
   routes = [],
@@ -39,7 +40,7 @@ export default function SearchFilters({
       )}
 
       <select value={status} onChange={(event) => onStatusChange(event.target.value)}>
-        <option value="">All Status</option>
+        <option value="">All {statusLabel}</option>
         {statuses.map((item) => (
           <option key={item} value={item}>
             {item}

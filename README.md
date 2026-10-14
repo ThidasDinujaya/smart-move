@@ -21,10 +21,13 @@ Open and run each file below in SQL Developer, in this order. Use **Run Script**
 2. `database/oracle_db/example_data.sql` — inserts the sample records.
 3. `database/oracle_db/triggers.sql` — creates the maintenance trigger.
 4. `database/oracle_db/functions.sql` — creates the available-seats function.
-5. `database/oracle_db/procedures.sql` — creates payment, cancellation, refund, and trip-completion procedures.
-6. `database/oracle_db/reports.sql` — creates the five report procedures and prints sample results.
+5. `database/oracle_db/procedures.sql` — creates payment, cancellation, and trip-completion procedures.
+6. `database/oracle_db/remove_refund_support.sql` — removes legacy payment reversal support and its schema fields.
+7. `database/oracle_db/reports.sql` — creates the five report procedures and prints sample results.
 
 Run these scripts against the `SYSTEM` connection to `XEPDB1`. `tables.sql` creates the current SmartMove tables and does not drop or clear existing objects, so remove earlier SmartMove tables first if you are rebuilding; unrelated tables in the schema are left alone. The backend calls the stored seat-availability function, payment and cancellation procedures, trip-completion procedure, and report procedures. The `reports.sql` sample output appears in SQL Developer's Script Output.
+
+For an existing database, run the updated `procedures.sql` and then `remove_refund_support.sql`; do not rerun `tables.sql` or `example_data.sql` unless you are rebuilding the database.
 
 ### MongoDB in Compass
 

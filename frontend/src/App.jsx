@@ -347,17 +347,6 @@ function AdminApp() {
     return result;
   }
 
-  async function handleRefundPayment(payment) {
-    if (!window.confirm(`Refund payment ${payment.id}?`)) return false;
-    try {
-      await data.refundPayment(payment.id);
-      return true;
-    } catch (error) {
-      window.alert(error.message || "Unable to refund payment.");
-      return false;
-    }
-  }
-
   // 
   // PAGE RENDERING
   // 
@@ -665,7 +654,6 @@ function AdminApp() {
             payments={payments}
             onAdd={() => navigate("add-payment")}
             onView={(payment) => openRecord("view-payment", payment)}
-            onRefund={handleRefundPayment}
           />
         );
 
@@ -739,8 +727,6 @@ function AdminApp() {
         return (
           <FeedbackReviews
             reviews={feedback}
-            onStatusChange={(id, status) => data.updateFeedbackStatus(id, status).catch((error) => window.alert(error.message || "Unable to update feedback status."))}
-            onResponseChange={(id, message) => data.updateFeedbackResponse(id, message)}
           />
         );
 

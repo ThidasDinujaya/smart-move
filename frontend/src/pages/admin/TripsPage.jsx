@@ -5,13 +5,14 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDate } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function TripsPage({ trips, routes, statuses, onAdd, onOpen, onEdit }) {
   const list = useRecordList(trips, { filterRoute: true });
   const tripStatuses = statuses || [...new Set(trips.map((record) => record.status).filter(Boolean))];
   const isScheduled = (record) => String(record.status || '').toLowerCase() === 'scheduled';
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
+    { key: 'id', label: 'Trip ID', className: 'strong', render: (record) => formatRecordId('trip', record.id) },
     { key: 'route', label: 'Route', className: 'strong' },
     { key: 'vehicle', label: 'Vehicle' },
     { key: 'driver', label: 'Driver' },

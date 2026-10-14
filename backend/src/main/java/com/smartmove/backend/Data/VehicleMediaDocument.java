@@ -10,6 +10,7 @@ import java.util.Map;
 public class VehicleMediaDocument {
     @Id
     private String id;
+    private String displayId;
     private Long vehicleOracleId;
     private String registrationNo;
     private String mediaType;
@@ -25,6 +26,8 @@ public class VehicleMediaDocument {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getDisplayId() { return displayId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public Long getVehicleOracleId() { return vehicleOracleId; }
     public void setVehicleOracleId(Long vehicleOracleId) { this.vehicleOracleId = vehicleOracleId; }
     public String getRegistrationNo() { return registrationNo; }

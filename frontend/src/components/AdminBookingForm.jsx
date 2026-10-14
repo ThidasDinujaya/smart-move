@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PageHeader from './PageHeader.jsx';
 import { api } from '../api/client.js';
 import { formatDate, formatMoney } from '../utils/formatters.js';
+import { formatRecordId } from '../utils/recordIds.js';
 
 function localDateValue(date) {
   const year = date.getFullYear();
@@ -279,7 +280,7 @@ export default function AdminBookingForm({ booking, passengers = [], trips = [],
                         setSelectedSeat(null);
                       }}
                     >
-                      <span className="booking-vehicle-title">{trip.vehicle || 'Vehicle'} <span>{trip.vehicleType || 'Transport'}</span></span>
+                      <span className="booking-vehicle-title">{formatRecordId('trip', trip.id)} · {trip.vehicle || 'Vehicle'} <span>{trip.vehicleType || 'Transport'}</span></span>
                       <span>{trip.from} → {trip.to}</span>
                       <span>{displayTime(trip.departure)} – {displayTime(trip.arrival)}</span>
                       <dl className="booking-vehicle-seat-count">
@@ -351,7 +352,7 @@ export default function AdminBookingForm({ booking, passengers = [], trips = [],
                       <option value="">Select passenger</option>
                       {passengers.filter((passenger) => String(passenger.status || 'Active').toLowerCase() === 'active')
                         .map((passenger) => <option key={passenger.id} value={passenger.id}>
-                          {passenger.fullName || passenger.name}{passenger.email ? ` · ${passenger.email}` : ''}
+                          {formatRecordId('passenger', passenger.id)} · {passenger.fullName || passenger.name}{passenger.email ? ` · ${passenger.email}` : ''}
                         </option>)}
                     </select>
                   </label>

@@ -145,14 +145,10 @@ CREATE TABLE payments (
     payment_method VARCHAR2(255),
     payment_status VARCHAR2(20) DEFAULT 'Successful' NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    refunded_at TIMESTAMP,
     CONSTRAINT pk_payments PRIMARY KEY (id),
     CONSTRAINT uq_payments_booking UNIQUE (booking_id),
     CONSTRAINT ck_payments_amount CHECK (amount >= 0),
-    CONSTRAINT ck_payments_status CHECK (payment_status IN ('Successful', 'Refunded')),
-    CONSTRAINT ck_payments_refund_date CHECK
-        ((payment_status = 'Refunded' AND refunded_at IS NOT NULL)
-         OR (payment_status = 'Successful' AND refunded_at IS NULL)),
+    CONSTRAINT ck_payments_status CHECK (payment_status IN ('Successful', 'Cancelled')),
     CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id)
         REFERENCES bookings (booking_id)
 );
@@ -180,14 +176,12 @@ CREATE TABLE feedback (
     rating NUMBER(1) NOT NULL,
     driver_rating NUMBER(1),
     vehicle_rating NUMBER(1),
-    review_status VARCHAR2(20) DEFAULT 'NEW' NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT pk_feedback PRIMARY KEY (id),
     CONSTRAINT uq_feedback_passenger_trip UNIQUE (passenger_id, trip_id),
     CONSTRAINT ck_feedback_rating CHECK (rating BETWEEN 1 AND 5),
     CONSTRAINT ck_feedback_driver_rating CHECK (driver_rating IS NULL OR driver_rating BETWEEN 1 AND 5),
     CONSTRAINT ck_feedback_vehicle_rating CHECK (vehicle_rating IS NULL OR vehicle_rating BETWEEN 1 AND 5),
-    CONSTRAINT ck_feedback_review_status CHECK (review_status IN ('NEW', 'REVIEWED', 'HIDDEN')),
     CONSTRAINT fk_feedback_passenger FOREIGN KEY (passenger_id) REFERENCES passengers (passenger_id),
     CONSTRAINT fk_feedback_trip FOREIGN KEY (trip_id) REFERENCES trips (trip_id)
 );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PageHeader from './PageHeader.jsx';
+import { formatRecordId } from '../utils/recordIds.js';
 
 const fieldsByType = {
   passenger: [
@@ -35,8 +36,8 @@ function optionValue(field, option) {
 }
 
 function optionLabel(field, option) {
-  if (field.type === 'passenger') return option.fullName;
-  if (field.type === 'booking') return `${option.bookingReference} · ${option.passenger} · Rs. ${option.totalAmount}`;
+  if (field.type === 'passenger') return `${formatRecordId('passenger', option.id)} · ${option.fullName}`;
+  if (field.type === 'booking') return `${formatRecordId('booking', option.id)} · ${option.bookingReference} · ${option.passenger} · Rs. ${option.totalAmount}`;
   return option;
 }
 

@@ -1,6 +1,6 @@
 import Icon from './Icon.jsx';
 
-export default function ActionButtons({ onView, onEdit, editDisabled = false, onDelete, onRefund }) {
+export default function ActionButtons({ onView, onEdit, editDisabled = false, onDelete }) {
   return (
     <div className="actions">
       {onView && (
@@ -35,17 +35,6 @@ export default function ActionButtons({ onView, onEdit, editDisabled = false, on
           onClick={onDelete}
         >
           <Icon name="trash" size={15} />
-        </button>
-      )}
-      {onRefund && (
-        <button
-          className="action-btn refund"
-          type="button"
-          aria-label="Refund payment"
-          title="Refund payment"
-          onClick={onRefund}
-        >
-          <Icon name="refund" size={15} />
         </button>
       )}
     </div>

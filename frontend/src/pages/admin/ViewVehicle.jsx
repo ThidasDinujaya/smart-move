@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function safeVehicleMediaUrl(value) {
   if (typeof value !== 'string' || !value) return '';
@@ -116,6 +117,11 @@ function ViewVehicle({ vehicle, onBack, onEdit }) {
         </div>
 
         <div className="details-grid">
+          <div className="detail-item">
+            <span>Vehicle ID</span>
+            <strong>{formatRecordId('vehicle', vehicle.id)}</strong>
+          </div>
+
           <div className="detail-item">
             <span>Vehicle Number</span>
             <strong>{vehicle.vehicleNo}</strong>

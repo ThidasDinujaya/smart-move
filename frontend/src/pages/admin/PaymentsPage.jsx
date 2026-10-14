@@ -4,29 +4,25 @@ import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
-import { formatDateTime, formatMoney } from '../../utils/formatters.js';
+import { formatMoney } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
-export default function PaymentsPage({ payments = [], onAdd, onView, onRefund }) {
+export default function PaymentsPage({ payments = [], onAdd, onView }) {
   const list = useRecordList(payments);
   const statuses = [...new Set(payments.map((record) => record.status).filter(Boolean))];
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
-    { key: 'id', label: 'Payment ID', className: 'strong' },
-    { key: 'booking', label: 'Booking ID' },
+    { key: 'id', label: 'Payment ID', className: 'strong', render: (record) => formatRecordId('payment', record.id) },
+    { key: 'booking', label: 'Booking ID', render: (record) => formatRecordId('booking', record.booking) },
     { key: 'passenger', label: 'Passenger' },
     { key: 'amount', label: 'Amount', render: (record) => formatMoney(record.amount) },
     { key: 'method', label: 'Method' },
     { key: 'status', label: 'Status', render: (record) => <StatusBadge>{record.status}</StatusBadge> },
-    { key: 'refundedAt', label: 'Refunded at', render: (record) => formatDateTime(record.refundedAt) },
     {
       key: 'actions',
       label: 'Actions',
       render: (record) => (
         <ActionButtons
           onView={() => onView?.(record)}
-          onRefund={String(record.status || '').toLowerCase() === 'successful' && !record.refundedAt
-            ? () => onRefund?.(record)
-            : undefined}
         />
       ),
     },

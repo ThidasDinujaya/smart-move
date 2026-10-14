@@ -34,30 +34,9 @@ public class FeedbackController {
         return feedbackService.saveFeedback(feedback, userId);
     }
 
-    @PutMapping("/{id}/status")
-    public Feedback updateReviewStatus(
-            @PathVariable Long id,
-            @RequestBody ReviewStatusRequest request,
-            @RequestHeader(name = "X-User-Id", required = false) String userId) {
-        return feedbackService.updateReviewStatus(id, request.reviewStatus(), userId);
-    }
-
-    @PutMapping("/{id}/response")
-    public Feedback updateResponse(
-            @PathVariable Long id,
-            @RequestBody FeedbackResponseRequest request,
-            @RequestHeader(name = "X-User-Id", required = false) String userId) {
-        return feedbackService.updateResponse(id, request.message(), userId);
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleInvalidFeedback(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
     }
 
-    public record ReviewStatusRequest(String reviewStatus) {
-    }
-
-    public record FeedbackResponseRequest(String message) {
-    }
 }

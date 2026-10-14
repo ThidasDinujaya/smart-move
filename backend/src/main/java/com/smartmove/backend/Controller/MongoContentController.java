@@ -13,6 +13,7 @@ import com.smartmove.backend.data.VehicleMediaDocument;
 import com.smartmove.backend.data.VehicleMediaRepository;
 import com.smartmove.backend.data.VehicleRepository;
 import com.smartmove.backend.service.CustomerAuthService;
+import com.smartmove.backend.service.PublicIdService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -45,6 +47,7 @@ public class MongoContentController {
     private final VehicleRepository vehicleRepository;
     private final PassengerRepository passengerRepository;
     private final CustomerAuthService customerAuthService;
+    private final PublicIdService publicIdService;
 
     public MongoContentController(
             TravelAnnouncementRepository announcementRepository,
@@ -54,7 +57,8 @@ public class MongoContentController {
             TripRepository tripRepository,
             VehicleRepository vehicleRepository,
             PassengerRepository passengerRepository,
-            CustomerAuthService customerAuthService) {
+            CustomerAuthService customerAuthService,
+            PublicIdService publicIdService) {
         this.announcementRepository = announcementRepository;
         this.notificationRepository = notificationRepository;
         this.tripMediaRepository = tripMediaRepository;
@@ -63,6 +67,7 @@ public class MongoContentController {
         this.vehicleRepository = vehicleRepository;
         this.passengerRepository = passengerRepository;
         this.customerAuthService = customerAuthService;
+        this.publicIdService = publicIdService;
     }
 
     @GetMapping("/announcements")
@@ -72,8 +77,9 @@ public class MongoContentController {
         List<String> roles = userId == null || userId.isBlank()
                 ? List.of("CUSTOMER")
                 : customerAuthService.currentCustomer(userId).roles();
+        ensureAnnouncementDisplayIds(announcementRepository.findAll());
         Instant now = Instant.now();
-        return announcementRepository.findByActiveTrueOrderByPublishedAtDesc().stream()
+        List<TravelAnnouncementDocument> announcements = announcementRepository.findByActiveTrueOrderByPublishedAtDesc().stream()
                 .filter(item -> item.getPublishedAt() == null || !item.getPublishedAt().isAfter(now))
                 .filter(item -> item.getStartsAt() == null || !item.getStartsAt().isAfter(now))
                 .filter(item -> item.getEndsAt() == null || !item.getEndsAt().isBefore(now))
@@ -81,6 +87,7 @@ public class MongoContentController {
                 .filter(item -> item.getRouteOracleIds() == null || item.getRouteOracleIds().isEmpty()
                         || routeId != null && item.getRouteOracleIds().contains(routeId))
                 .toList();
+        return ensureAnnouncementDisplayIds(announcements);
     }
 
     @GetMapping("/notifications/{recipientOracleId}")
@@ -91,7 +98,8 @@ public class MongoContentController {
         if (!customer.id().equals(recipientOracleId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only view your own notifications.");
         }
-        return notificationRepository.findByRecipientOracleIdOrderByCreatedAtDesc(recipientOracleId);
+        ensureNotificationDisplayIds(notificationRepository.findAll());
+        return ensureNotificationDisplayIds(notificationRepository.findByRecipientOracleIdOrderByCreatedAtDesc(recipientOracleId));
     }
 
     @PutMapping("/notifications/{notificationId}/read")
@@ -112,14 +120,15 @@ public class MongoContentController {
 
     @GetMapping("/trips/{tripOracleId}/media")
     public List<TripMediaDocument> getTripMedia(@PathVariable Long tripOracleId) {
-        return tripMediaRepository.findByTripOracleIdOrderByUploadedAtDesc(tripOracleId);
+        ensureTripMediaDisplayIds(tripMediaRepository.findAll());
+        return ensureTripMediaDisplayIds(tripMediaRepository.findByTripOracleIdOrderByUploadedAtDesc(tripOracleId));
     }
 
     @GetMapping("/admin/announcements")
     public List<TravelAnnouncementDocument> getAllAnnouncements(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
         requireContentStaff(userId);
-        return announcementRepository.findAll();
+        return ensureAnnouncementDisplayIds(announcementRepository.findAll());
     }
 
     @PostMapping("/admin/announcements")
@@ -131,6 +140,8 @@ public class MongoContentController {
         requireText(request.getMessage(), "An announcement message is required.");
         validateAnnouncementAudience(request);
         request.setId(null);
+        request.setDisplayId(nextDisplayId("announcements", "A", announcementRepository.findAll().stream()
+                .map(TravelAnnouncementDocument::getDisplayId).toList()));
         if (request.getPublishedAt() == null) request.setPublishedAt(Instant.now());
         if (request.getActive() == null) request.setActive(true);
         return announcementRepository.save(request);
@@ -148,6 +159,7 @@ public class MongoContentController {
         requireText(request.getMessage(), "An announcement message is required.");
         validateAnnouncementAudience(request);
         request.setId(id);
+        request.setDisplayId(saved.getDisplayId());
         if (request.getPublishedAt() == null) request.setPublishedAt(saved.getPublishedAt());
         return announcementRepository.save(request);
     }
@@ -166,7 +178,7 @@ public class MongoContentController {
     public List<NotificationDocument> getAllNotifications(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
         requireContentStaff(userId);
-        return notificationRepository.findAll();
+        return ensureNotificationDisplayIds(notificationRepository.findAll());
     }
 
     @PostMapping("/admin/notifications")
@@ -176,6 +188,8 @@ public class MongoContentController {
         requireContentStaff(userId);
         validateNotification(request);
         request.setId(null);
+        request.setDisplayId(nextDisplayId("notifications", "N", notificationRepository.findAll().stream()
+                .map(NotificationDocument::getDisplayId).toList()));
         request.setCreatedAt(Instant.now());
         request.setReadAt(null);
         request.setStatus("UNREAD");
@@ -196,6 +210,7 @@ public class MongoContentController {
                 .orElseThrow(() -> notFound("Notification was not found."));
         validateNotification(request);
         request.setId(id);
+        request.setDisplayId(saved.getDisplayId());
         request.setCreatedAt(saved.getCreatedAt());
         request.setReadAt(saved.getReadAt());
         request.setStatus(saved.getStatus());
@@ -217,7 +232,7 @@ public class MongoContentController {
     public List<TripMediaDocument> getAllTripMedia(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
         requireContentStaff(userId);
-        return tripMediaRepository.findAll();
+        return ensureTripMediaDisplayIds(tripMediaRepository.findAll());
     }
 
     @PostMapping("/admin/trip-media")
@@ -227,6 +242,8 @@ public class MongoContentController {
         CustomerAuthService.CustomerView staff = requireContentStaff(userId);
         validateTripMedia(request);
         request.setId(null);
+        request.setDisplayId(nextDisplayId("trip_media", "TM", tripMediaRepository.findAll().stream()
+                .map(TripMediaDocument::getDisplayId).toList()));
         request.setUploadedAt(Instant.now());
         request.setUploadedByOracleId(staff.id());
         return tripMediaRepository.save(request);
@@ -242,6 +259,7 @@ public class MongoContentController {
                 .orElseThrow(() -> notFound("Trip media was not found."));
         validateTripMedia(request);
         request.setId(id);
+        request.setDisplayId(saved.getDisplayId());
         request.setUploadedAt(saved.getUploadedAt());
         request.setUploadedByOracleId(saved.getUploadedByOracleId());
         if (request.getMediaData() == null) request.setMediaData(saved.getMediaData());
@@ -262,7 +280,7 @@ public class MongoContentController {
     public List<VehicleMediaDocument> getAllVehicleMedia(
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
         requireContentStaff(userId);
-        return vehicleMediaRepository.findAll();
+        return ensureVehicleMediaDisplayIds(vehicleMediaRepository.findAll());
     }
 
     @PostMapping("/admin/vehicle-media")
@@ -272,6 +290,8 @@ public class MongoContentController {
         requireContentStaff(userId);
         Vehicle vehicle = validateVehicleMedia(request);
         request.setId(null);
+        request.setDisplayId(nextDisplayId("vehicle_media", "VM", vehicleMediaRepository.findAll().stream()
+                .map(VehicleMediaDocument::getDisplayId).toList()));
         request.setRegistrationNo(vehicle.getVehicleNo());
         request.setUploadedAt(Instant.now());
         return vehicleMediaRepository.save(request);
@@ -287,6 +307,7 @@ public class MongoContentController {
                 .orElseThrow(() -> notFound("Vehicle media was not found."));
         Vehicle vehicle = validateVehicleMedia(request);
         request.setId(id);
+        request.setDisplayId(saved.getDisplayId());
         request.setRegistrationNo(vehicle.getVehicleNo());
         request.setUploadedAt(saved.getUploadedAt());
         if (request.getMediaData() == null) {
@@ -308,6 +329,80 @@ public class MongoContentController {
 
     private CustomerAuthService.CustomerView requireContentStaff(String userId) {
         return customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
+    }
+
+    private List<TravelAnnouncementDocument> ensureAnnouncementDisplayIds(List<TravelAnnouncementDocument> records) {
+        List<TravelAnnouncementDocument> results = new ArrayList<>(records);
+        long highest = highestDisplayNumber(results.stream().map(TravelAnnouncementDocument::getDisplayId).toList(), "A");
+        for (int index = 0; index < results.size(); index++) {
+            TravelAnnouncementDocument record = results.get(index);
+            if (record.getDisplayId() == null || record.getDisplayId().isBlank()) {
+                record.setDisplayId(publicIdService.nextId("announcements", "A", highest));
+                highest = highestDisplayNumber(List.of(record.getDisplayId()), "A");
+                results.set(index, announcementRepository.save(record));
+            }
+        }
+        return results;
+    }
+
+    private List<NotificationDocument> ensureNotificationDisplayIds(List<NotificationDocument> records) {
+        List<NotificationDocument> results = new ArrayList<>(records);
+        long highest = highestDisplayNumber(results.stream().map(NotificationDocument::getDisplayId).toList(), "N");
+        for (int index = 0; index < results.size(); index++) {
+            NotificationDocument record = results.get(index);
+            if (record.getDisplayId() == null || record.getDisplayId().isBlank()) {
+                record.setDisplayId(publicIdService.nextId("notifications", "N", highest));
+                highest = highestDisplayNumber(List.of(record.getDisplayId()), "N");
+                results.set(index, notificationRepository.save(record));
+            }
+        }
+        return results;
+    }
+
+    private List<TripMediaDocument> ensureTripMediaDisplayIds(List<TripMediaDocument> records) {
+        List<TripMediaDocument> results = new ArrayList<>(records);
+        long highest = highestDisplayNumber(results.stream().map(TripMediaDocument::getDisplayId).toList(), "TM");
+        for (int index = 0; index < results.size(); index++) {
+            TripMediaDocument record = results.get(index);
+            if (record.getDisplayId() == null || record.getDisplayId().isBlank()) {
+                record.setDisplayId(publicIdService.nextId("trip_media", "TM", highest));
+                highest = highestDisplayNumber(List.of(record.getDisplayId()), "TM");
+                results.set(index, tripMediaRepository.save(record));
+            }
+        }
+        return results;
+    }
+
+    private List<VehicleMediaDocument> ensureVehicleMediaDisplayIds(List<VehicleMediaDocument> records) {
+        List<VehicleMediaDocument> results = new ArrayList<>(records);
+        long highest = highestDisplayNumber(results.stream().map(VehicleMediaDocument::getDisplayId).toList(), "VM");
+        for (int index = 0; index < results.size(); index++) {
+            VehicleMediaDocument record = results.get(index);
+            if (record.getDisplayId() == null || record.getDisplayId().isBlank()) {
+                record.setDisplayId(publicIdService.nextId("vehicle_media", "VM", highest));
+                highest = highestDisplayNumber(List.of(record.getDisplayId()), "VM");
+                results.set(index, vehicleMediaRepository.save(record));
+            }
+        }
+        return results;
+    }
+
+    private String nextDisplayId(String sequenceName, String prefix, List<String> existingIds) {
+        return publicIdService.nextId(sequenceName, prefix, highestDisplayNumber(existingIds, prefix));
+    }
+
+    private long highestDisplayNumber(List<String> displayIds, String prefix) {
+        return displayIds.stream()
+                .filter(value -> value != null && value.startsWith(prefix))
+                .mapToLong(value -> {
+                    try {
+                        return Long.parseLong(value.substring(prefix.length()));
+                    } catch (NumberFormatException ignored) {
+                        return 999L;
+                    }
+                })
+                .max()
+                .orElse(999L);
     }
 
     private boolean audienceMatches(List<String> audience, List<String> roles) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatRecordId } from '../../utils/recordIds.js';
 import { ArrowRight, Bus, Mail, MapPin, Phone, ShieldCheck, Ticket } from 'lucide-react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import '../../styles/CustomerHome.css';
@@ -72,7 +73,7 @@ const CustomerHome = () => {
               <p style={{ color: '#475569', fontSize: '13px', margin: '8px 0' }}>{announcement.message}</p>
               <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>
                 Audience: {(announcement.audience || []).join(', ') || 'All'}
-                {announcement.routeOracleIds?.length ? ` · Route IDs: ${announcement.routeOracleIds.join(', ')}` : ''}
+                {announcement.routeOracleIds?.length ? ` · Route IDs: ${announcement.routeOracleIds.map((id) => formatRecordId('route', id)).join(', ')}` : ''}
                 {announcement.publishedAt ? ` · Published: ${new Date(announcement.publishedAt).toLocaleDateString()}` : ''}
                 {announcement.startsAt ? ` · Starts: ${new Date(announcement.startsAt).toLocaleDateString()}` : ''}
                 {announcement.endsAt ? ` · Ends: ${new Date(announcement.endsAt).toLocaleDateString()}` : ''}

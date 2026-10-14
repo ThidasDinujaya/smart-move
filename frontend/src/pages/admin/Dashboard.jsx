@@ -1,5 +1,6 @@
 
 import { BusFront, Users, MapPin, CalendarDays } from 'lucide-react';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function Dashboard({
   vehicles = [],
@@ -102,7 +103,7 @@ export default function Dashboard({
             <table className="dashboard-table">
               <thead>
                 <tr>
-                  <th>#</th>
+                  <th>Trip ID</th>
                   <th>Route</th>
                   <th>Vehicle</th>
                   <th>Driver</th>
@@ -115,9 +116,9 @@ export default function Dashboard({
                     <td colSpan={5}>No trips scheduled for today.</td>
                   </tr>
                 ) : (
-                  upcomingTrips.map((trip, index) => (
-                    <tr key={trip.id ?? index}>
-                      <td>{index + 1}</td>
+                  upcomingTrips.map((trip) => (
+                    <tr key={trip.id}>
+                      <td>{formatRecordId('trip', trip.id)}</td>
                       <td>{trip.route?.name || trip.routeName || trip.route || '—'}</td>
                       <td>{trip.vehicle?.registrationNumber || trip.vehicleNumber || '—'}</td>
                       <td>{trip.driver?.name || trip.driverName || '—'}</td>

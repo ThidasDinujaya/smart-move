@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
+import { formatRecordId, formatRecordReference } from '../utils/recordIds.js';
 
 const fieldsByType = {
   passenger: [
@@ -62,7 +63,7 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
           <div>
             <h2 id="dialog-title">{title}</h2>
             <p>{mode === 'delete'
-              ? isTripCancellation ? 'This cancels the trip, its bookings and tickets, and refunds successful payments.' : 'This action cannot be undone.'
+              ? isTripCancellation ? 'This cancels the trip, its bookings, and tickets. Payment records will remain unchanged.' : 'This action cannot be undone.'
               : 'Review or update this record.'}</p>
           </div>
           <button className="close" type="button" onClick={onClose} aria-label="Close">
@@ -72,12 +73,13 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
 
         {mode === 'view' && (
           <dl className="details">
+            <div><dt>{toTitleCase(type)} ID</dt><dd>{formatRecordId(type, item.id)}</dd></div>
             {Object.entries(item)
               .filter(([key]) => key !== 'id')
               .map(([key, value]) => (
                 <div key={key}>
                   <dt>{toTitleCase(key)}</dt>
-                  <dd>{String(value ?? '—')}</dd>
+                  <dd>{formatRecordReference(key, value) ?? String(value ?? '—')}</dd>
                 </div>
               ))}
           </dl>
@@ -103,11 +105,11 @@ export default function RecordDialog({ data, onClose, onSave, onDelete, passenge
                     ]).map((option) => {
                       const value = field.type === 'method' ? option.id : option.id;
                       const label = field.type === 'passenger'
-                        ? option.fullName
+                        ? `${formatRecordId('passenger', option.id)} · ${option.fullName}`
                         : field.type === 'trip'
-                          ? `${option.route} · ${option.date} · ${option.departure}`
+                          ? `${formatRecordId('trip', option.id)} · ${option.route} · ${option.date} · ${option.departure}`
                           : field.type === 'booking'
-                            ? `${option.bookingReference} · ${option.passenger} · Rs. ${option.totalAmount}`
+                            ? `${formatRecordId('booking', option.id)} · ${option.bookingReference} · ${option.passenger} · Rs. ${option.totalAmount}`
                             : option.label;
                       return <option key={value} value={value}>{label}</option>;
                     })}

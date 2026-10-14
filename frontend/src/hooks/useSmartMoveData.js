@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
+import { formatRecordId } from '../utils/recordIds.js';
 
 const empty = {
   vehicles: [], drivers: [], routeRecords: [], passengers: [], trips: [], bookings: [],
@@ -11,6 +12,7 @@ const LEGACY_MIGRATION_KEY = 'smartmove_legacy_records_migrated_v1';
 const asArray = (value) => Array.isArray(value) ? value : [];
 const vehicleFromApi = (vehicle) => ({
   ...vehicle,
+  displayId: formatRecordId('vehicle', vehicle.id),
   type: vehicle.vehicleType,
   capacity: vehicle.seatingCapacity,
   brand: vehicle.brand || '',
@@ -19,13 +21,15 @@ const vehicleFromApi = (vehicle) => ({
 });
 const driverFromApi = (driver) => ({
   ...driver,
+  displayId: formatRecordId('driver', driver.id),
   phone: driver.contact,
   email: driver.email || '',
   assignedVehicle: driver.assignedVehicle || '',
 });
-const passengerFromApi = (passenger) => ({ ...passenger, name: passenger.fullName });
+const passengerFromApi = (passenger) => ({ ...passenger, displayId: formatRecordId('passenger', passenger.id), name: passenger.fullName });
 const tripFromApi = (trip) => ({
   ...trip,
+  displayId: formatRecordId('trip', trip.id),
   departure: String(trip.departure || '').slice(0, 5),
   arrival: String(trip.arrival || '').slice(0, 5),
 });
@@ -147,6 +151,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       else failed.push(result.reason?.message || `Unable to load ${key}.`);
     });
 
+    next.routeRecords = next.routeRecords.map((route) => ({ ...route, displayId: formatRecordId('route', route.id) }));
     const routeById = new Map(next.routeRecords.map((route) => [String(route.id), route]));
     const passengerById = new Map(next.passengers.map((passenger) => [String(passenger.id), passenger]));
     const tripById = new Map(next.trips.map((trip) => [String(trip.id), trip]));
@@ -160,7 +165,8 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       return {
         ...booking,
         id: booking.id,
-        passenger: passenger?.fullName || `Passenger #${booking.passengerId}`,
+        displayId: formatRecordId('booking', booking.id),
+        passenger: passenger?.fullName || `Passenger ${formatRecordId('passenger', booking.passengerId)}`,
         route: trip?.route || `${booking.from} - ${booking.to}`,
         date: booking.date,
         seats: booking.tickets?.map((ticket) => ticket.seatNumber).join(', ') || booking.seatCount,
@@ -172,8 +178,10 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       const booking = next.bookings.find((item) => String(item.id) === String(payment.bookingId));
       return {
         ...payment,
+        displayId: formatRecordId('payment', payment.id),
+        bookingDisplayId: formatRecordId('booking', payment.bookingId),
         booking: payment.bookingId,
-        passenger: passengerById.get(String(booking?.passengerId))?.fullName || `Passenger #${booking?.passengerId ?? '—'}`,
+        passenger: passengerById.get(String(booking?.passengerId))?.fullName || `Passenger ${formatRecordId('passenger', booking?.passengerId)}`,
         amount: payment.amount,
         method: payment.paymentMethod,
         status: payment.paymentStatus,
@@ -183,7 +191,8 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     });
     next.maintenance = next.maintenance.map((item) => ({
       ...item,
-      vehicleNo: next.vehicles.find((vehicle) => String(vehicle.id) === String(item.vehicleId))?.vehicleNo || `Vehicle #${item.vehicleId}`,
+      displayId: formatRecordId('maintenance', item.id),
+      vehicleNo: next.vehicles.find((vehicle) => String(vehicle.id) === String(item.vehicleId))?.vehicleNo || `Vehicle ${formatRecordId('vehicle', item.vehicleId)}`,
       type: item.serviceType,
       date: item.startDate,
       nextService: item.nextServiceDate || '',
@@ -192,8 +201,9 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       const trip = tripById.get(String(item.tripId));
       return {
         ...item,
-        passengerName: passengerById.get(String(item.passengerId))?.fullName || `Passenger #${item.passengerId}`,
-        route: routeById.get(String(trip?.routeId))?.routeName || trip?.route || `Trip #${item.tripId}`,
+        displayId: formatRecordId('feedback', item.id),
+        passengerName: passengerById.get(String(item.passengerId))?.fullName || `Passenger ${formatRecordId('passenger', item.passengerId)}`,
+        route: routeById.get(String(trip?.routeId))?.routeName || trip?.route || `Trip ${formatRecordId('trip', item.tripId)}`,
         date: item.createdAt,
       };
     });
@@ -390,24 +400,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     return saved;
   }, [records.vehicles, refresh]);
 
-  const refundPayment = useCallback(async (id) => {
-    const refunded = await api.post(`/api/payments/${id}/refund`);
-    await refresh();
-    return refunded;
-  }, [refresh]);
-
-  const updateFeedbackStatus = useCallback(async (id, reviewStatus) => {
-    const updated = await api.put(`/api/feedback/${id}/status`, { reviewStatus });
-    await refresh();
-    return updated;
-  }, [refresh]);
-
-  const updateFeedbackResponse = useCallback(async (id, message) => {
-    const updated = await api.put(`/api/feedback/${id}/response`, { message });
-    await refresh();
-    return updated;
-  }, [refresh]);
-
   return {
     ...records,
     loading,
@@ -420,6 +412,6 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
     saveVehicle, updateVehicle, deleteVehicle,
     saveDriver, updateDriver, deleteDriver,
     saveRoute, updateRoute, deleteRoute,
-    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, deleteMaintenance, refundPayment, updateFeedbackStatus, updateFeedbackResponse,
+    saveTrip, deleteTrip, saveRecord, deleteRecord, saveMaintenance, deleteMaintenance,
   };
 }

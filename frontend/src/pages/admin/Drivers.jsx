@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { formatRecordId } from '../../utils/recordIds.js';
 import {
   Plus,
   Search,
@@ -114,7 +115,7 @@ function Drivers({
           <table className="management-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Driver ID</th>
                 <th>Name</th>
                 <th>License No</th>
                 <th>Contact</th>
@@ -128,7 +129,7 @@ function Drivers({
               {filteredDrivers.length > 0 ? (
                 filteredDrivers.map((driver, index) => (
                   <tr key={driver.id}>
-                    <td>{index + 1}</td>
+                    <td>{formatRecordId('driver', driver.id)}</td>
                     <td>{driver.name}</td>
                     <td>{driver.licenseNo}</td>
                     <td>{driver.contact}</td>

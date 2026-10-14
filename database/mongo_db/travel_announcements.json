@@ -1,9 +1,10 @@
 [
   {
+    "displayId": "A1000",
     "title": "Colombo to Kandy service update",
     "message": "Please arrive at the departure point 15 minutes before your trip.",
     "severity": "INFO",
-    "routeOracleIds": [1],
+    "routeOracleIds": [1000],
     "audience": ["CUSTOMER", "DRIVER"],
     "publishedAt": { "$date": "2026-10-12T00:00:00Z" },
     "startsAt": { "$date": "2026-10-12T00:00:00Z" },

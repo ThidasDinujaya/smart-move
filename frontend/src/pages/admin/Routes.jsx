@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Plus, Search, Eye, Pencil, Trash2 } from 'lucide-react';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function Routes({
   routes = [],
@@ -94,7 +95,7 @@ function Routes({
           <table className="management-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Route ID</th>
                 <th>Route No</th>
                 <th>Route Name</th>
                 <th>Start Location</th>
@@ -109,7 +110,7 @@ function Routes({
               {filteredRoutes.length > 0 ? (
                 filteredRoutes.map((route, index) => (
                   <tr key={route.id}>
-                    <td>{index + 1}</td>
+                    <td>{formatRecordId('route', route.id)}</td>
                     <td>{route.routeNo}</td>
                     <td>{route.routeName}</td>
                     <td>{route.startLocation}</td>

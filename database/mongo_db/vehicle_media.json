@@ -1,6 +1,7 @@
 [
   {
-    "vehicleOracleId": 1,
+    "displayId": "VM1000",
+    "vehicleOracleId": 1000,
     "registrationNo": "WP-CAB-1234",
     "mediaType": "INSURANCE",
     "fileName": "WP-CAB-1234-insurance.pdf",
@@ -12,7 +13,8 @@
     "metadata": { "note": "Sample insurance document record; add a real storage URL when one is available." }
   },
   {
-    "vehicleOracleId": 2,
+    "displayId": "VM1001",
+    "vehicleOracleId": 1001,
     "registrationNo": "WP-VAN-4567",
     "mediaType": "PHOTO",
     "fileName": "WP-VAN-4567-front.jpg",
@@ -22,7 +24,8 @@
     "metadata": { "view": "front", "note": "Sample vehicle photo record; upload a real image from the application." }
   },
   {
-    "vehicleOracleId": 3,
+    "displayId": "VM1002",
+    "vehicleOracleId": 1002,
     "registrationNo": "WP-BUS-8899",
     "mediaType": "INSPECTION_REPORT",
     "fileName": "WP-BUS-8899-inspection.pdf",

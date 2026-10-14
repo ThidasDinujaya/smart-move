@@ -10,6 +10,7 @@ import java.util.Map;
 public class NotificationDocument {
     @Id
     private String id;
+    private String displayId;
     private Long recipientOracleId;
     private String recipientRole;
     private String notificationType;
@@ -25,6 +26,8 @@ public class NotificationDocument {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getDisplayId() { return displayId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public Long getRecipientOracleId() { return recipientOracleId; }
     public void setRecipientOracleId(Long recipientOracleId) { this.recipientOracleId = recipientOracleId; }
     public String getRecipientRole() { return recipientRole; }

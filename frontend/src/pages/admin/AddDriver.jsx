@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { UploadCloud } from 'lucide-react';
 import fileToDataUrl from '../../utils/fileToDataUrl.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function AddDriver({
   vehicles = [],
@@ -206,7 +207,7 @@ function AddDriver({
                       key={vehicle.id}
                       value={vehicle.vehicleNo}
                     >
-                      {vehicle.vehicleNo}
+                      {formatRecordId('vehicle', vehicle.id)} · {vehicle.vehicleNo}
                     </option>
                   ))}
                 </select>

@@ -63,35 +63,6 @@ EXCEPTION
 END;
 /
 
--- Refund a successful payment once.
-CREATE OR REPLACE PROCEDURE sp_refund_payment (p_payment_id IN NUMBER)
-IS
-    v_status payments.payment_status%TYPE;
-BEGIN
-    SELECT payment_status
-      INTO v_status
-      FROM payments
-     WHERE id = p_payment_id
-       FOR UPDATE;
-
-    IF v_status = 'Refunded' THEN
-        RETURN;
-    END IF;
-
-    IF v_status <> 'Successful' THEN
-        RAISE_APPLICATION_ERROR(-20007, 'Only successful payments can be refunded.');
-    END IF;
-
-    UPDATE payments
-       SET payment_status = 'Refunded',
-           refunded_at = CURRENT_TIMESTAMP
-     WHERE id = p_payment_id;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RAISE_APPLICATION_ERROR(-20008, 'Payment was not found.');
-END;
-/
-
 -- Cancel a customer's future booking and return its seats.
 CREATE OR REPLACE PROCEDURE sp_cancel_booking (p_booking_id IN NUMBER)
 IS
@@ -135,15 +106,6 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20011, 'This booking cannot be cancelled.');
     END IF;
 
-    FOR payment_row IN (
-        SELECT id
-          FROM payments
-         WHERE booking_id = p_booking_id
-           AND payment_status = 'Successful'
-    ) LOOP
-        sp_refund_payment(payment_row.id);
-    END LOOP;
-
     UPDATE tickets
        SET ticket_status = 'Cancelled'
      WHERE booking_id = p_booking_id
@@ -158,7 +120,7 @@ EXCEPTION
 END;
 /
 
--- Cancel a trip and close its bookings, tickets, and successful payments together.
+-- Cancel a trip and close its bookings and tickets together.
 CREATE OR REPLACE PROCEDURE sp_cancel_trip (p_trip_id IN NUMBER)
 IS
     v_status trips.status%TYPE;
@@ -187,19 +149,6 @@ BEGIN
     IF v_departure_at <= SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20022, 'A trip cannot be cancelled after it has departed.');
     END IF;
-
-    FOR payment_row IN (
-        SELECT id
-          FROM payments
-         WHERE payment_status = 'Successful'
-           AND booking_id IN (
-               SELECT booking_id FROM bookings
-                WHERE trip_id = p_trip_id
-                  AND booking_status IN ('Pending Payment', 'Confirmed')
-           )
-    ) LOOP
-        sp_refund_payment(payment_row.id);
-    END LOOP;
 
     UPDATE tickets
        SET ticket_status = 'Cancelled'

@@ -1,12 +1,11 @@
-import { useState } from 'react';
 import Icon from '../../components/Icon.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
-export default function FeedbackReviews({ reviews = [], onStatusChange, onResponseChange }) {
-  const [responseDrafts, setResponseDrafts] = useState({});
+export default function FeedbackReviews({ reviews = [] }) {
   const records = reviews.map((review) => {
     const rating = Number(review.rating ?? review.score);
     const passengerName = review.passengerName ?? review.passenger?.name ?? review.name ?? '';
@@ -21,14 +20,14 @@ export default function FeedbackReviews({ reviews = [], onStatusChange, onRespon
     };
   });
   const list = useRecordList(records);
-  const ratedRecords = records.filter((review) => review.score !== null && String(review.reviewStatus || '').toUpperCase() !== 'HIDDEN');
+  const ratedRecords = records.filter((review) => review.score !== null);
   const averageRating = ratedRecords.length
     ? (ratedRecords.reduce((total, review) => total + review.score, 0) / ratedRecords.length).toFixed(1)
     : '—';
   const positiveReviews = ratedRecords.filter((review) => review.score >= 4).length;
   const ratingFilters = [...new Set(ratedRecords.map((review) => review.status))];
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
+    { key: 'id', label: 'Feedback ID', className: 'strong', render: (record) => formatRecordId('feedback', record.id) },
     { key: 'name', label: 'Passenger', className: 'strong' },
     { key: 'route', label: 'Route' },
     {
@@ -49,47 +48,6 @@ export default function FeedbackReviews({ reviews = [], onStatusChange, onRespon
     { key: 'vehicleRating', label: 'Vehicle rating' },
     { key: 'driverName', label: 'Driver' },
     { key: 'registrationNo', label: 'Vehicle' },
-    { key: 'isComplaint', label: 'Complaint', render: (record) => record.isComplaint ? 'Yes' : 'No' },
-    { key: 'keywords', label: 'Keywords', render: (record) => (record.keywords || []).join(', ') },
-    {
-      key: 'response',
-      label: 'Response',
-      render: (record) => {
-        const savedMessage = record.response?.message || '';
-        const message = Object.hasOwn(responseDrafts, record.id) ? responseDrafts[record.id] : savedMessage;
-        return (
-          <form onSubmit={(event) => {
-            event.preventDefault();
-            onResponseChange?.(record.id, message).catch((error) => window.alert(error.message || 'Unable to save the response.'));
-          }} style={{ display: 'grid', gap: '6px', minWidth: '210px' }}>
-            <textarea
-              rows="2"
-              maxLength="2000"
-              value={message}
-              onChange={(event) => setResponseDrafts((current) => ({ ...current, [record.id]: event.target.value }))}
-              aria-label={`Response to ${record.passengerName || 'passenger feedback'}`}
-              placeholder="Write a response"
-            />
-            <button type="submit">Save response</button>
-          </form>
-        );
-      },
-    },
-    {
-      key: 'reviewStatus',
-      label: 'Review status',
-      render: (record) => (
-        <select
-          value={record.reviewStatus || 'NEW'}
-          onChange={(event) => onStatusChange?.(record.id, event.target.value)}
-          aria-label={`Review status for ${record.passengerName || 'passenger feedback'}`}
-        >
-          <option value="NEW">New</option>
-          <option value="REVIEWED">Reviewed</option>
-          <option value="HIDDEN">Hidden</option>
-        </select>
-      ),
-    },
     { key: 'comment', label: 'Comment' },
     { key: 'date', label: 'Date' },
   ];
@@ -120,6 +78,7 @@ export default function FeedbackReviews({ reviews = [], onStatusChange, onRespon
         status={list.status}
         onStatusChange={list.setStatus}
         statuses={ratingFilters}
+        statusLabel="Ratings"
         showDate={false}
       />
       <RecordsTable columns={columns} rows={list.visibleRecords} list={list} wide emptyMessage="No reviews found." />

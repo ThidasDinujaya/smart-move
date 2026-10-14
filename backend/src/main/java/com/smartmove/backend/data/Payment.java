@@ -14,8 +14,6 @@ public class Payment {
     private BigDecimal amount;
     private String paymentMethod;
     private String paymentStatus;
-    @Column(name = "refunded_at")
-    private LocalDateTime refundedAt;
     private LocalDateTime paymentDate = LocalDateTime.now();
 
     public Long getId() { return id; }
@@ -28,8 +26,6 @@ public class Payment {
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     public String getPaymentStatus() { return paymentStatus; }
     public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
-    public LocalDateTime getRefundedAt() { return refundedAt; }
-    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
     public LocalDateTime getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDateTime paymentDate) { this.paymentDate = paymentDate; }
 }

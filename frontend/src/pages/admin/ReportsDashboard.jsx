@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Icon from '../../components/Icon.jsx';
 import PageHeader from '../../components/PageHeader.jsx';
 import { api } from '../../api/client.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 import '../../styles/ReportsDashboard.css';
 
 const reportOptions = [
@@ -218,7 +219,7 @@ export default function ReportsDashboard({ passengers = [] }) {
                 <option value="">All passengers</option>
                 {passengers.map((passenger) => (
                   <option key={passenger.id} value={passenger.id}>
-                    {passenger.fullName || `Passenger #${passenger.id}`}{passenger.email ? ` · ${passenger.email}` : ''}
+                    {formatRecordId('passenger', passenger.id)} · {passenger.fullName}{passenger.email ? ` · ${passenger.email}` : ''}
                   </option>
                 ))}
               </select>

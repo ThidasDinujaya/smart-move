@@ -5,12 +5,13 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDateTime } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function PassengersPage({ passengers = [], onAdd, onOpen }) {
   const list = useRecordList(passengers);
   const statuses = [...new Set(passengers.map((record) => record.status).filter(Boolean))];
   const columns = [
-    { key: 'number', label: '#' , render: (_record, index) => (list.page - 1) * 5 + index + 1 },
+    { key: 'id', label: 'Passenger ID', className: 'strong', render: (record) => formatRecordId('passenger', record.id) },
     { key: 'name', label: 'Name', className: 'strong' },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Contact' },

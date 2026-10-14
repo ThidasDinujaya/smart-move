@@ -382,16 +382,6 @@
   padding: 10px 0;
 }
 
-.admin-content .action-btn.refund {
-  border-color: #c9f0da;
-  color: #168750;
-  background: #f0fdf4;
-}
-
-.admin-content .action-btn.refund:hover {
-  background: #dcfce7;
-}
-
 .sidebar-footer {
   padding: 12px;
   border-top: 1px solid #ffffff20;
