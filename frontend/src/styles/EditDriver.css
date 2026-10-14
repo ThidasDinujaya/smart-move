@@ -1,0 +1,307 @@
+
+/* ==========================================
+   SMARTMOVE - EDIT DRIVER PAGE
+========================================== */
+
+.edit-driver-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px 32px;
+  background: #f3f6fb;
+  box-sizing: border-box;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+/* ==========================================
+   PAGE HEADING
+========================================== */
+
+.edit-driver-page .form-heading {
+  margin-bottom: 24px;
+}
+
+.edit-driver-page .form-heading h1 {
+  margin: 0 0 8px;
+  color: #102b4c;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
+}
+
+.edit-driver-page .form-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ==========================================
+   MAIN WHITE FORM CARD
+========================================== */
+
+.edit-driver-page .vehicle-form-card {
+  width: 100%;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(15, 42, 72, 0.04);
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   FORM LAYOUT
+========================================== */
+
+.edit-driver-page .vehicle-form-content {
+  display: block;
+  width: 100%;
+}
+
+.edit-driver-page .vehicle-fields {
+  width: 100%;
+  min-width: 0;
+}
+
+.edit-driver-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 28px;
+  row-gap: 24px;
+  width: 100%;
+}
+
+/* ==========================================
+   FORM LABELS
+========================================== */
+
+.edit-driver-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+}
+
+.edit-driver-page .form-group label {
+  display: block;
+  margin: 0;
+  color: #173452;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.edit-driver-page .form-group label span {
+  color: #ef4444;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* ==========================================
+   INPUT FIELDS
+========================================== */
+
+.edit-driver-page .form-group input,
+.edit-driver-page .form-group select,
+.edit-driver-page .form-group textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border: 1px solid #d9e3ef;
+  border-radius: 7px;
+
+  color: #173452;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+
+  outline: none;
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.edit-driver-page .form-group input::placeholder,
+.edit-driver-page .form-group textarea::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.edit-driver-page .form-group input:hover,
+.edit-driver-page .form-group select:hover,
+.edit-driver-page .form-group textarea:hover {
+  border-color: #b8cbe0;
+}
+
+.edit-driver-page .form-group input:focus,
+.edit-driver-page .form-group select:focus,
+.edit-driver-page .form-group textarea:focus {
+  border-color: #0878eb;
+  box-shadow: 0 0 0 3px rgba(8, 120, 235, 0.1);
+}
+
+.edit-driver-page .form-group select {
+  cursor: pointer;
+}
+
+.edit-driver-page .form-group textarea {
+  min-height: 100px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+/* ==========================================
+   ACTION BUTTON SECTION
+========================================== */
+
+.edit-driver-page .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  margin-top: 32px;
+  padding-top: 22px;
+
+  border-top: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+/* COMMON BUTTON STYLES */
+
+.edit-driver-page .form-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+  padding: 12px 24px;
+
+  border-radius: 7px;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ==========================================
+   CANCEL BUTTON
+========================================== */
+
+.edit-driver-page .form-actions .cancel-button {
+  min-width: 115px;
+  background: #647f9c;
+  border: 1px solid #647f9c;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(15, 42, 72, 0.06);
+}
+
+.edit-driver-page .form-actions .cancel-button:hover {
+  background: #526e8c;
+  border-color: #526e8c;
+}
+
+.edit-driver-page .form-actions .cancel-button:active {
+  background: #405b78;
+  transform: translateY(1px);
+}
+
+/* ==========================================
+   UPDATE DRIVER BUTTON
+========================================== */
+
+.edit-driver-page .form-actions .save-button {
+  min-width: 155px;
+  background: #0878eb;
+  border: 1px solid #0878eb;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(8, 120, 235, 0.12);
+}
+
+.edit-driver-page .form-actions .save-button:hover {
+  background: #0567ce;
+  border-color: #0567ce;
+  box-shadow: 0 4px 12px rgba(8, 120, 235, 0.2);
+}
+
+.edit-driver-page .form-actions .save-button:active {
+  background: #0455ad;
+  transform: translateY(1px);
+}
+
+/* DISABLED BUTTONS */
+
+.edit-driver-page .form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* KEYBOARD FOCUS */
+
+.edit-driver-page .form-actions button:focus-visible {
+  outline: 3px solid rgba(8, 120, 235, 0.35);
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   RESPONSIVE - TABLET
+========================================== */
+
+@media (max-width: 1024px) {
+  .edit-driver-page {
+    padding: 22px;
+  }
+
+  .edit-driver-page .vehicle-form-card {
+    padding: 22px;
+  }
+
+  .edit-driver-page .form-grid {
+    column-gap: 18px;
+    row-gap: 20px;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+========================================== */
+
+@media (max-width: 700px) {
+  .edit-driver-page {
+    padding: 16px;
+  }
+
+  .edit-driver-page .form-heading h1 {
+    font-size: 24px;
+  }
+
+  .edit-driver-page .vehicle-form-card {
+    padding: 18px;
+  }
+
+  .edit-driver-page .form-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .edit-driver-page .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .edit-driver-page .form-actions .cancel-button,
+  .edit-driver-page .form-actions .save-button {
+    width: 100%;
+  }
+}

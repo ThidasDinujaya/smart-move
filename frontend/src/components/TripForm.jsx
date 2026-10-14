@@ -3,21 +3,21 @@ import Icon from './Icon.jsx';
 import PageHeader from './PageHeader.jsx';
 
 const emptyTrip = {
-  route: '',
-  vehicle: '',
-  driver: '',
+  routeId: '',
+  vehicleId: '',
+  driverId: '',
   date: '',
   departure: '',
   arrival: '',
   seats: '',
   fare: '',
-  status: 'Scheduled',
+  status: '',
   notes: '',
 };
 
 export default function TripForm({ value, onCancel, onSave, options = {} }) {
   const [form, setForm] = useState({ ...emptyTrip, ...(value || {}) });
-  const { routes = [], vehicles = [], drivers = [] } = options;
+  const { routes = [], vehicles = [], drivers = [], statuses = [] } = options;
 
   function update(key, nextValue) {
     setForm((current) => ({ ...current, [key]: nextValue }));
@@ -39,17 +39,12 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           <label>
             <span>Route <b>*</b></span>
             {routes.length > 0 ? (
-              <select required value={form.route} onChange={(event) => update('route', event.target.value)}>
+              <select required value={form.routeId || ''} onChange={(event) => update('routeId', event.target.value)}>
                 <option value="">Select Route</option>
-                {routes.map((route) => <option key={route} value={route}>{route}</option>)}
+                {routes.map((route) => <option key={route.id} value={route.id}>{route.routeName}</option>)}
               </select>
             ) : (
-              <input
-                required
-                placeholder="Enter route"
-                value={form.route}
-                onChange={(event) => update('route', event.target.value)}
-              />
+              <select required value="" disabled><option value="">Save a route before scheduling a trip</option></select>
             )}
           </label>
           <label>
@@ -64,17 +59,12 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           <label>
             <span>Vehicle <b>*</b></span>
             {vehicles.length > 0 ? (
-              <select required value={form.vehicle} onChange={(event) => update('vehicle', event.target.value)}>
+              <select required value={form.vehicleId || ''} onChange={(event) => update('vehicleId', event.target.value)}>
                 <option value="">Select Vehicle</option>
-                {vehicles.map((vehicle) => <option key={vehicle} value={vehicle}>{vehicle}</option>)}
+                {vehicles.map((vehicle) => <option key={vehicle.id} value={vehicle.id}>{vehicle.vehicleNo}</option>)}
               </select>
             ) : (
-              <input
-                required
-                placeholder="Enter vehicle"
-                value={form.vehicle}
-                onChange={(event) => update('vehicle', event.target.value)}
-              />
+              <select required value="" disabled><option value="">Save a vehicle before scheduling a trip</option></select>
             )}
           </label>
           <label>
@@ -91,17 +81,12 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           <label>
             <span>Driver <b>*</b></span>
             {drivers.length > 0 ? (
-              <select required value={form.driver} onChange={(event) => update('driver', event.target.value)}>
+              <select required value={form.driverId || ''} onChange={(event) => update('driverId', event.target.value)}>
                 <option value="">Select Driver</option>
-                {drivers.map((driver) => <option key={driver} value={driver}>{driver}</option>)}
+                {drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.name}</option>)}
               </select>
             ) : (
-              <input
-                required
-                placeholder="Enter driver"
-                value={form.driver}
-                onChange={(event) => update('driver', event.target.value)}
-              />
+              <select required value="" disabled><option value="">Save a driver before scheduling a trip</option></select>
             )}
           </label>
           <label>
@@ -126,14 +111,23 @@ export default function TripForm({ value, onCancel, onSave, options = {} }) {
           </label>
           <label>
             <span>Status <b>*</b></span>
+            {statuses.length ? (
               <select
+                required
                 value={form.status}
                 onChange={(event) => update('status', event.target.value)}
               >
-              <option>Scheduled</option>
-              <option>Cancelled</option>
-              <option>Completed</option>
-            </select>
+                <option value="">Select Status</option>
+                {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+            ) : (
+              <input
+                required
+                placeholder="Enter status"
+                value={form.status}
+                onChange={(event) => update('status', event.target.value)}
+              />
+            )}
           </label>
           <label>
             <span>Departure Time <b>*</b></span>

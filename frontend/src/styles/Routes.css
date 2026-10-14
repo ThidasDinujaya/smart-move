@@ -1,0 +1,40 @@
+
+/* ROUTE MANAGEMENT */
+
+.routes-page {
+  width: 100%;
+}
+
+.routes-page .route-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.routes-page .route-status.active {
+  background: #dcfae6;
+  color: #087443;
+}
+
+.routes-page .route-status.inactive {
+  background: #fee4e2;
+  color: #b42318;
+}
+
+.routes-page .routes-empty {
+  text-align: center;
+  padding: 30px;
+  color: #7b8794;
+}
+
+.routes-page .management-table {
+  min-width: 900px;
+}
+
+.routes-page .management-table-wrapper {
+  overflow-x: auto;
+}

@@ -4,8 +4,9 @@ import PageHeader from './PageHeader.jsx';
 import { formatDate, formatMoney } from '../utils/formatters.js';
 
 export default function BookingForm({ trips, passengers, onCancel, onSave }) {
-  const [form, setForm] = useState({ trip: '', passenger: '', count: '1', seats: '' });
+  const [form, setForm] = useState({ trip: '', passenger: '', count: '', seats: '' });
   const trip = trips.find((item) => String(item.id) === form.trip);
+  const passenger = passengers.find((item) => String(item.id) === form.passenger);
   const total = (trip?.fare || 0) * Number(form.count);
 
   function update(key, value) {
@@ -14,13 +15,12 @@ export default function BookingForm({ trips, passengers, onCancel, onSave }) {
 
   function submit(event) {
     event.preventDefault();
-    if (trip) {
+    if (trip && passenger) {
       onSave({
-        trip,
-        passenger: form.passenger,
-        count: Number(form.count),
+        tripId: trip.id,
+        passengerId: passenger.id,
+        seatCount: Number(form.count),
         seats: form.seats,
-        amount: total,
       });
     }
   }
@@ -47,15 +47,20 @@ export default function BookingForm({ trips, passengers, onCancel, onSave }) {
               <select required value={form.passenger} onChange={(event) => update('passenger', event.target.value)}>
                 <option value="">Select Passenger</option>
                 {passengers.map((item) => (
-                  <option key={item.id} value={item.name}>{item.name}</option>
+                  <option key={item.id} value={item.id}>{item.name}</option>
                 ))}
               </select>
             </label>
             <label>
               <span>Number of Seats <b>*</b></span>
-              <select value={form.count} onChange={(event) => update('count', event.target.value)}>
-                {[1, 2, 3, 4, 5].map((count) => <option key={count}>{count}</option>)}
-              </select>
+              <input
+                required
+                type="number"
+                min="1"
+                max={trip?.seats || undefined}
+                value={form.count}
+                onChange={(event) => update('count', event.target.value)}
+              />
             </label>
             <label>
               <span>Seat Numbers</span>
@@ -74,14 +79,14 @@ export default function BookingForm({ trips, passengers, onCancel, onSave }) {
               <div><dt>Date</dt><dd>{trip ? formatDate(trip.date) : '—'}</dd></div>
               <div><dt>Departure</dt><dd>{trip?.departure || '—'}</dd></div>
               <div><dt>Arrival</dt><dd>{trip?.arrival || '—'}</dd></div>
-              <div><dt>Seats</dt><dd>{trip ? form.count : '—'}</dd></div>
-              <div className="total"><dt>Total Amount</dt><dd>{trip ? formatMoney(total) : '—'}</dd></div>
+              <div><dt>Seats</dt><dd>{trip && form.count ? form.count : '—'}</dd></div>
+              <div className="total"><dt>Total Amount</dt><dd>{trip && form.count ? formatMoney(total) : '—'}</dd></div>
             </dl>
           </aside>
         </div>
         <div className="dialog-actions">
           <button className="secondary" type="button" onClick={onCancel}>Cancel</button>
-          <button className="primary" type="submit" disabled={!trip || !form.passenger}>
+          <button className="primary" type="submit" disabled={!trip || !passenger}>
             <Icon name="check" size={15} /> Confirm Booking
           </button>
         </div>

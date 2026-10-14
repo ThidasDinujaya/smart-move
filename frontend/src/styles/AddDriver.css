@@ -1,0 +1,306 @@
+
+/* ==========================================
+   SMARTMOVE - ADD DRIVER FORM
+========================================== */
+
+.add-driver-page {
+  width: 100%;
+  padding: 24px 30px;
+  box-sizing: border-box;
+  background: #f3f7fc;
+}
+
+/* PAGE HEADING */
+
+.add-driver-page .form-heading {
+  margin-bottom: 20px;
+}
+
+.add-driver-page .form-heading h1 {
+  margin: 0 0 5px;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #102b4c;
+}
+
+.add-driver-page .form-heading p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* MAIN WHITE CARD */
+
+.add-driver-page .vehicle-form-card {
+  width: 100%;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e4ebf3;
+  border-radius: 10px;
+  box-shadow: 0 3px 14px rgba(15, 42, 72, 0.04);
+  box-sizing: border-box;
+}
+
+/* FORM + PHOTO LAYOUT */
+
+.add-driver-page .vehicle-form-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(230px, 0.85fr);
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+}
+
+.add-driver-page .vehicle-fields {
+  width: 100%;
+  min-width: 0;
+}
+
+/* TWO COLUMN FORM */
+
+.add-driver-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+  row-gap: 17px;
+  width: 100%;
+}
+
+.add-driver-page .form-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 7px;
+}
+
+.add-driver-page .form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #253c56;
+}
+
+.add-driver-page .form-group label span {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* INPUTS */
+
+.add-driver-page .form-group input,
+.add-driver-page .form-group select {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid #dce5ef;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #243b53;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.add-driver-page .form-group input::placeholder {
+  color: #9aa9b9;
+}
+
+.add-driver-page .form-group input:focus,
+.add-driver-page .form-group select:focus {
+  border-color: #0878eb;
+  box-shadow: 0 0 0 3px rgba(8, 120, 235, 0.09);
+}
+
+.add-driver-page .form-group select {
+  cursor: pointer;
+}
+
+/* RIGHT PHOTO SECTION */
+
+.add-driver-page .vehicle-image-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-left: 22px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.add-driver-page .image-title {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #253c56;
+}
+
+/* PHOTO UPLOAD BOX */
+
+.add-driver-page .image-upload-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 210px;
+  padding: 20px;
+  box-sizing: border-box;
+  background: #f5f8fc;
+  border: 1px dashed #c9d7e6;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-driver-page .image-upload-box:hover {
+  background: #edf5ff;
+  border-color: #0878eb;
+}
+
+.add-driver-page .image-upload-box svg {
+  color: #5b7fa3;
+  flex-shrink: 0;
+}
+
+.add-driver-page .image-upload-box strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #193c60;
+}
+
+.add-driver-page .image-upload-box span {
+  font-size: 11px;
+  line-height: 1.5;
+  color: #8193a7;
+}
+
+/* HIDE FILE INPUT */
+
+.add-driver-page .image-upload-box input[type="file"] {
+  display: none !important;
+}
+
+/* DRIVER PHOTO PREVIEW */
+
+.add-driver-page .driver-photo-preview {
+  display: block;
+  width: 100%;
+  max-height: 205px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* FORM BUTTONS */
+
+.add-driver-page .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.add-driver-page .cancel-button,
+.add-driver-page .save-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 105px;
+  min-height: 40px;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.add-driver-page .cancel-button {
+  background: #657f9c;
+  border: 1px solid #657f9c;
+  color: #ffffff;
+}
+
+.add-driver-page .cancel-button:hover {
+  background: #506b88;
+}
+
+.add-driver-page .save-button {
+  background: #0878eb;
+  border: 1px solid #0878eb;
+  color: #ffffff;
+}
+
+.add-driver-page .save-button:hover {
+  background: #0564c6;
+}
+
+.add-driver-page button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .add-driver-page .vehicle-form-content {
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 18px;
+  }
+
+  .add-driver-page .form-grid {
+    column-gap: 14px;
+  }
+}
+
+@media (max-width: 850px) {
+  .add-driver-page .vehicle-form-content {
+    grid-template-columns: 1fr;
+  }
+
+  .add-driver-page .vehicle-image-section {
+    padding-left: 0;
+    padding-top: 20px;
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .add-driver-page .image-upload-box {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 560px) {
+  .add-driver-page {
+    padding: 16px;
+  }
+
+  .add-driver-page .vehicle-form-card {
+    padding: 16px;
+  }
+
+  .add-driver-page .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .add-driver-page .form-heading h1 {
+    font-size: 23px;
+  }
+
+  .add-driver-page .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .add-driver-page .cancel-button,
+  .add-driver-page .save-button {
+    width: 100%;
+  }
+}

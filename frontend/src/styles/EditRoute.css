@@ -1,0 +1,52 @@
+
+/* EDIT ROUTE PAGE */
+
+.edit-route-page {
+  width: 100%;
+}
+
+.edit-route-page .vehicle-form-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-route-page .vehicle-fields {
+  width: 100%;
+  min-width: 0;
+}
+
+.edit-route-page .form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.edit-route-page .form-group input,
+.edit-route-page .form-group select,
+.edit-route-page .form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-route-page .form-group textarea {
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+}
+
+.edit-route-page .route-description-group {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .edit-route-page .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-route-page .route-description-group {
+    grid-column: auto;
+  }
+}

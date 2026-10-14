@@ -6,10 +6,9 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatMoney } from '../../utils/formatters.js';
 
-const statuses = ['Paid', 'Pending', 'Failed'];
-
-export default function PaymentsPage({ payments, onAdd, onOpen, onOpenReceipt }) {
+export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
   const list = useRecordList(payments);
+  const statuses = [...new Set(payments.map((record) => record.status).filter(Boolean))];
   const columns = [
     { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'id', label: 'Payment ID', className: 'strong' },
@@ -24,21 +23,10 @@ export default function PaymentsPage({ payments, onAdd, onOpen, onOpenReceipt })
       render: (record) => (
         <ActionButtons
           onView={() => onOpenReceipt(record)}
-          onEdit={() => onOpen('payment', 'edit', record)}
-          onDelete={() => onOpen('payment', 'delete', record)}
         />
       ),
     },
   ];
-
-  const emptyMessage = (
-    <>
-      No payments yet.{' '}
-      <button className="text-button" type="button" onClick={() => onOpenReceipt(null)}>
-        Preview receipt
-      </button>
-    </>
-  );
 
   return (
     <section className="page">
@@ -58,7 +46,7 @@ export default function PaymentsPage({ payments, onAdd, onOpen, onOpenReceipt })
         date={list.date}
         onDateChange={list.setDate}
       />
-      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} emptyMessage={emptyMessage} />
+      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} emptyMessage="No payment records." />
     </section>
   );
 }

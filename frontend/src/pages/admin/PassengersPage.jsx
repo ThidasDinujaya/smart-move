@@ -4,17 +4,19 @@ import RecordsTable from '../../components/RecordsTable.jsx';
 import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
+import { formatDateTime } from '../../utils/formatters.js';
 
-const statuses = ['Active', 'Inactive', 'Blocked'];
-
-export default function PassengersPage({ passengers, onAdd, onOpen }) {
+export default function PassengersPage({ passengers = [], onAdd, onOpen }) {
   const list = useRecordList(passengers);
+  const statuses = [...new Set(passengers.map((record) => record.status).filter(Boolean))];
   const columns = [
     { key: 'number', label: '#' , render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'name', label: 'Name', className: 'strong' },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Contact' },
+    { key: 'nic', label: 'NIC' },
     { key: 'gender', label: 'Gender' },
+    { key: 'registeredAt', label: 'Registered', render: (record) => formatDateTime(record.registeredAt) },
     { key: 'status', label: 'Status', render: (record) => <StatusBadge>{record.status}</StatusBadge> },
     {
       key: 'actions',

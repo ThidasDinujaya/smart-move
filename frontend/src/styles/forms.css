@@ -57,6 +57,13 @@
   grid-column: span 2;
 }
 
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 3px;
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;

@@ -25,10 +25,10 @@ export default function PaymentReceiptPage({ receipt, booking, onDownload, onBac
           <span><b>SmartMove</b><small>Transport Solutions</small></span>
         </div>
         <div className="success">
-          <span><Icon name={receipt?.status === 'Paid' ? 'check' : 'card'} size={23} /></span>
+          <span><Icon name={['paid', 'successful', 'completed'].includes(String(receipt?.status || '').toLowerCase()) ? 'check' : 'card'} size={23} /></span>
           <b>
             {receipt
-              ? receipt.status === 'Paid' ? 'Payment Successful!' : receipt.status
+              ? ['paid', 'successful', 'completed'].includes(String(receipt.status || '').toLowerCase()) ? 'Payment Successful!' : receipt.status
               : 'Receipt Preview'}
           </b>
         </div>

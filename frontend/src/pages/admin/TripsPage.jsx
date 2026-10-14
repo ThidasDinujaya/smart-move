@@ -6,10 +6,9 @@ import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDate } from '../../utils/formatters.js';
 
-const statuses = ['Scheduled', 'Cancelled', 'Completed'];
-
-export default function TripsPage({ trips, routes, onAdd, onOpen, onEdit }) {
+export default function TripsPage({ trips, routes, statuses, onAdd, onOpen, onEdit }) {
   const list = useRecordList(trips, { filterRoute: true });
+  const tripStatuses = statuses || [...new Set(trips.map((record) => record.status).filter(Boolean))];
   const columns = [
     { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
     { key: 'route', label: 'Route', className: 'strong' },
@@ -48,7 +47,7 @@ export default function TripsPage({ trips, routes, onAdd, onOpen, onEdit }) {
         searchPlaceholder="Search trips..."
         status={list.status}
         onStatusChange={list.setStatus}
-        statuses={statuses}
+        statuses={tripStatuses}
         route={list.route}
         onRouteChange={list.setRoute}
         routes={routes}

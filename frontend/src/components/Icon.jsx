@@ -24,6 +24,38 @@ const iconPaths = {
       <path d="M3 10h18m-14 5h3" />
     </>
   ),
+  wrench: (
+    <>
+      <path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 12l-2-2 2.7-3.7Z" />
+      <path d="m16 8 2-2 3 3-2 2" />
+    </>
+  ),
+  message: (
+    <>
+      <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.3-.7L4 20l1.7-4.3A7.5 7.5 0 1 1 20 11.5Z" />
+      <path d="M8 11h.01M12 11h.01M16 11h.01" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M4 19V5m0 14h17" />
+      <path d="m7 15 4-4 3 2 6-7" />
+      <path d="M16 6h4v4" />
+    </>
+  ),
+  star: <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z" />,
+  thumbsUp: (
+    <>
+      <path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Z" />
+      <path d="M7 10 11 3a3 3 0 0 1 2 3v4h5.3a2 2 0 0 1 2 2.4l-1.4 7A2 2 0 0 1 17 21H7" />
+    </>
+  ),
+  bell: (
+    <>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M10 21h4" />
+    </>
+  ),
   search: (
     <>
       <circle cx="10.5" cy="10.5" r="6.5" />
@@ -51,14 +83,14 @@ const iconPaths = {
   chevronRight: <path d="m9 18 6-6-6-6" />,
 };
 
-export default function Icon({ name, size = 18 }) {
+export default function Icon({ name, size = 18, filled = false }) {
   return (
     <svg
       aria-hidden="true"
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth="1.8"
       strokeLinecap="round"
