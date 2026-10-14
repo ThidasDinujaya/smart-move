@@ -97,6 +97,12 @@ public class PassengerService {
         assertEmailAvailable(passenger.getEmail(), passenger.getId());
         assertNicAvailable(passenger.getNic(), passenger.getId());
 
+        boolean passwordChangeRequested = (request.currentPassword() != null && !request.currentPassword().isBlank())
+                || (request.newPassword() != null && !request.newPassword().isBlank());
+        if (passwordChangeRequested) {
+            customerAuthService.changePassword(userId, request.currentPassword(), request.newPassword());
+        }
+
         Passenger savedPassenger = passengerRepository.save(passenger);
         appUserRepository.findByPassenger_Id(passenger.getId()).ifPresent(account -> {
             account.setEmail(savedPassenger.getEmail());
@@ -220,7 +226,8 @@ public class PassengerService {
                                    String gender, String status) {
     }
 
-    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender) {
+    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender,
+                                       String currentPassword, String newPassword) {
     }
 
     public static class PassengerNotFoundException extends RuntimeException {

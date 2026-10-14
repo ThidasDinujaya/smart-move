@@ -106,6 +106,31 @@ public class CustomerAuthService {
         return toCustomerView(appUser);
     }
 
+    @Transactional
+    public void changePassword(String userId, String currentPassword, String newPassword) {
+        CustomerView currentCustomer = requireAnyRole(userId, CUSTOMER_ROLE);
+        AppUser appUser = appUserRepository.findById(currentCustomer.userId())
+                .orElseThrow(() -> new AuthenticationFailedException("The user was not found."));
+
+        if (currentPassword == null || !currentPassword.equals(appUser.getPassword())) {
+            throw new AuthenticationFailedException("Your current password is incorrect.");
+        }
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("A new password is required.");
+        }
+        if (newPassword.length() < 8) {
+            throw new IllegalArgumentException("Your new password must be at least 8 characters long.");
+        }
+        if (newPassword.length() > 128) {
+            throw new IllegalArgumentException("Your new password must be 128 characters or fewer.");
+        }
+        if (newPassword.equals(currentPassword)) {
+            throw new IllegalArgumentException("Choose a new password that is different from your current password.");
+        }
+
+        appUser.setPassword(newPassword);
+    }
+
     @Transactional(readOnly = true)
     public CustomerView currentCustomer(String userId) {
         if (userId == null || userId.isBlank()) {

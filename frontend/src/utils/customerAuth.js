@@ -109,6 +109,8 @@ export async function updateCurrentCustomer(updates) {
     phone: updates.phone.trim(),
     nic: updates.nic?.trim() || null,
     gender: updates.gender || null,
+    currentPassword: updates.currentPassword || null,
+    newPassword: updates.newPassword || null,
   });
   const current = getCurrentUser();
   if (current) {
