@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import '../../styles/ReportsDashboard.css';
 
 const ReportsDashboard = () => {
   return (
@@ -8,7 +9,7 @@ const ReportsDashboard = () => {
       <Sidebar />
       <div className="main-wrapper">
         <Header />
-        <div className="content-body">
+        <div className="content-body reports-dashboard">
           <div className="page-header">
             <div>
               <h1 className="page-title">Reports Dashboard</h1>
