@@ -1,16 +1,16 @@
-package com.smartmove.backend.Data;
+package com.smartmove.backend.data;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Document(collection = "travel_announcements")
 public class TravelAnnouncementDocument {
     @Id
     private String id;
+    private String displayId;
     private String title;
     private String message;
     private String severity;
@@ -20,10 +20,11 @@ public class TravelAnnouncementDocument {
     private Instant startsAt;
     private Instant endsAt;
     private Boolean active;
-    private Map<String, Object> details;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getDisplayId() { return displayId; }
+    public void setDisplayId(String displayId) { this.displayId = displayId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getMessage() { return message; }
@@ -42,6 +43,4 @@ public class TravelAnnouncementDocument {
     public void setEndsAt(Instant endsAt) { this.endsAt = endsAt; }
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }
-    public Map<String, Object> getDetails() { return details; }
-    public void setDetails(Map<String, Object> details) { this.details = details; }
 }

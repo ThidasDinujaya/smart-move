@@ -1,0 +1,65 @@
+package com.smartmove.backend.controller;
+
+import com.smartmove.backend.service.CustomerAuthService;
+import com.smartmove.backend.service.OracleProcedureService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/reports")
+@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
+public class ReportController {
+
+    private final CustomerAuthService customerAuthService;
+    private final OracleProcedureService oracleProcedureService;
+
+    public ReportController(
+            CustomerAuthService customerAuthService,
+            OracleProcedureService oracleProcedureService) {
+        this.customerAuthService = customerAuthService;
+        this.oracleProcedureService = oracleProcedureService;
+    }
+
+    @GetMapping
+    public OracleProcedureService.Reports getReports(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "FINANCE");
+        return oracleProcedureService.runReports();
+    }
+
+    @GetMapping("/generate")
+    public List<String> generateReport(
+            @RequestHeader(name = "X-User-Id", required = false) String userId,
+            @RequestParam String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long passengerId,
+            @RequestParam(required = false) Integer days) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "FINANCE");
+
+        if (!List.of("routeBookings", "revenue", "passengerTrips", "maintenanceDue", "feedbackSummary").contains(type)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a valid report.");
+        }
+        if ("revenue".equals(type) && (from == null || to == null || from.isAfter(to))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a valid start and end date for the revenue report.");
+        }
+        if (passengerId != null && passengerId < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Select a valid passenger.");
+        }
+        if (days != null && days < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The due period cannot be negative.");
+        }
+
+        return oracleProcedureService.runReport(type, from, to, passengerId, days == null ? 30 : days);
+    }
+}

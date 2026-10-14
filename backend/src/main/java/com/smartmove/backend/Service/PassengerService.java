@@ -32,13 +32,6 @@ public class PassengerService {
         return passengerRepository.findAll();
     }
 
-    @Transactional(readOnly = true)
-    public Passenger getPassengerById(Long id, String userId) {
-        requireStaffRole(userId);
-        return passengerRepository.findById(id)
-                .orElseThrow(() -> new PassengerNotFoundException("Passenger not found."));
-    }
-
     @Transactional
     public Passenger createPassenger(PassengerRequest request, String userId) {
         requireStaffRole(userId);
@@ -81,13 +74,13 @@ public class PassengerService {
 
     @Transactional(readOnly = true)
     public Passenger getMyProfile(String userId) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.requireAnyRole(userId, "CUSTOMER");
         return findPassenger(currentCustomer.id());
     }
 
     @Transactional
     public Passenger updateMyProfile(ProfileUpdateRequest request, String userId) {
-        CustomerAuthService.CustomerView currentCustomer = customerAuthService.currentCustomer(userId);
+        CustomerAuthService.CustomerView currentCustomer = customerAuthService.requireAnyRole(userId, "CUSTOMER");
         Passenger passenger = findPassenger(currentCustomer.id());
 
         if (request == null) {
@@ -103,6 +96,12 @@ public class PassengerService {
         validateLengths(passenger);
         assertEmailAvailable(passenger.getEmail(), passenger.getId());
         assertNicAvailable(passenger.getNic(), passenger.getId());
+
+        boolean passwordChangeRequested = (request.currentPassword() != null && !request.currentPassword().isBlank())
+                || (request.newPassword() != null && !request.newPassword().isBlank());
+        if (passwordChangeRequested) {
+            customerAuthService.changePassword(userId, request.currentPassword(), request.newPassword());
+        }
 
         Passenger savedPassenger = passengerRepository.save(passenger);
         appUserRepository.findByPassenger_Id(passenger.getId()).ifPresent(account -> {
@@ -227,7 +226,8 @@ public class PassengerService {
                                    String gender, String status) {
     }
 
-    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender) {
+    public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender,
+                                       String currentPassword, String newPassword) {
     }
 
     public static class PassengerNotFoundException extends RuntimeException {

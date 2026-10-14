@@ -1,10 +1,11 @@
 
-package com.smartmove.backend.Controller;
+package com.smartmove.backend.controller;
 
-import com.smartmove.backend.Data.Vehicle;
-import com.smartmove.backend.Data.VehicleMediaDocument;
-import com.smartmove.backend.Data.VehicleMediaRepository;
-import com.smartmove.backend.Service.VehicleService;
+import com.smartmove.backend.data.Vehicle;
+import com.smartmove.backend.data.VehicleMediaDocument;
+import com.smartmove.backend.data.VehicleMediaRepository;
+import com.smartmove.backend.service.VehicleService;
+import com.smartmove.backend.service.CustomerAuthService;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,16 +21,21 @@ public class VehicleController {
 
     private final VehicleService vehicleService;
     private final VehicleMediaRepository vehicleMediaRepository;
+    private final CustomerAuthService customerAuthService;
 
-    public VehicleController(VehicleService vehicleService, VehicleMediaRepository vehicleMediaRepository) {
+    public VehicleController(VehicleService vehicleService, VehicleMediaRepository vehicleMediaRepository,
+                             CustomerAuthService customerAuthService) {
         this.vehicleService = vehicleService;
         this.vehicleMediaRepository = vehicleMediaRepository;
+        this.customerAuthService = customerAuthService;
     }
 
     // ADD VEHICLE
     @PostMapping
     public ResponseEntity<?> addVehicle(
-            @RequestBody Vehicle vehicle) {
+            @RequestBody Vehicle vehicle,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Vehicle savedVehicle =
@@ -48,32 +54,20 @@ public class VehicleController {
 
     // VIEW ALL VEHICLES
     @GetMapping
-    public ResponseEntity<List<Vehicle>> getAllVehicles() {
+    public ResponseEntity<List<Vehicle>> getAllVehicles(
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         return ResponseEntity.ok(
                 vehicleService.getAllVehicles()
         );
     }
 
-    // VIEW VEHICLE BY ID
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getVehicleById(
-            @PathVariable Long id) {
-
-        try {
-            Vehicle vehicle = vehicleService.getVehicleById(id);
-
-            return ResponseEntity.ok(vehicle);
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        }
-    }
-
     @GetMapping("/{id}/media")
-    public List<VehicleMediaDocument> getVehicleMedia(@PathVariable Long id) {
+    public List<VehicleMediaDocument> getVehicleMedia(
+            @PathVariable Long id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
         return vehicleMediaRepository.findByVehicleOracleIdOrderByUploadedAtDesc(id);
     }
 
@@ -81,7 +75,9 @@ public class VehicleController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVehicle(
             @PathVariable Long id,
-            @RequestBody Vehicle vehicle) {
+            @RequestBody Vehicle vehicle,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             Vehicle updatedVehicle =
@@ -105,7 +101,9 @@ public class VehicleController {
     // DELETE VEHICLE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteVehicle(
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "OPERATIONS");
 
         try {
             vehicleService.deleteVehicle(id);

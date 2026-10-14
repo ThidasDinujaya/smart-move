@@ -1,8 +1,10 @@
 
-package com.smartmove.backend.Service;
+package com.smartmove.backend.service;
 
-import com.smartmove.backend.Data.Driver;
-import com.smartmove.backend.Data.DriverRepository;
+import com.smartmove.backend.data.Driver;
+import com.smartmove.backend.data.DriverRepository;
+import com.smartmove.backend.data.Vehicle;
+import com.smartmove.backend.data.VehicleRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -12,9 +14,11 @@ import java.util.List;
 public class DriverService {
 
     private final DriverRepository driverRepository;
+    private final VehicleRepository vehicleRepository;
 
-    public DriverService(DriverRepository driverRepository) {
+    public DriverService(DriverRepository driverRepository, VehicleRepository vehicleRepository) {
         this.driverRepository = driverRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
     // ADD DRIVER
@@ -41,6 +45,7 @@ public class DriverService {
         driver.setName(driver.getName().trim());
         driver.setNic(nic);
         driver.setLicenseNo(licenseNo);
+        driver.setVehicle(findVehicle(driver.getAssignedVehicle()));
 
         return driverRepository.save(driver);
     }
@@ -97,8 +102,7 @@ public class DriverService {
         existingDriver.setLicenseNo(licenseNo);
         existingDriver.setContact(updatedDriver.getContact());
         existingDriver.setEmail(updatedDriver.getEmail());
-        existingDriver.setAssignedVehicle(updatedDriver.getAssignedVehicle());
-        existingDriver.setImageData(updatedDriver.getImageData());
+        existingDriver.setVehicle(findVehicle(updatedDriver.getAssignedVehicle()));
         existingDriver.setAddress(updatedDriver.getAddress());
         existingDriver.setStatus(updatedDriver.getStatus());
 
@@ -134,6 +138,12 @@ public class DriverService {
                     "Driver license number is required!"
             );
         }
+    }
+
+    private Vehicle findVehicle(String vehicleNo) {
+        if (vehicleNo == null || vehicleNo.isBlank()) return null;
+        return vehicleRepository.findByVehicleNoIgnoreCase(vehicleNo.trim())
+                .orElseThrow(() -> new IllegalArgumentException("The assigned vehicle was not found."));
     }
 }
 

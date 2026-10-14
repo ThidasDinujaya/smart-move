@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { useNavigate } from 'react-router-dom';
-import { User, Ticket, KeyRound, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { logoutCustomer, updateCurrentCustomer, fetchCurrentProfile } from '../../utils/customerAuth.js';
 
 const CustomerProfile = () => {
@@ -11,6 +11,7 @@ const CustomerProfile = () => {
   const [profileError, setProfileError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '' });
 
   useEffect(() => {
     let active = true;
@@ -23,22 +24,33 @@ const CustomerProfile = () => {
     return () => { active = false; };
   }, []);
 
-  // Dynamic sidebar navigation list ready for routing handlers
-  const navItems = [
-    { label: 'Profile', icon: <User size={16} />, path: '/profile', active: true },
-    { label: 'My Bookings', icon: <Ticket size={16} />, path: '/my-bookings', active: false },
-    { label: 'Change Password', icon: <KeyRound size={16} />, path: '/change-password', active: false },
-    { label: 'Logout', icon: <LogOut size={16} />, path: '/logout', danger: true, active: false }
-  ];
-
   const handleUpdate = async (e) => {
     e.preventDefault();
     setProfileError('');
+    const passwordChangeRequested = Boolean(
+      passwordForm.currentPassword || passwordForm.newPassword,
+    );
+    if (passwordChangeRequested) {
+      if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+        setProfileError('Enter your current password and a new password to change it.');
+        return;
+      }
+      if (passwordForm.newPassword.length < 8) {
+        setProfileError('Your new password must be at least 8 characters long.');
+        return;
+      }
+    }
+
     setSaving(true);
     try {
-      const updated = await updateCurrentCustomer(profile);
+      const updated = await updateCurrentCustomer({
+        ...profile,
+        currentPassword: passwordChangeRequested ? passwordForm.currentPassword : null,
+        newPassword: passwordChangeRequested ? passwordForm.newPassword : null,
+      });
       setProfile({ ...updated, nic: profile.nic, gender: profile.gender });
-      alert('Profile Updated Successfully!');
+      setPasswordForm({ currentPassword: '', newPassword: '' });
+      alert(passwordChangeRequested ? 'Profile and password updated successfully!' : 'Profile updated successfully!');
     } catch (error) {
       setProfileError(error.message || 'Unable to update your profile.');
     } finally {
@@ -46,57 +58,18 @@ const CustomerProfile = () => {
     }
   };
 
+  const handleLogout = () => logoutCustomer().catch(() => {}).finally(() => navigate('/'));
+
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
       <CustomerNavbar />
 
-      <div style={{ maxWidth: '900px', margin: '32px auto', display: 'grid', gridTemplateColumns: '240px 1fr', gap: '24px', padding: '0 20px' }}>
-        <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '16px', height: 'fit-content', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {navItems.map((item, index) => (
-              <button 
-                key={index}
-                onClick={() => {
-                  if (!item.danger && item.path !== '/profile') navigate(item.path);
-                  if (item.path === '/logout') {
-                    logoutCustomer().catch(() => {}).finally(() => navigate('/'));
-                  }
-                }}
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  padding: '10px 14px', 
-                  border: 'none', 
-                  backgroundColor: item.active ? '#e0f2fe' : 'transparent', 
-                  color: item.danger ? '#ef4444' : item.active ? '#0284c7' : '#64748b', 
-                  borderRadius: '8px', 
-                  fontWeight: item.active ? '700' : '600', 
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'left'
-                }}
-              >
-                {item.icon} {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
+      <div style={{ maxWidth: '900px', margin: '32px auto', padding: '0 20px' }}>
         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '28px', border: '1px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px' }}>My Profile</h2>
 
-          {loading ? <p style={{ color: '#64748b' }}>Loading your profile…</p> : <form onSubmit={handleUpdate} style={{ display: 'flex', gap: '28px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: '90px', height: '90px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
-                <User size={40} color="#64748b" />
-              </div>
-              <button type="button" style={{ marginTop: '12px', border: '1px solid #0066ff', color: '#0066ff', backgroundColor: 'white', padding: '4px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                Change Photo
-              </button>
-            </div>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {loading ? <p style={{ color: '#64748b' }}>Loading your profile…</p> : <form onSubmit={handleUpdate} style={{ display: 'flex', flexWrap: 'wrap', gap: '28px' }}>
+            <div style={{ flex: '1 1 320px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>Full Name</label>
                 <input 
@@ -151,13 +124,44 @@ const CustomerProfile = () => {
                 </select>
               </div>
 
+              <div style={{ display: 'grid', gap: '13px', marginTop: '4px', paddingTop: '18px', borderTop: '1px solid #e2e8f0' }}>
+                <div>
+                  <h3 style={{ margin: 0, color: '#1e293b', fontSize: '15px', fontWeight: '750' }}>Password</h3>
+                  <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: '12px' }}>Leave these fields blank if you do not want to change your password.</p>
+                </div>
+                {[
+                  { key: 'currentPassword', label: 'Current password', autocomplete: 'current-password' },
+                  { key: 'newPassword', label: 'New password', autocomplete: 'new-password' },
+                ].map((field) => (
+                  <label key={field.key} style={{ display: 'grid', gap: '6px', color: '#475569', fontSize: '12px', fontWeight: '700' }}>
+                    {field.label}
+                    <input
+                      type="password"
+                      minLength={field.key === 'currentPassword' ? undefined : 8}
+                      autoComplete={field.autocomplete}
+                      value={passwordForm[field.key]}
+                      onChange={(event) => setPasswordForm((current) => ({ ...current, [field.key]: event.target.value }))}
+                      style={{ width: '100%', boxSizing: 'border-box', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', outline: 'none', font: 'inherit', fontWeight: '400' }}
+                    />
+                  </label>
+                ))}
+              </div>
+
               {profileError && <p role="alert" style={{ margin: 0, color: '#b91c1c', fontSize: '13px' }}>{profileError}</p>}
 
-              <button type="submit" disabled={saving} style={{ backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
+              <button type="submit" disabled={saving} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '42px', boxSizing: 'border-box', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
                 {saving ? 'Saving…' : 'Update Profile'}
+              </button>
+              <button type="button" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px', width: '100%', height: '42px', boxSizing: 'border-box', backgroundColor: '#dc2626', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
+                <LogOut size={16} />
+                Logout
+              </button>
+              <button type="button" onClick={() => navigate('/my-bookings')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '42px', boxSizing: 'border-box', backgroundColor: '#0066ff', color: 'white', border: 'none', padding: '0 12px', borderRadius: '8px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '8px' }}>
+                My Bookings
               </button>
             </div>
           </form>}
+
         </div>
       </div>
     </div>

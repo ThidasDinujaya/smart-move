@@ -1,7 +1,6 @@
 
 import Icon from "./Icon.jsx";
-import { Link } from "react-router-dom";
-import { ExternalLink, Route, LogOut } from "lucide-react";
+import { Route, LogOut } from "lucide-react";
 import { hasPermission, PERMISSIONS, ROLES } from "../utils/roleAccess.js";
 
 const navigationItems = [
@@ -76,6 +75,12 @@ const navigationItems = [
         label: "Maintenance",
         icon: "wrench",
         permission: PERMISSIONS.FLEET_MAINTENANCE_MANAGE,
+      },
+      {
+        id: "content",
+        label: "Announcements & media",
+        icon: "message",
+        permission: PERMISSIONS.CONTENT_MANAGE,
       },
       {
         id: "feedback",
@@ -170,27 +175,10 @@ export default function AppLayout({
 
         {/* SIDEBAR LOGOUT */}
         <div className="sidebar-footer">
-          <Link
-            to="/"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px 14px",
-              marginBottom: "8px",
-              borderRadius: "8px",
-              color: "#64748b",
-              fontSize: "14px",
-              fontWeight: "600",
-              textDecoration: "none",
-            }}
-          >
-            <ExternalLink size={17} />
-            <span>Customer portal</span>
-          </Link>
           <button
             type="button"
             className="sidebar-logout"
+            aria-label="Logout"
             onClick={onLogout}
           >
             <LogOut size={18} />
@@ -229,7 +217,7 @@ export default function AppLayout({
         </header>
 
         {/* PAGE CONTENT */}
-        <main>{children}</main>
+        <main className="admin-content">{children}</main>
 
       </div>
 

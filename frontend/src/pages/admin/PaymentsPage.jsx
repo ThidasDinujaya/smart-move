@@ -5,14 +5,14 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatMoney } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
-export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
+export default function PaymentsPage({ payments = [], onAdd, onView }) {
   const list = useRecordList(payments);
   const statuses = [...new Set(payments.map((record) => record.status).filter(Boolean))];
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
-    { key: 'id', label: 'Payment ID', className: 'strong' },
-    { key: 'booking', label: 'Booking ID' },
+    { key: 'id', label: 'Payment ID', className: 'strong', render: (record) => formatRecordId('payment', record.id) },
+    { key: 'booking', label: 'Booking ID', render: (record) => formatRecordId('booking', record.booking) },
     { key: 'passenger', label: 'Passenger' },
     { key: 'amount', label: 'Amount', render: (record) => formatMoney(record.amount) },
     { key: 'method', label: 'Method' },
@@ -22,14 +22,14 @@ export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
       label: 'Actions',
       render: (record) => (
         <ActionButtons
-          onView={() => onOpenReceipt(record)}
+          onView={() => onView?.(record)}
         />
       ),
     },
   ];
 
   return (
-    <section className="page">
+    <section className="page payments-page">
       <PageHeader
         title="Payment Processing"
         subtitle="Manage ticket payments"
@@ -46,7 +46,7 @@ export default function PaymentsPage({ payments = [], onAdd, onOpenReceipt }) {
         date={list.date}
         onDateChange={list.setDate}
       />
-      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} emptyMessage="No payment records." />
+      <RecordsTable columns={columns} rows={list.visibleRecords} list={list} wide emptyMessage="No payment records." />
     </section>
   );
 }

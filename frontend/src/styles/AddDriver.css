@@ -42,13 +42,10 @@
   box-sizing: border-box;
 }
 
-/* FORM + PHOTO LAYOUT */
+/* FORM LAYOUT */
 
 .add-driver-page .vehicle-form-content {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(230px, 0.85fr);
-  align-items: stretch;
-  gap: 24px;
+  display: block;
   width: 100%;
 }
 
@@ -119,82 +116,6 @@
   cursor: pointer;
 }
 
-/* RIGHT PHOTO SECTION */
-
-.add-driver-page .vehicle-image-section {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding-left: 22px;
-  border-left: 1px solid #e2e8f0;
-}
-
-.add-driver-page .image-title {
-  display: block;
-  margin-bottom: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #253c56;
-}
-
-/* PHOTO UPLOAD BOX */
-
-.add-driver-page .image-upload-box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 210px;
-  padding: 20px;
-  box-sizing: border-box;
-  background: #f5f8fc;
-  border: 1px dashed #c9d7e6;
-  border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.add-driver-page .image-upload-box:hover {
-  background: #edf5ff;
-  border-color: #0878eb;
-}
-
-.add-driver-page .image-upload-box svg {
-  color: #5b7fa3;
-  flex-shrink: 0;
-}
-
-.add-driver-page .image-upload-box strong {
-  font-size: 13px;
-  font-weight: 700;
-  color: #193c60;
-}
-
-.add-driver-page .image-upload-box span {
-  font-size: 11px;
-  line-height: 1.5;
-  color: #8193a7;
-}
-
-/* HIDE FILE INPUT */
-
-.add-driver-page .image-upload-box input[type="file"] {
-  display: none !important;
-}
-
-/* DRIVER PHOTO PREVIEW */
-
-.add-driver-page .driver-photo-preview {
-  display: block;
-  width: 100%;
-  max-height: 205px;
-  object-fit: contain;
-  border-radius: 6px;
-}
-
 /* FORM BUTTONS */
 
 .add-driver-page .form-actions {
@@ -251,30 +172,8 @@
 /* RESPONSIVE */
 
 @media (max-width: 1100px) {
-  .add-driver-page .vehicle-form-content {
-    grid-template-columns: minmax(0, 1fr) 220px;
-    gap: 18px;
-  }
-
   .add-driver-page .form-grid {
     column-gap: 14px;
-  }
-}
-
-@media (max-width: 850px) {
-  .add-driver-page .vehicle-form-content {
-    grid-template-columns: 1fr;
-  }
-
-  .add-driver-page .vehicle-image-section {
-    padding-left: 0;
-    padding-top: 20px;
-    border-left: none;
-    border-top: 1px solid #e2e8f0;
-  }
-
-  .add-driver-page .image-upload-box {
-    min-height: 180px;
   }
 }
 

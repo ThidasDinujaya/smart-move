@@ -1,49 +1,35 @@
 # SmartMove
 
-## Set up the databases
+## Set up the databases for a fresh install
 
-Run the Oracle SQL files and import the MongoDB JSON files before starting the backend. Use the existing files in `database/oracle_db` and `database/mongo_db`.
+SmartMove uses Oracle for relational records and MongoDB for announcements, notifications, feedback comments, and uploaded trip and vehicle media. Set up both databases before starting the backend.
 
 ### Oracle in SQL Developer
 
-Connect to the Oracle database with these settings:
+1. Start Oracle and connect to the `XEPDB1` service on `localhost:1521`.
+2. Use the `SYSTEM` account configured by default in the backend, or configure the backend to use the schema owner you choose.
+3. Open `database/oracle_db/install.sql` and choose **Run Script** (F5).
 
-- Connection name: `SMARTMOVE` (this is only a label)
-- Username: `SYSTEM`
-- Password: your Oracle `SYSTEM` password
-- Host: `localhost`
-- Port: `1521`
-- Select **Service name** and enter `XEPDB1`
+The install script creates the Oracle tables, loads connected sample rows, creates the maintenance trigger and seat-availability function, installs payment and trip procedures, and runs the five report procedures. The sample accounts use `Welcome123!` as their password.
 
-Open and run each file below in SQL Developer, in this order. Use **Run Script** (F5) for each file and check its Script Output before continuing:
-
-1. `database/oracle_db/tables.sql` — creates the tables.
-2. `database/oracle_db/example_data.sql` — inserts the sample records.
-3. `database/oracle_db/triggers.sql` — creates the maintenance trigger.
-4. `database/oracle_db/functions.sql` — creates the available-seats function.
-5. `database/oracle_db/procedures.sql` — creates the booking and payment procedures.
-6. `database/oracle_db/reports.sql` — creates and runs the reports.
-
-Run these scripts against the `SYSTEM` connection to `XEPDB1`. `tables.sql` creates the SmartMove tables and does not drop or clear existing objects, so run it only when those SmartMove table names are not already present. The `reports.sql` output appears in SQL Developer's Script Output.
+This is an initial-install script for a new or empty SmartMove schema. It does not drop tables or erase existing data. Do not run it over an existing populated schema or run it a second time; the table creation will stop when it encounters existing objects. Hibernate is set to validate the schema, so the Oracle tables and procedures must be installed before the backend starts.
 
 ### MongoDB in Compass
 
 1. Start MongoDB and connect Compass to `mongodb://localhost:27017`.
-2. Create a database named `smartmove` and its first collection, `feedback`.
-3. Select `feedback`, choose **Add Data > Import JSON or CSV**, and import `database/mongo_db/feedback.json` as JSON.
-4. Create each remaining collection and import its matching file the same way:
+2. Create a database named `smartmove` and a collection named `feedback`.
+3. Import each JSON array below into the collection with the same name. Create the other collections in Compass before importing their files.
 
-   | Collection | File |
+   | Collection | Import file |
    | --- | --- |
+   | `feedback` | `database/mongo_db/feedback.json` |
    | `notifications` | `database/mongo_db/notifications.json` |
    | `travel_announcements` | `database/mongo_db/travel_announcements.json` |
    | `trip_media` | `database/mongo_db/trip_media.json` |
    | `vehicle_media` | `database/mongo_db/vehicle_media.json` |
 
-Each file contains a JSON array for one collection. Import each file once into its matching empty collection; importing again adds duplicate sample documents.
+Use **Add Data > Import JSON or CSV** and select JSON for each file. Import the Oracle sample data first so the passenger, trip, route, vehicle, and driver IDs in these documents refer to existing records. Import each file once into an empty collection; importing it again creates duplicate sample documents. The sample media records show titles and file types, but have no uploaded file; upload a PDF or image in the admin media section to add viewable content. The backend creates its `id_sequences` collection automatically when it first allocates a public ID.
 
 ## Backend database settings
 
-The backend expects the Oracle schema to exist; Hibernate is configured to validate it rather than create tables. Its default Oracle URL is `jdbc:oracle:thin:@//localhost:1521/XEPDB1`, with username `SYSTEM`. Set `ORACLE_DB_PASSWORD` to your Oracle password in your local `backend/.env` file, using `backend/.env.example` as a reference.
-
-MongoDB defaults to host `localhost`, port `27017`, and database `smartmove`. These settings can be changed through the variables listed in `backend/.env.example`.
+The default Oracle connection is `jdbc:oracle:thin:@//localhost:1521/XEPDB1` with username `SYSTEM`. Set `ORACLE_DB_PASSWORD` in `backend/.env`, using `backend/.env.example` as a reference. MongoDB defaults to host `localhost`, port `27017`, and database `smartmove`. Change these settings with the variables listed in `backend/.env.example`.

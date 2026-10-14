@@ -6,11 +6,34 @@ CREATE OR REPLACE PROCEDURE sp_record_payment (
 )
 IS
     v_amount bookings.total_amount%TYPE;
-    v_passenger_id bookings.passenger_id%TYPE;
     v_booking_status bookings.booking_status%TYPE;
+    v_trip_id bookings.trip_id%TYPE;
+    v_trip_status trips.status%TYPE;
+    v_trip_date trips.trip_date%TYPE;
+    v_departure_time trips.departure_time%TYPE;
+    v_departure_at DATE;
 BEGIN
-    SELECT total_amount, passenger_id, booking_status
-      INTO v_amount, v_passenger_id, v_booking_status
+    SELECT trip_id
+      INTO v_trip_id
+      FROM bookings
+     WHERE booking_id = p_booking_id;
+
+    SELECT status, trip_date, departure_time
+      INTO v_trip_status, v_trip_date, v_departure_time
+      FROM trips
+     WHERE trip_id = v_trip_id
+       FOR UPDATE;
+
+    v_departure_at := TO_DATE(
+        TO_CHAR(v_trip_date, 'YYYY-MM-DD') || ' ' || TO_CHAR(v_departure_time, 'HH24:MI:SS'),
+        'YYYY-MM-DD HH24:MI:SS'
+    );
+    IF v_trip_status <> 'Scheduled' OR v_departure_at <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20021, 'Payment is available only before a scheduled trip departs.');
+    END IF;
+
+    SELECT total_amount, booking_status
+      INTO v_amount, v_booking_status
       FROM bookings
      WHERE booking_id = p_booking_id
        FOR UPDATE;
@@ -23,8 +46,8 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20005, 'Payment method is required.');
     END IF;
 
-    INSERT INTO payments (booking_id, passenger_id, amount, payment_method, payment_status, payment_date)
-    VALUES (p_booking_id, v_passenger_id, v_amount, TRIM(p_payment_method), 'Successful', CURRENT_TIMESTAMP);
+    INSERT INTO payments (booking_id, amount, payment_method, payment_status, payment_date)
+    VALUES (p_booking_id, v_amount, TRIM(p_payment_method), 'Successful', CURRENT_TIMESTAMP);
 
     UPDATE bookings
        SET booking_status = 'Confirmed'
@@ -37,35 +60,6 @@ BEGIN
 EXCEPTION
     WHEN NO_DATA_FOUND THEN
         RAISE_APPLICATION_ERROR(-20006, 'Booking was not found.');
-END;
-/
-
--- Refund a successful payment once.
-CREATE OR REPLACE PROCEDURE sp_refund_payment (p_payment_id IN NUMBER)
-IS
-    v_status payments.payment_status%TYPE;
-BEGIN
-    SELECT payment_status
-      INTO v_status
-      FROM payments
-     WHERE id = p_payment_id
-       FOR UPDATE;
-
-    IF v_status = 'Refunded' THEN
-        RETURN;
-    END IF;
-
-    IF v_status <> 'Successful' THEN
-        RAISE_APPLICATION_ERROR(-20007, 'Only successful payments can be refunded.');
-    END IF;
-
-    UPDATE payments
-       SET payment_status = 'Refunded',
-           refunded_at = CURRENT_TIMESTAMP
-     WHERE id = p_payment_id;
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RAISE_APPLICATION_ERROR(-20008, 'Payment was not found.');
 END;
 /
 
@@ -112,12 +106,6 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20011, 'This booking cannot be cancelled.');
     END IF;
 
-    UPDATE payments
-       SET payment_status = 'Refunded',
-           refunded_at = CURRENT_TIMESTAMP
-     WHERE booking_id = p_booking_id
-       AND payment_status = 'Successful';
-
     UPDATE tickets
        SET ticket_status = 'Cancelled'
      WHERE booking_id = p_booking_id
@@ -132,13 +120,16 @@ EXCEPTION
 END;
 /
 
--- Cancel a trip and close its bookings, tickets, and successful payments together.
+-- Cancel a trip and close its bookings and tickets together.
 CREATE OR REPLACE PROCEDURE sp_cancel_trip (p_trip_id IN NUMBER)
 IS
     v_status trips.status%TYPE;
+    v_trip_date trips.trip_date%TYPE;
+    v_departure_time trips.departure_time%TYPE;
+    v_departure_at DATE;
 BEGIN
-    SELECT status
-      INTO v_status
+    SELECT status, trip_date, departure_time
+      INTO v_status, v_trip_date, v_departure_time
       FROM trips
      WHERE trip_id = p_trip_id
        FOR UPDATE;
@@ -151,15 +142,13 @@ BEGIN
         RETURN;
     END IF;
 
-    UPDATE payments
-       SET payment_status = 'Refunded',
-           refunded_at = CURRENT_TIMESTAMP
-     WHERE payment_status = 'Successful'
-       AND booking_id IN (
-           SELECT booking_id FROM bookings
-            WHERE trip_id = p_trip_id
-              AND booking_status IN ('Pending Payment', 'Confirmed')
-       );
+    v_departure_at := TO_DATE(
+        TO_CHAR(v_trip_date, 'YYYY-MM-DD') || ' ' || TO_CHAR(v_departure_time, 'HH24:MI:SS'),
+        'YYYY-MM-DD HH24:MI:SS'
+    );
+    IF v_departure_at <= SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20022, 'A trip cannot be cancelled after it has departed.');
+    END IF;
 
     UPDATE tickets
        SET ticket_status = 'Cancelled'
@@ -190,11 +179,12 @@ CREATE OR REPLACE PROCEDURE sp_complete_trip (p_trip_id IN NUMBER)
 IS
     v_status trips.status%TYPE;
     v_trip_date trips.trip_date%TYPE;
+    v_departure_time trips.departure_time%TYPE;
     v_arrival_time trips.arrival_time%TYPE;
     v_arrival_at DATE;
 BEGIN
-    SELECT status, trip_date, arrival_time
-      INTO v_status, v_trip_date, v_arrival_time
+    SELECT status, trip_date, departure_time, arrival_time
+      INTO v_status, v_trip_date, v_departure_time, v_arrival_time
       FROM trips
      WHERE trip_id = p_trip_id
        FOR UPDATE;
@@ -211,6 +201,9 @@ BEGIN
         TO_CHAR(v_trip_date, 'YYYY-MM-DD') || ' ' || TO_CHAR(v_arrival_time, 'HH24:MI:SS'),
         'YYYY-MM-DD HH24:MI:SS'
     );
+    IF v_arrival_time < v_departure_time THEN
+        v_arrival_at := v_arrival_at + 1;
+    END IF;
     IF v_arrival_at > SYSDATE THEN
         RAISE_APPLICATION_ERROR(-20016, 'A trip can be completed after its arrival time.');
     END IF;

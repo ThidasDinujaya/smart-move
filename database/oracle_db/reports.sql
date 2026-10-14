@@ -50,21 +50,17 @@ EXCEPTION
 END;
 /
 
-CREATE OR REPLACE PROCEDURE sp_report_passenger_trips (p_passenger_id IN NUMBER)
+CREATE OR REPLACE PROCEDURE sp_report_passenger_trips (p_passenger_id IN NUMBER DEFAULT NULL)
 IS
     v_found BOOLEAN := FALSE;
 BEGIN
-    IF p_passenger_id IS NULL THEN
-        RAISE_APPLICATION_ERROR(-20019, 'A passenger id is required.');
-    END IF;
-
     FOR r IN (
         SELECT bookings.booking_reference, bookings.booking_status, trips.trip_date,
                routes.start_location, routes.end_location, bookings.seat_count, bookings.total_amount
           FROM bookings
           JOIN trips ON trips.trip_id = bookings.trip_id
           JOIN routes ON routes.id = trips.route_id
-         WHERE bookings.passenger_id = p_passenger_id
+         WHERE p_passenger_id IS NULL OR bookings.passenger_id = p_passenger_id
          ORDER BY trips.trip_date DESC
     ) LOOP
         v_found := TRUE;
@@ -76,7 +72,7 @@ BEGIN
     END LOOP;
 
     IF NOT v_found THEN
-        DBMS_OUTPUT.PUT_LINE('No trips were found for this passenger.');
+        DBMS_OUTPUT.PUT_LINE('No trips were found.');
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
@@ -126,7 +122,6 @@ BEGIN
           FROM routes
           LEFT JOIN trips ON trips.route_id = routes.id
           LEFT JOIN feedback ON feedback.trip_id = trips.trip_id
-                              AND feedback.review_status <> 'HIDDEN'
          GROUP BY routes.route_name
          ORDER BY routes.route_name
     ) LOOP
@@ -152,7 +147,7 @@ SET SERVEROUTPUT ON
 BEGIN
     sp_report_route_bookings;
     sp_report_revenue(TRUNC(SYSDATE) - 30, TRUNC(SYSDATE));
-    sp_report_passenger_trips(2);
+    sp_report_passenger_trips(NULL);
     sp_report_maintenance_due(30);
     sp_report_feedback_summary;
 END;

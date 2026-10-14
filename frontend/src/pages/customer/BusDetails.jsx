@@ -3,6 +3,26 @@ import CustomerNavbar from '../../components/CustomerNavbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bus } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { formatRecordId } from '../../utils/recordIds.js';
+
+function tripMediaSource(item) {
+  const data = item.mediaData;
+  if (typeof data === 'string' && data.startsWith('data:')) {
+    return /^data:(application\/pdf|image\/png|image\/jpeg);base64,/i.test(data) ? data : '';
+  }
+  if (typeof data === 'string' && data && ['application/pdf', 'image/png', 'image/jpeg'].includes(item.contentType)) {
+    return `data:${item.contentType};base64,${data}`;
+  }
+  return '';
+}
+
+function tripMediaType(item, source) {
+  const contentType = String(item.contentType || '').toLowerCase();
+  const fileReference = String(item.fileName || '').toLowerCase();
+  if (contentType === 'application/pdf' || source.startsWith('data:application/pdf;') || /\.pdf(?:\?|$)/.test(fileReference)) return 'pdf';
+  if (contentType.startsWith('image/') || source.startsWith('data:image/') || /\.(png|jpe?g)(?:\?|$)/.test(fileReference)) return 'image';
+  return 'file';
+}
 
 const BusDetails = () => {
   const location = useLocation();
@@ -66,21 +86,24 @@ const BusDetails = () => {
             <h2 style={{ fontSize: '17px', color: '#0f172a' }}>Trip media</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
               {media.map((item) => {
-                const mediaUrl = item.mediaData || item.storageUrl;
-                const isImage = String(item.contentType || '').startsWith('image/');
+                const mediaUrl = tripMediaSource(item);
+                const mediaType = tripMediaType(item, mediaUrl);
                 return (
                   <article key={item.id} style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px' }}>
-                    {mediaUrl && isImage ? <img src={mediaUrl} alt={item.title || 'Trip media'} style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }} /> : null}
-                    {mediaUrl && !isImage ? <a href={mediaUrl} target="_blank" rel="noreferrer">Open {item.mediaType || 'trip file'}</a> : null}
+                    {mediaUrl && mediaType === 'image' && <img src={mediaUrl} alt={item.title || item.fileName || 'Trip media'} style={{ width: '100%', maxHeight: '320px', objectFit: 'contain', borderRadius: '8px' }} />}
+                    {mediaUrl && mediaType === 'pdf' && (
+                      <>
+                        <iframe src={mediaUrl} title={item.fileName || item.title || 'Trip PDF'} style={{ width: '100%', minHeight: '420px', border: '1px solid #e2e8f0', borderRadius: '8px' }} />
+                        <p style={{ margin: '6px 0 0', fontSize: '12px' }}><a href={mediaUrl} target="_blank" rel="noreferrer">Open PDF in a new tab</a></p>
+                      </>
+                    )}
+                    {mediaUrl && mediaType === 'file' && <a href={mediaUrl} target="_blank" rel="noreferrer">Open {item.mediaType || 'trip file'}</a>}
                     <h3 style={{ fontSize: '14px', margin: '10px 0 4px' }}>{item.title || item.mediaType}</h3>
-                    {item.description && <p style={{ fontSize: '12px', color: '#475569' }}>{item.description}</p>}
                     <p style={{ fontSize: '11px', color: '#64748b' }}>
                       {item.mediaType} {item.contentType ? `· ${item.contentType}` : ''}
-                      {item.location ? ` · ${item.location}` : ''}
                       {item.uploadedAt ? ` · Uploaded ${new Date(item.uploadedAt).toLocaleString()}` : ''}
-                      {item.uploadedByOracleId != null ? ` · User ${item.uploadedByOracleId}` : ''}
+                      {item.uploadedByOracleId != null ? ` · Uploaded by ${formatRecordId('passenger', item.uploadedByOracleId)}` : ''}
                     </p>
-                    {item.metadata && <details style={{ fontSize: '11px', color: '#64748b' }}><summary>Metadata</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(item.metadata, null, 2)}</pre></details>}
                   </article>
                 );
               })}

@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import { Bus } from 'lucide-react';
 import { api } from '../../api/client.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function bookingDisplayStatus(booking) {
-  if (String(booking.status).toLowerCase() === 'cancelled') return 'Cancelled';
-  if (booking.date && booking.date < new Date().toISOString().slice(0, 10)) return 'Completed';
+  const status = String(booking.status || '').toLowerCase();
+  if (status === 'cancelled') return 'Cancelled';
+  if (status === 'completed') return 'Completed';
   return 'Upcoming';
 }
 
@@ -49,12 +51,12 @@ const MyBookings = () => {
   const updateReview = (bookingId, field, value) => {
     setReviewForms((current) => ({
       ...current,
-      [bookingId]: { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', isComplaint: false, ...current[bookingId], [field]: value },
+      [bookingId]: { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', ...current[bookingId], [field]: value },
     }));
   };
 
   const submitReview = async (booking) => {
-    const form = { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', isComplaint: false, ...reviewForms[booking.id] };
+    const form = { rating: 5, driverRating: 5, vehicleRating: 5, comment: '', ...reviewForms[booking.id] };
     try {
       const saved = await api.post('/api/feedback', {
         tripId: booking.tripId,
@@ -62,7 +64,6 @@ const MyBookings = () => {
         driverRating: Number(form.driverRating),
         vehicleRating: Number(form.vehicleRating),
         comment: form.comment.trim(),
-        isComplaint: form.isComplaint,
       });
       setReviewsByTrip((current) => ({ ...current, [String(booking.tripId)]: saved }));
       setReviewMessages((current) => ({ ...current, [booking.id]: 'Thank you. Your feedback has been saved.' }));
@@ -76,7 +77,7 @@ const MyBookings = () => {
   )), [bookings, filter]);
 
   const cancelBooking = async (id) => {
-    if (!window.confirm('Cancel this booking?')) return;
+    if (!window.confirm('Cancel this booking? Its seats will be released, and existing payment records will remain unchanged.')) return;
     try {
       await api.delete(`/api/bookings/${id}`);
       await loadBookings();
@@ -122,9 +123,11 @@ const MyBookings = () => {
                     </div>
                   </div>
                   {expandedId === booking.id && <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', fontSize: '13px', color: '#475569', display: 'grid', gap: '6px' }}>
+                    <span>Booking ID: <strong>{formatRecordId('booking', booking.id)}</strong></span>
                     <span>Booking reference: <strong>{booking.bookingReference}</strong></span>
                     <span>Vehicle: {booking.vehicle}</span>
                     <span>Booking status: {booking.status}</span>
+                    {booking.paymentStatus && <span>Payment status: {booking.paymentStatus}</span>}
                     <span>Booking date: {booking.bookingDate ? new Date(booking.bookingDate).toLocaleString() : '—'}</span>
                     {(booking.tickets || []).map((ticket) => <span key={ticket.ticketNumber}>Ticket {ticket.ticketNumber}: seat {ticket.seatNumber}, {ticket.status}{ticket.issuedAt ? ` · issued ${new Date(ticket.issuedAt).toLocaleString()}` : ''}</span>)}
                   </div>}
@@ -132,7 +135,7 @@ const MyBookings = () => {
                     <section style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
                       {reviewsByTrip[String(booking.tripId)] ? (
                         <div style={{ color: '#475569', fontSize: '13px' }}>
-                          Feedback submitted · Overall {reviewsByTrip[String(booking.tripId)].rating}/5 · Driver {reviewsByTrip[String(booking.tripId)].driverRating}/5 · Vehicle {reviewsByTrip[String(booking.tripId)].vehicleRating}/5 · {reviewsByTrip[String(booking.tripId)].reviewStatus}
+                          Feedback submitted · Overall {reviewsByTrip[String(booking.tripId)].rating}/5 · Driver {reviewsByTrip[String(booking.tripId)].driverRating}/5 · Vehicle {reviewsByTrip[String(booking.tripId)].vehicleRating}/5
                         </div>
                       ) : (
                         <>
@@ -155,10 +158,6 @@ const MyBookings = () => {
                             <label style={{ display: 'grid', gap: '4px', fontSize: '13px', color: '#334155' }}>
                               Comment
                               <textarea rows="3" maxLength="2000" value={reviewForms[booking.id]?.comment || ''} onChange={(event) => updateReview(booking.id, 'comment', event.target.value)} />
-                            </label>
-                            <label style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '13px', color: '#334155' }}>
-                              <input type="checkbox" checked={Boolean(reviewForms[booking.id]?.isComplaint)} onChange={(event) => updateReview(booking.id, 'isComplaint', event.target.checked)} />
-                              This feedback is a complaint
                             </label>
                             {reviewMessages[booking.id] && <p role="status" style={{ margin: 0, color: '#475569', fontSize: '13px' }}>{reviewMessages[booking.id]}</p>}
                             <button type="button" onClick={() => submitReview(booking)} style={{ justifySelf: 'start', background: '#0066ff', color: 'white', border: 0, borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Submit feedback</button>

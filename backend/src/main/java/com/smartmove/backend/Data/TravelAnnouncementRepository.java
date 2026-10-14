@@ -1,4 +1,4 @@
-package com.smartmove.backend.Data;
+package com.smartmove.backend.data;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

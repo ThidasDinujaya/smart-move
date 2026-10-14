@@ -11,7 +11,6 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long bookingId;
-    private Long passengerId;
     private BigDecimal amount;
     private String paymentMethod;
     private String paymentStatus;
@@ -21,8 +20,6 @@ public class Payment {
     public void setId(Long id) { this.id = id; }
     public Long getBookingId() { return bookingId; }
     public void setBookingId(Long bookingId) { this.bookingId = bookingId; }
-    public Long getPassengerId() { return passengerId; }
-    public void setPassengerId(Long passengerId) { this.passengerId = passengerId; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getPaymentMethod() { return paymentMethod; }

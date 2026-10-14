@@ -6,6 +6,8 @@ import com.smartmove.backend.data.Passenger;
 import com.smartmove.backend.data.PassengerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Locale;
@@ -104,6 +106,31 @@ public class CustomerAuthService {
         return toCustomerView(appUser);
     }
 
+    @Transactional
+    public void changePassword(String userId, String currentPassword, String newPassword) {
+        CustomerView currentCustomer = requireAnyRole(userId, CUSTOMER_ROLE);
+        AppUser appUser = appUserRepository.findById(currentCustomer.userId())
+                .orElseThrow(() -> new AuthenticationFailedException("The user was not found."));
+
+        if (currentPassword == null || !currentPassword.equals(appUser.getPassword())) {
+            throw new AuthenticationFailedException("Your current password is incorrect.");
+        }
+        if (newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("A new password is required.");
+        }
+        if (newPassword.length() < 8) {
+            throw new IllegalArgumentException("Your new password must be at least 8 characters long.");
+        }
+        if (newPassword.length() > 128) {
+            throw new IllegalArgumentException("Your new password must be 128 characters or fewer.");
+        }
+        if (newPassword.equals(currentPassword)) {
+            throw new IllegalArgumentException("Choose a new password that is different from your current password.");
+        }
+
+        appUser.setPassword(newPassword);
+    }
+
     @Transactional(readOnly = true)
     public CustomerView currentCustomer(String userId) {
         if (userId == null || userId.isBlank()) {
@@ -124,6 +151,22 @@ public class CustomerAuthService {
         }
 
         return toCustomerView(appUser);
+    }
+
+    public CustomerView requireAnyRole(String userId, String... allowedRoles) {
+        CustomerView currentUser;
+        try {
+            currentUser = currentCustomer(userId);
+        } catch (AuthenticationFailedException exception) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        }
+        boolean allowed = currentUser.roles().stream().anyMatch(role ->
+                java.util.Arrays.stream(allowedRoles).anyMatch(allowedRole ->
+                        allowedRole.equalsIgnoreCase(role)));
+        if (!allowed) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to do this.");
+        }
+        return currentUser;
     }
 
     private CustomerView toCustomerView(AppUser appUser) {

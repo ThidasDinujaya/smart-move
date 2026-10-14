@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Plus, Search, Eye, Pencil, Trash2 } from 'lucide-react';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 export default function Vehicles({
   vehicles = [],
@@ -93,7 +94,7 @@ export default function Vehicles({
           <table className="management-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Vehicle ID</th>
                 <th>Vehicle No</th>
                 <th>Type</th>
                 <th>Brand</th>
@@ -108,7 +109,7 @@ export default function Vehicles({
               {filteredVehicles.length > 0 ? (
                 filteredVehicles.map((vehicle, index) => (
                   <tr key={vehicle.id}>
-                    <td>{index + 1}</td>
+                    <td>{formatRecordId('vehicle', vehicle.id)}</td>
                     <td>{vehicle.vehicleNo}</td>
                     <td>{vehicle.type}</td>
                     <td>{vehicle.brand}</td>

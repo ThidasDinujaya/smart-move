@@ -12,8 +12,9 @@ const initialForm = {
   status: '',
 };
 
-export default function AddMaintenance({ options = {}, onSave, onCancel }) {
-  const [form, setForm] = useState(initialForm);
+export default function AddMaintenance({ record, options = {}, onSave, onCancel }) {
+  const [form, setForm] = useState(() => ({ ...initialForm, ...(record || {}) }));
+  const [saving, setSaving] = useState(false);
   const vehicles = options.vehicles || [];
   const types = options.types || [];
   const statuses = options.statuses || [];
@@ -23,17 +24,27 @@ export default function AddMaintenance({ options = {}, onSave, onCancel }) {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
-    onSave({
-      ...form,
-      cost: form.cost === '' ? '' : Number(form.cost),
-    });
+    setSaving(true);
+    try {
+      await onSave({
+        ...form,
+        cost: form.cost === '' ? '' : Number(form.cost),
+      });
+    } catch (error) {
+      window.alert(error.message || 'Unable to save maintenance record.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <section className="page form-page">
-      <PageHeader title="Add Maintenance Record" subtitle="Enter maintenance details for the vehicle" />
+      <PageHeader
+        title={record ? 'Edit Maintenance Record' : 'Add Maintenance Record'}
+        subtitle={record ? 'Update the vehicle maintenance details' : 'Enter maintenance details for the vehicle'}
+      />
       <form className="form-card form-grid" onSubmit={submit}>
         <label>
           Vehicle <b>*</b>
@@ -89,8 +100,8 @@ export default function AddMaintenance({ options = {}, onSave, onCancel }) {
           <textarea name="description" rows="3" value={form.description} onChange={updateField} />
         </label>
         <div className="form-actions span-two">
-          <button className="primary" type="submit">Save Record</button>
-          <button className="secondary" type="button" onClick={onCancel}>Cancel</button>
+          <button className="primary" type="submit" disabled={saving}>{saving ? 'Saving…' : record ? 'Update Record' : 'Save Record'}</button>
+          <button className="secondary" type="button" onClick={onCancel} disabled={saving}>Cancel</button>
         </div>
       </form>
     </section>

@@ -1,15 +1,16 @@
 package com.smartmove.backend.service;
 
-import com.smartmove.backend.Data.Driver;
-import com.smartmove.backend.Data.DriverRepository;
-import com.smartmove.backend.Data.Route;
-import com.smartmove.backend.Data.RouteRepository;
-import com.smartmove.backend.Data.Vehicle;
-import com.smartmove.backend.Data.VehicleRepository;
+import com.smartmove.backend.data.Driver;
+import com.smartmove.backend.data.DriverRepository;
+import com.smartmove.backend.data.Route;
+import com.smartmove.backend.data.RouteRepository;
+import com.smartmove.backend.data.Vehicle;
+import com.smartmove.backend.data.VehicleRepository;
 import com.smartmove.backend.data.Trip;
 import com.smartmove.backend.data.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataAccessException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,25 +21,27 @@ import java.util.List;
 public class TripService {
 
     private static final String SCHEDULED_STATUS = "Scheduled";
-    private static final String CANCELLED_STATUS = "Cancelled";
 
     private final TripRepository tripRepository;
     private final RouteRepository routeRepository;
     private final VehicleRepository vehicleRepository;
     private final DriverRepository driverRepository;
     private final CustomerAuthService customerAuthService;
+    private final OracleProcedureService oracleProcedureService;
 
     public TripService(
             TripRepository tripRepository,
             RouteRepository routeRepository,
             VehicleRepository vehicleRepository,
             DriverRepository driverRepository,
-            CustomerAuthService customerAuthService) {
+            CustomerAuthService customerAuthService,
+            OracleProcedureService oracleProcedureService) {
         this.tripRepository = tripRepository;
         this.routeRepository = routeRepository;
         this.vehicleRepository = vehicleRepository;
         this.driverRepository = driverRepository;
         this.customerAuthService = customerAuthService;
+        this.oracleProcedureService = oracleProcedureService;
     }
 
     @Transactional(readOnly = true)
@@ -58,11 +61,6 @@ public class TripService {
     }
 
     @Transactional(readOnly = true)
-    public TripView getTripById(Long id) {
-        return toView(findTrip(id));
-    }
-
-    @Transactional(readOnly = true)
     public List<TripView> getAllTrips(String userId) {
         requireStaffRole(userId);
         return tripRepository.findAllByOrderByTripDateAscDepartureTimeAsc()
@@ -74,6 +72,7 @@ public class TripService {
     @Transactional
     public TripView createTrip(TripRequest request, String userId) {
         requireStaffRole(userId);
+        validateRequestedStatus(request == null ? null : request.status(), false);
         Trip trip = new Trip();
         applyRequest(trip, request);
         trip.setId(null);
@@ -84,6 +83,26 @@ public class TripService {
     public TripView updateTrip(Long id, TripRequest request, String userId) {
         requireStaffRole(userId);
         Trip trip = findTrip(id);
+        String requestedStatus = request == null ? null : request.status();
+        validateRequestedStatus(requestedStatus, true);
+
+        if ("Cancelled".equalsIgnoreCase(requestedStatus)) {
+            if ("Cancelled".equalsIgnoreCase(trip.getStatus())) {
+                return toView(trip);
+            }
+            if (!SCHEDULED_STATUS.equalsIgnoreCase(trip.getStatus())) {
+                throw new IllegalArgumentException("Only a scheduled trip can be cancelled.");
+            }
+            applyRequest(trip, request);
+            tripRepository.saveAndFlush(trip);
+            cancelTripInDatabase(id);
+            trip.setStatus("Cancelled");
+            return toView(trip);
+        }
+
+        if (!SCHEDULED_STATUS.equalsIgnoreCase(trip.getStatus())) {
+            throw new IllegalArgumentException("Only a scheduled trip can be edited.");
+        }
         applyRequest(trip, request);
         return toView(tripRepository.save(trip));
     }
@@ -92,8 +111,21 @@ public class TripService {
     public void cancelTrip(Long id, String userId) {
         requireStaffRole(userId);
         Trip trip = findTrip(id);
-        trip.setStatus(CANCELLED_STATUS);
-        tripRepository.save(trip);
+        if ("Cancelled".equalsIgnoreCase(trip.getStatus())) {
+            return;
+        }
+        if (!SCHEDULED_STATUS.equalsIgnoreCase(trip.getStatus())) {
+            throw new IllegalArgumentException("Only a scheduled trip can be cancelled.");
+        }
+        cancelTripInDatabase(id);
+    }
+
+    private void cancelTripInDatabase(Long id) {
+        try {
+            oracleProcedureService.cancelTrip(id);
+        } catch (DataAccessException exception) {
+            throw new IllegalArgumentException(exception.getMostSpecificCause().getMessage());
+        }
     }
 
     private void applyRequest(Trip trip, TripRequest request) {
@@ -129,9 +161,6 @@ public class TripService {
         if (vehicle.getSeatingCapacity() != null && request.seats() > vehicle.getSeatingCapacity()) {
             throw new IllegalArgumentException("Seat capacity cannot exceed the selected vehicle capacity.");
         }
-        if (request.status() != null && request.status().trim().length() > 20) {
-            throw new IllegalArgumentException("Trip status must be 20 characters or fewer.");
-        }
         if (request.notes() != null && request.notes().length() > 1000) {
             throw new IllegalArgumentException("Trip notes must be 1000 characters or fewer.");
         }
@@ -144,10 +173,21 @@ public class TripService {
         trip.setArrivalTime(request.arrival());
         trip.setSeatCapacity(request.seats());
         trip.setFare(request.fare());
-        trip.setStatus(request.status() == null || request.status().isBlank()
-                ? SCHEDULED_STATUS
-                : request.status().trim());
+        trip.setStatus(SCHEDULED_STATUS);
         trip.setNotes(request.notes() == null || request.notes().isBlank() ? null : request.notes().trim());
+    }
+
+    private void validateRequestedStatus(String status, boolean allowCancellation) {
+        if (status == null || status.isBlank() || SCHEDULED_STATUS.equalsIgnoreCase(status.trim())) {
+            return;
+        }
+        if (allowCancellation && "Cancelled".equalsIgnoreCase(status.trim())) {
+            return;
+        }
+        if ("Completed".equalsIgnoreCase(status.trim())) {
+            throw new IllegalArgumentException("Trips are completed automatically after their arrival time.");
+        }
+        throw new IllegalArgumentException("Trip status must be Scheduled" + (allowCancellation ? " or Cancelled." : "."));
     }
 
     private Trip findTrip(Long id) {

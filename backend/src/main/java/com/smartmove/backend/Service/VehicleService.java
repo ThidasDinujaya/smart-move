@@ -1,10 +1,10 @@
 
-package com.smartmove.backend.Service;
+package com.smartmove.backend.service;
 
-import com.smartmove.backend.Data.Vehicle;
-import com.smartmove.backend.Data.VehicleRepository;
-import com.smartmove.backend.Data.VehicleMediaDocument;
-import com.smartmove.backend.Data.VehicleMediaRepository;
+import com.smartmove.backend.data.Vehicle;
+import com.smartmove.backend.data.VehicleRepository;
+import com.smartmove.backend.data.VehicleMediaDocument;
+import com.smartmove.backend.data.VehicleMediaRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -121,9 +121,11 @@ public class VehicleService {
 
     private Vehicle attachVehicleImage(Vehicle vehicle) {
         vehicleMediaRepository
-                .findFirstByVehicleOracleIdAndMediaTypeAndImageDataIsNotNullOrderByUploadedAtDesc(
-                        vehicle.getId(), "PHOTO")
-                .ifPresent(media -> vehicle.setImageData(media.getImageData()));
+                .findByVehicleOracleIdOrderByUploadedAtDesc(vehicle.getId()).stream()
+                .filter(media -> "PHOTO".equalsIgnoreCase(media.getMediaType())
+                        && media.getMediaData() != null && !media.getMediaData().isBlank())
+                .findFirst()
+                .ifPresent(media -> vehicle.setImageData(media.getMediaData()));
         return vehicle;
     }
 
@@ -133,15 +135,19 @@ public class VehicleService {
         }
 
         VehicleMediaDocument media = vehicleMediaRepository
-                .findFirstByVehicleOracleIdAndMediaTypeAndImageDataIsNotNullOrderByUploadedAtDesc(
-                        vehicle.getId(), "PHOTO")
+                .findByVehicleOracleIdOrderByUploadedAtDesc(vehicle.getId()).stream()
+                .filter(existing -> "PHOTO".equalsIgnoreCase(existing.getMediaType())
+                        && existing.getMediaData() != null && !existing.getMediaData().isBlank())
+                .findFirst()
                 .orElseGet(VehicleMediaDocument::new);
         media.setVehicleOracleId(vehicle.getId());
         media.setRegistrationNo(vehicle.getVehicleNo());
         media.setMediaType("PHOTO");
+        media.setTitle(vehicle.getVehicleNo() + " photo");
         media.setFileName(vehicle.getVehicleNo() + "-photo");
         media.setContentType(imageContentType(imageData));
-        media.setImageData(imageData);
+        media.setMediaData(imageData);
+        media.clearLegacyImageData();
         media.setUploadedAt(Instant.now());
         vehicleMediaRepository.save(media);
         vehicle.setImageData(imageData);

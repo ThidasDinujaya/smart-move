@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,14 @@ public class BookingController {
             @RequestHeader(name = "X-User-Id", required = false) String userId) {
         BookingService.BookingView booking = bookingService.createBookingForStaff(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(booking);
+    }
+
+    @PutMapping("/admin/{bookingId}")
+    public BookingService.BookingView updateBookingForStaff(
+            @PathVariable Long bookingId,
+            @RequestBody BookingService.StaffBookingRequest request,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        return bookingService.updateBookingForStaff(bookingId, request, userId);
     }
 
     @GetMapping("/admin")

@@ -1,6 +1,6 @@
 import Icon from './Icon.jsx';
 
-export default function ActionButtons({ onView, onEdit, onDelete }) {
+export default function ActionButtons({ onView, onEdit, editDisabled = false, onDelete }) {
   return (
     <div className="actions">
       {onView && (
@@ -18,8 +18,9 @@ export default function ActionButtons({ onView, onEdit, onDelete }) {
         <button
           className="action-btn edit"
           type="button"
-          aria-label="Edit"
-          title="Edit"
+          aria-label={editDisabled ? 'Edit unavailable for this booking status' : 'Edit'}
+          title={editDisabled ? 'Only pending payment bookings can be edited' : 'Edit'}
+          disabled={editDisabled}
           onClick={onEdit}
         >
           <Icon name="edit" size={15} />

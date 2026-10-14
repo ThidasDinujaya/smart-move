@@ -1,5 +1,5 @@
 
-package com.smartmove.backend.Data;
+package com.smartmove.backend.data;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;

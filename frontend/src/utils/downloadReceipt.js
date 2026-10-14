@@ -1,4 +1,5 @@
 import { formatDateTime } from './formatters.js';
+import { formatRecordId } from './recordIds.js';
 
 export default function downloadReceipt(payment, booking) {
   if (!payment) {
@@ -9,8 +10,8 @@ export default function downloadReceipt(payment, booking) {
     'SmartMove Transport Solutions',
     'Payment Receipt',
     '',
-    'Payment ID: ' + payment.id,
-    'Booking ID: ' + payment.booking,
+    'Payment ID: ' + formatRecordId('payment', payment.id),
+    'Booking ID: ' + formatRecordId('booking', payment.booking),
     'Passenger: ' + payment.passenger,
     'Route: ' + (booking?.route || ''),
     'Travel Date: ' + (booking?.date || ''),
@@ -24,7 +25,7 @@ export default function downloadReceipt(payment, booking) {
   const link = document.createElement('a');
 
   link.href = url;
-  link.download = 'SmartMove-' + payment.id + '-receipt.txt';
+  link.download = 'SmartMove-' + formatRecordId('payment', payment.id) + '-receipt.txt';
   link.click();
   URL.revokeObjectURL(url);
 }

@@ -4,8 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
 
 @Document(collection = "feedback")
 public class FeedbackDocument {
@@ -22,11 +20,7 @@ public class FeedbackDocument {
     private String driverName;
     private FeedbackRatings ratings;
     private String comment;
-    private Boolean isComplaint;
-    private List<String> keywords;
     private LocalDateTime submittedAt;
-    private String moderationStatus;
-    private Map<String, Object> response;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -52,16 +46,8 @@ public class FeedbackDocument {
     public void setRatings(FeedbackRatings ratings) { this.ratings = ratings; }
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
-    public Boolean getIsComplaint() { return isComplaint; }
-    public void setIsComplaint(Boolean complaint) { isComplaint = complaint; }
-    public List<String> getKeywords() { return keywords; }
-    public void setKeywords(List<String> keywords) { this.keywords = keywords; }
     public LocalDateTime getSubmittedAt() { return submittedAt; }
     public void setSubmittedAt(LocalDateTime submittedAt) { this.submittedAt = submittedAt; }
-    public String getModerationStatus() { return moderationStatus; }
-    public void setModerationStatus(String moderationStatus) { this.moderationStatus = moderationStatus; }
-    public Map<String, Object> getResponse() { return response; }
-    public void setResponse(Map<String, Object> response) { this.response = response; }
 
     public static class FeedbackRatings {
         private Integer overall;

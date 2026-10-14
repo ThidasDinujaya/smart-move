@@ -1,8 +1,8 @@
 package com.smartmove.backend.data;
 
-import com.smartmove.backend.Data.Driver;
-import com.smartmove.backend.Data.Route;
-import com.smartmove.backend.Data.Vehicle;
+import com.smartmove.backend.data.Driver;
+import com.smartmove.backend.data.Route;
+import com.smartmove.backend.data.Vehicle;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

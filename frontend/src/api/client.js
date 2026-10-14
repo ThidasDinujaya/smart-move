@@ -51,7 +51,9 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     const message = typeof result === 'object' && result !== null
-      ? result.message || result.error
+      // Spring Boot returns RFC 9457 Problem Details for ResponseStatusException,
+      // where the actionable validation text is in `detail`.
+      ? result.message || result.detail || result.error || result.title
       : result;
     throw new Error(message || `Request failed with status ${response.status}.`);
   }

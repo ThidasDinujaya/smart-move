@@ -4,32 +4,35 @@ import com.smartmove.backend.data.Booking;
 import com.smartmove.backend.data.BookingRepository;
 import com.smartmove.backend.data.Payment;
 import com.smartmove.backend.data.PaymentRepository;
-import com.smartmove.backend.data.Ticket;
-import com.smartmove.backend.data.TicketRepository;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
-    private final TicketRepository ticketRepository;
     private final CustomerAuthService customerAuthService;
+    private final OracleProcedureService oracleProcedureService;
+    private final TripCompletionService tripCompletionService;
 
     public PaymentService(PaymentRepository paymentRepository, BookingRepository bookingRepository,
-                         TicketRepository ticketRepository, CustomerAuthService customerAuthService) {
+                         CustomerAuthService customerAuthService,
+                         OracleProcedureService oracleProcedureService,
+                         TripCompletionService tripCompletionService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
-        this.ticketRepository = ticketRepository;
         this.customerAuthService = customerAuthService;
+        this.oracleProcedureService = oracleProcedureService;
+        this.tripCompletionService = tripCompletionService;
     }
 
     @Transactional(readOnly = true)
-    public List<Payment> getAllPayments() {
+    public List<Payment> getAllPayments(String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN", "FINANCE");
         return paymentRepository.findAll();
     }
 
@@ -39,11 +42,15 @@ public class PaymentService {
             throw new IllegalArgumentException("A booking must be selected for payment.");
         }
         CustomerAuthService.CustomerView currentUser = customerAuthService.currentCustomer(userId);
-        Booking booking = bookingRepository.findById(payment.getBookingId())
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found."));
         boolean isCustomer = currentUser.roles().stream().anyMatch(role -> "CUSTOMER".equalsIgnoreCase(role));
         boolean isFinance = currentUser.roles().stream().anyMatch(role ->
                 "ADMIN".equalsIgnoreCase(role) || "FINANCE".equalsIgnoreCase(role));
+        if (!isCustomer && !isFinance) {
+            throw new IllegalArgumentException("You do not have permission to process payments.");
+        }
+        tripCompletionService.completeArrivedTripsBeforeReadingBookings();
+        Booking booking = bookingRepository.findById(payment.getBookingId())
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found."));
         if ((isCustomer && !booking.getPassenger().getId().equals(currentUser.id())) || (!isCustomer && !isFinance)) {
             throw new IllegalArgumentException("You do not have permission to pay for this booking.");
         }
@@ -61,18 +68,13 @@ public class PaymentService {
             throw new IllegalArgumentException("Select a payment method.");
         }
 
-        payment.setId(null);
-        payment.setPassengerId(booking.getPassenger().getId());
-        payment.setAmount(expectedAmount);
-        payment.setPaymentStatus("Successful");
-        payment.setPaymentDate(LocalDateTime.now());
-        Payment savedPayment = paymentRepository.save(payment);
-
-        booking.setBookingStatus("Confirmed");
-        bookingRepository.save(booking);
-        List<Ticket> tickets = ticketRepository.findByBooking_IdOrderBySeatNumberAsc(booking.getId());
-        tickets.forEach(ticket -> ticket.setTicketStatus("Confirmed"));
-        ticketRepository.saveAll(tickets);
-        return savedPayment;
+        try {
+            oracleProcedureService.recordPayment(booking.getId(), payment.getPaymentMethod().trim());
+        } catch (DataAccessException exception) {
+            throw new IllegalArgumentException(exception.getMostSpecificCause().getMessage());
+        }
+        return paymentRepository.findByBookingId(booking.getId())
+                .orElseThrow(() -> new IllegalStateException("The payment procedure did not create a payment."));
     }
+
 }

@@ -49,13 +49,6 @@ public class PassengerController {
         return passengerService.getAllPassengers(userId);
     }
 
-    @GetMapping("/{id}")
-    public Passenger getPassengerById(
-            @PathVariable Long id,
-            @RequestHeader(name = "X-User-Id", required = false) String userId) {
-        return passengerService.getPassengerById(id, userId);
-    }
-
     @PostMapping
     public ResponseEntity<Passenger> createPassenger(
             @RequestBody PassengerService.PassengerRequest request,

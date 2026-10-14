@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatRecordId } from '../../utils/recordIds.js';
 import { ArrowRight, Bus, Mail, MapPin, Phone, ShieldCheck, Ticket } from 'lucide-react';
 import CustomerNavbar from '../../components/CustomerNavbar';
 import '../../styles/CustomerHome.css';
@@ -39,15 +40,7 @@ const CustomerHome = () => {
     api.get('/api/content/announcements')
       .then((items) => {
         if (!active) return;
-        const now = Date.now();
-        setAnnouncements((Array.isArray(items) ? items : []).filter((item) => {
-          const audience = (item.audience || []).map((role) => String(role).toUpperCase());
-          const audienceMatches = !audience.length || audience.includes('ALL') || audience.includes('CUSTOMER');
-          const isActive = item.active !== false;
-          const hasStarted = !item.startsAt || new Date(item.startsAt).getTime() <= now;
-          const hasNotEnded = !item.endsAt || new Date(item.endsAt).getTime() >= now;
-          return audienceMatches && isActive && hasStarted && hasNotEnded;
-        }));
+        setAnnouncements(Array.isArray(items) ? items : []);
       })
       .catch(() => { if (active) setAnnouncements([]); });
     return () => { active = false; };
@@ -80,12 +73,11 @@ const CustomerHome = () => {
               <p style={{ color: '#475569', fontSize: '13px', margin: '8px 0' }}>{announcement.message}</p>
               <p style={{ color: '#64748b', fontSize: '11px', margin: 0 }}>
                 Audience: {(announcement.audience || []).join(', ') || 'All'}
-                {announcement.routeOracleIds?.length ? ` · Route IDs: ${announcement.routeOracleIds.join(', ')}` : ''}
+                {announcement.routeOracleIds?.length ? ` · Route IDs: ${announcement.routeOracleIds.map((id) => formatRecordId('route', id)).join(', ')}` : ''}
                 {announcement.publishedAt ? ` · Published: ${new Date(announcement.publishedAt).toLocaleDateString()}` : ''}
                 {announcement.startsAt ? ` · Starts: ${new Date(announcement.startsAt).toLocaleDateString()}` : ''}
                 {announcement.endsAt ? ` · Ends: ${new Date(announcement.endsAt).toLocaleDateString()}` : ''}
               </p>
-              {announcement.details && <details style={{ marginTop: '8px', fontSize: '12px', color: '#64748b' }}><summary>More details</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(announcement.details, null, 2)}</pre></details>}
             </article>
           ))}
         </section>

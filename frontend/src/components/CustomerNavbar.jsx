@@ -1,15 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Bell, Bus, User } from 'lucide-react';
 import { getCurrentCustomer, subscribeToAuthChanges } from '../utils/customerAuth.js';
 import { hasRole, ROLES } from '../utils/roleAccess.js';
 import { api } from '../api/client.js';
+import { formatRecordId } from '../utils/recordIds.js';
 
 const CustomerNavbar = () => {
+  const { pathname } = useLocation();
   const [customer, setCustomer] = useState(getCurrentCustomer);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const unreadCount = notifications.filter((notification) => String(notification.status).toUpperCase() !== 'READ').length;
+  const navigationStyle = (active) => ({
+    display: 'flex',
+    alignItems: 'center',
+    minHeight: '39px',
+    padding: '0 12px',
+    border: 0,
+    borderRadius: '7px',
+    backgroundColor: active ? '#0875ed' : 'transparent',
+    textDecoration: 'none',
+    color: active ? '#ffffff' : '#475569',
+    fontWeight: active ? '700' : '500',
+    fontSize: '14px',
+    boxShadow: active ? '0 3px 8px rgba(0, 0, 0, 0.18)' : 'none',
+    transition: 'background-color 140ms ease, color 140ms ease, box-shadow 140ms ease',
+  });
+  const searchPaths = ['/search', '/search-results', '/bus-details', '/seat-selection', '/payment'];
 
   useEffect(() => {
     const syncCustomer = () => setCustomer(getCurrentCustomer());
@@ -44,9 +62,8 @@ const CustomerNavbar = () => {
       </div>
 
       <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: '#0066ff', fontWeight: '600', fontSize: '14px' }}>Home</Link>
-        <Link to="/search" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>Search Vehicles</Link>
-        <Link to="/my-bookings" style={{ textDecoration: 'none', color: '#475569', fontWeight: '500', fontSize: '14px' }}>My Bookings</Link>
+        <Link to="/" style={navigationStyle(pathname === '/')}>Home</Link>
+        <Link to="/search" style={navigationStyle(searchPaths.includes(pathname))}>Search Vehicles</Link>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
@@ -81,10 +98,9 @@ const CustomerNavbar = () => {
                       {notification.recipientRole} · {notification.notificationType} · {notification.channel} · {notification.status}
                     </p>
                     {notification.bookingReference && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Booking: {notification.bookingReference}</p>}
-                    {notification.relatedTripOracleId != null && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Trip ID: {notification.relatedTripOracleId}</p>}
+                    {notification.relatedTripOracleId != null && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Trip ID: {formatRecordId('trip', notification.relatedTripOracleId)}</p>}
                     {notification.createdAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Created: {new Date(notification.createdAt).toLocaleString()}</p>}
                     {notification.readAt && <p style={{ fontSize: '11px', color: '#64748b', margin: '4px 0 0' }}>Read: {new Date(notification.readAt).toLocaleString()}</p>}
-                    {notification.details && <details style={{ fontSize: '11px', color: '#64748b', marginTop: '5px' }}><summary>Details</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(notification.details, null, 2)}</pre></details>}
                     {String(notification.status).toUpperCase() !== 'READ' && <button type="button" onClick={async () => {
                       try {
                         const updated = await api.put(`/api/content/notifications/${notification.id}/read`, {});

@@ -5,13 +5,13 @@ import SearchFilters from '../../components/SearchFilters.jsx';
 import StatusBadge from '../../components/StatusBadge.jsx';
 import useRecordList from '../../hooks/useRecordList.js';
 import { formatDate, formatMoney } from '../../utils/formatters.js';
+import { formatRecordId } from '../../utils/recordIds.js';
 
-export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen }) {
+export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen, onEdit }) {
   const list = useRecordList(bookings, { filterRoute: true });
   const statuses = [...new Set(bookings.map((record) => record.status).filter(Boolean))];
   const columns = [
-    { key: 'number', label: '#', render: (_record, index) => (list.page - 1) * 5 + index + 1 },
-    { key: 'id', label: 'Booking ID', className: 'strong' },
+    { key: 'id', label: 'Booking ID', className: 'strong', render: (record) => formatRecordId('booking', record.id) },
     { key: 'passenger', label: 'Passenger' },
     { key: 'route', label: 'Route' },
     { key: 'date', label: 'Trip Date', render: (record) => formatDate(record.date) },
@@ -24,6 +24,8 @@ export default function BookingsPage({ bookings = [], routes = [], onAdd, onOpen
       render: (record) => (
         <ActionButtons
           onView={() => onOpen('booking', 'view', record)}
+          onEdit={() => onEdit(record)}
+          editDisabled={record.status !== 'Pending Payment'}
           onDelete={() => onOpen('booking', 'delete', record)}
         />
       ),

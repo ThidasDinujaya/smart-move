@@ -1,5 +1,6 @@
 
 import { ArrowLeft, Pencil } from 'lucide-react';
+import { formatRecordId } from '../../utils/recordIds.js';
 
 function ViewRoute({ route, onBack, onEdit }) {
   if (!route) {
@@ -23,6 +24,7 @@ function ViewRoute({ route, onBack, onEdit }) {
   }
 
   const details = [
+    ['Route ID', formatRecordId('route', route.id)],
     ['Route Number', route.routeNo],
     ['Route Name', route.routeName],
     ['Start Location', route.startLocation],
