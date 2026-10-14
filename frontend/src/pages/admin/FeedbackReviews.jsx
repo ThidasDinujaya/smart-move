@@ -21,10 +21,6 @@ export default function FeedbackReviews({ reviews = [] }) {
   });
   const list = useRecordList(records);
   const ratedRecords = records.filter((review) => review.score !== null);
-  const averageRating = ratedRecords.length
-    ? (ratedRecords.reduce((total, review) => total + review.score, 0) / ratedRecords.length).toFixed(1)
-    : '—';
-  const positiveReviews = ratedRecords.filter((review) => review.score >= 4).length;
   const ratingFilters = [...new Set(ratedRecords.map((review) => review.status))];
   const columns = [
     { key: 'id', label: 'Feedback ID', className: 'strong', render: (record) => formatRecordId('feedback', record.id) },
@@ -55,21 +51,6 @@ export default function FeedbackReviews({ reviews = [] }) {
   return (
     <section className="page">
       <PageHeader title="Feedback & Reviews" subtitle="Passenger feedback and trip reviews" />
-
-      <div className="stats-grid">
-        <article className="stat-card pink">
-          <Icon name="message" size={22} />
-          <div><div className="stat-title">Reviews</div><div className="stat-value">{ratedRecords.length}</div></div>
-        </article>
-        <article className="stat-card green">
-          <Icon name="star" size={22} />
-          <div><div className="stat-title">Average Rating</div><div className="stat-value">{averageRating}</div></div>
-        </article>
-        <article className="stat-card blue">
-          <Icon name="thumbsUp" size={22} />
-          <div><div className="stat-title">Positive Reviews</div><div className="stat-value">{positiveReviews}</div></div>
-        </article>
-      </div>
 
       <SearchFilters
         search={list.search}
