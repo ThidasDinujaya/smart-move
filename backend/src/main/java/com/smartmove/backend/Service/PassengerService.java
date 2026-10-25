@@ -37,10 +37,41 @@ public class PassengerService {
         requireStaffRole(userId);
         Passenger passenger = new Passenger();
         applyFields(passenger, request, true);
+        String password = validatePassword(request.password());
         assertEmailAvailable(passenger.getEmail(), null);
         assertNicAvailable(passenger.getNic(), null);
         passenger.setId(null);
-        return passengerRepository.save(passenger);
+        Passenger savedPassenger = passengerRepository.save(passenger);
+
+        AppUser account = new AppUser();
+        account.setPassenger(savedPassenger);
+        account.setEmail(savedPassenger.getEmail());
+        account.setPassword(password);
+        account.setRoleCode("CUSTOMER");
+        account.setAccountStatus(savedPassenger.getStatus());
+        appUserRepository.save(account);
+        return savedPassenger;
+    }
+
+    @Transactional
+    public void updatePassengerPassword(Long id, PasswordUpdateRequest request, String userId) {
+        requireAdminRole(userId);
+        Passenger passenger = findPassenger(id);
+        if (request == null) {
+            throw new IllegalArgumentException("A new password is required.");
+        }
+        String password = validatePassword(request.password());
+        assertEmailAvailable(passenger.getEmail(), passenger.getId());
+        AppUser account = appUserRepository.findByPassenger_Id(id).orElseGet(() -> {
+            AppUser newAccount = new AppUser();
+            newAccount.setPassenger(passenger);
+            newAccount.setEmail(passenger.getEmail());
+            newAccount.setRoleCode("CUSTOMER");
+            newAccount.setAccountStatus(passenger.getStatus());
+            return newAccount;
+        });
+        account.setPassword(password);
+        appUserRepository.save(account);
     }
 
     @Transactional
@@ -118,6 +149,23 @@ public class PassengerService {
         if (!isStaff) {
             throw new ForbiddenPassengerOperationException("An admin or operations account is required.");
         }
+    }
+
+    private void requireAdminRole(String userId) {
+        customerAuthService.requireAnyRole(userId, "ADMIN");
+    }
+
+    private String validatePassword(String password) {
+        if (password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Password is required.");
+        }
+        if (password.length() < 8) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long.");
+        }
+        if (password.length() > 128) {
+            throw new IllegalArgumentException("Password must be 128 characters or fewer.");
+        }
+        return password;
     }
 
     private Passenger findPassenger(Long id) {
@@ -223,7 +271,10 @@ public class PassengerService {
     }
 
     public record PassengerRequest(String fullName, String email, String phone, String nic,
-                                   String gender, String status) {
+                                   String gender, String status, String password) {
+    }
+
+    public record PasswordUpdateRequest(String password) {
     }
 
     public record ProfileUpdateRequest(String fullName, String email, String phone, String nic, String gender,

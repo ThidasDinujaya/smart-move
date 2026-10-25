@@ -41,10 +41,27 @@ function optionLabel(field, option) {
   return option;
 }
 
-export default function AdminRecordForm({ type, mode = 'add', item, options = {}, onSave, onCancel }) {
+export default function AdminRecordForm({
+  type,
+  mode = 'add',
+  item,
+  options = {},
+  canManagePassword = false,
+  onSave,
+  onCancel,
+}) {
   const [form, setForm] = useState(() => ({ ...item }));
   const [saving, setSaving] = useState(false);
-  const fields = fieldsByType[type] || [];
+  const fields = [...(fieldsByType[type] || [])];
+  if (type === 'passenger' && (mode === 'add' || canManagePassword)) {
+    fields.push({
+      key: 'password',
+      label: mode === 'add' ? 'Initial Password' : 'New Password',
+      type: 'password',
+      required: mode === 'add',
+      placeholder: mode === 'edit' ? 'Leave blank to keep the current password' : '',
+    });
+  }
   const recordName = { passenger: 'Passenger', booking: 'Booking', payment: 'Payment' }[type] || 'Record';
   const title = `${mode === 'edit' ? 'Edit' : 'Add'} ${recordName}`;
   const subtitle = type === 'passenger' ? 'Enter passenger information' : 'Record a payment for a pending booking';
@@ -106,6 +123,9 @@ export default function AdminRecordForm({ type, mode = 'add', item, options = {}
                   placeholder={field.placeholder || ''}
                   onChange={updateField}
                   required={field.required !== false}
+                  minLength={field.key === 'password' ? 8 : undefined}
+                  maxLength={field.key === 'password' ? 128 : undefined}
+                  autoComplete={field.key === 'password' ? 'new-password' : undefined}
                 />
               )}
             </label>

@@ -554,6 +554,7 @@ function AdminApp() {
             type="passenger"
             mode={page === "edit-passenger" ? "edit" : "add"}
             item={selectedRecord}
+            canManagePassword={adminUser?.roles?.includes(ROLES.ADMIN)}
             onSave={(value) => handleSaveAdminRecord("passenger", page === "edit-passenger" ? "edit" : "add", value)}
             onCancel={() => navigate("passengers")}
           />

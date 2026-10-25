@@ -309,6 +309,7 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
   const deleteTrip = useCallback(async (id) => { await api.delete(`/api/trips/${id}`); await refresh(); return true; }, [refresh]);
 
   const savePassenger = useCallback(async (value, item) => {
+    const id = item?.id || value.id;
     const payload = {
       fullName: value.fullName || value.name,
       email: value.email,
@@ -316,9 +317,12 @@ export default function useSmartMoveData(enabled = true, roles = EMPTY_ROLES) {
       nic: value.nic || null,
       gender: value.gender || null,
       status: value.status || 'Active',
+      ...(!id ? { password: value.password } : {}),
     };
-    const id = item?.id || value.id;
     const saved = id ? await api.put(`/api/passengers/${id}`, payload) : await api.post('/api/passengers', payload);
+    if (id && value.password?.trim()) {
+      await api.put(`/api/passengers/${id}/password`, { password: value.password });
+    }
     await refresh();
     return saved;
   }, [refresh]);

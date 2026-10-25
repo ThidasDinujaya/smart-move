@@ -65,6 +65,15 @@ public class PassengerController {
         return passengerService.updatePassenger(id, request, userId);
     }
 
+    @PutMapping("/{id}/password")
+    public ResponseEntity<Void> updatePassengerPassword(
+            @PathVariable Long id,
+            @RequestBody PassengerService.PasswordUpdateRequest request,
+            @RequestHeader(name = "X-User-Id", required = false) String userId) {
+        passengerService.updatePassengerPassword(id, request, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivatePassenger(
             @PathVariable Long id,
